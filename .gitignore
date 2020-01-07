@@ -1,0 +1,8 @@
+*.directory
+*.db
+*.csv
+*.bib
+venv
+.vscode
+*.old
+__pycache__

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<head>
+<!-- Required meta tags -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="icon"  href="./img/favicon.ico">
+<!-- Bootstrap CSS -->
+<link type="text/css" rel="stylesheet"  href="./css/bootstrap.min.css" />
+<style>
+    body {
+        background-color:    oldlace;
+    }
+    tr a, tr a:hover{
+        color: white;
+    }
+    @media (min-width: 992px) {
+        .my-side {
+        margin-top: 110pt;
+    } }
+
+    @media (max-width: 991px) {
+        .my-side {
+        margin: auto;
+    } }
+
+    @media (max-width: 500px) {
+        .col-lg-9 {
+        padding: 0px;}
+
+        .container{
+        padding: 0px !important;
+        }
+        }
+
+    td, th{
+        border-bottom: 1px solid rgb(197, 197, 197);
+        padding: 4px;
+        padding-right: 9px;
+        margin: 0px;
+        
+    }
+
+    .table-hover tbody tr:hover td {
+    background: #b7e2e6;
+    }
+    /***/
+    .thead-dark{
+    color: #fff;
+    background-color: #53a7ad;
+    border-color: oldlace; }
+
+    .table th {
+        padding: 4px;
+        padding-left: 0.75rem;
+    }
+        /** padding colors*/
+    .form-control {
+    padding: 0.1rem 0.3rem;
+    color: #495057;
+    background-color: white;
+    border: 1px solid #53a7ad;
+    }
+    /** changed color */
+    .btn-primary {
+    color: #fff;
+    background-color: #53a7ad;
+    border-color: #53a7ad;}
+    .nav{
+        padding: 40px;
+    }
+
+</style>
+<title>Social Policy Literature Database</title>
+<script src="js/script.js">  </script>
+</head>
+<body>
+
+<div class="container p-2 d-lg-flex">
+            
+    <div>
+        <div id="sidebar" class="my-side nav p-4 sticky-top align-middle align-self-start">
+            <h2>Sidebar</h2> </br> <br>
+            <div>
+                <form class="menu" id="filterForm">
+                    <label for="title">Title</label>
+                    <input type="text" name="title" id="title">
+                    <label for="author">author</label>
+                    <input type="text" name="author" id="author"> 
+                    <input type="submit" value="Filter">
+                    <input type="button" onclick="resetPage()" value="Reset" />
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="main mt-3 pt-1 col-lg-9">
+        
+        <header class="p-3 text-center">
+                <a href="#" style="text-decoration: none; color: black"><h2> <b>Social Policy Literature Database</b></h2></a> 
+        </header>
+
+        <div class="content mt-3">
+            <p>Number of Results: <span id="result_count"> </span></p>
+            <div id="showData"></div>
+            
+        </div>
+    </div>
+</div>
+
+
+
+</body>
+</html>

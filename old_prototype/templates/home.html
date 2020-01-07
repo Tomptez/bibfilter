@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block content %}
+    <p>Number of Results = {{ urlatt["cnt"] }}</p>
+    {{ content }}
+
+{% endblock content %}
+
+{% block sidebar %}
+<!--
+<form method="GET">
+<b>Title</b><br> <input type="text" class="form-control" name="title" value={{urlatt["title"]}}><br>
+<b>Author</b> <br><input type="text" class="form-control" name="author" value={{urlatt["author"]}}><br>
+<row><col> <b> From </b> <br><input type="text" class="form-control" name="timestart" value={{urlatt["timestart"]}}><br></col>
+<col><b> until </b> <br><input type="text" class="form-control" name="until" value={{urlatt["until"]}}><br></col></row>
+
+<input type="hidden" name="form_direction" value="asc">
+
+<input type="submit" class="btn btn-primary" value="Filter"> 
+<a href="{{ url_for('home') }}" class="btn btn-primary"> Reset </a>
+</form>
+-->
+<form method="GET" action="/" style="text-align: right;">
+    {{ form.title.label }} {{ form.title(size=10) }}
+    <br>
+    {{ form.author.label }} {{ form.author(size=10) }}
+    <br>
+    {{ form.timestart.label }} {{ form.timestart(size=10) }}
+    <br>
+    {{ form.until.label }} {{ form.until(size=10) }}
+    <input type="submit" value="Go">
+</form>
+{% endblock sidebar %}
