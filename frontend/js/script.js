@@ -43,6 +43,17 @@ function setUpFilter() {
 
     filterForm.addEventListener("submit", function (e){
         e.preventDefault();
+        
+        var x = document.getElementById('timestart').value;
+        if (x.length != 4 && x.length != 0) {
+            alert('please enter a year (YYYY)');
+            return false;
+        }
+        var y = document.getElementById('until').value;
+        if (y.length != 4 && y.length != 0) {
+            alert('please enter a year (YYYY)');
+            return false;
+        }
 
         const formData = new FormData(this);
 

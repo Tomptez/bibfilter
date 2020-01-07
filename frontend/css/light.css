@@ -1,0 +1,87 @@
+/* General Layout */
+
+@media (min-width: 600px) {
+    .container {
+        display: flex;
+        width: 90%;
+        margin: auto;
+    }
+}
+
+.sidebar {
+    flex: 1;
+    margin: 0 20;
+    padding-top: 50;
+}
+
+.main{
+    flex: 3;
+    padding: 10px;
+}
+
+/* Form */
+.listwrapper {
+    list-style-type: none;
+    padding: 0;
+    
+}
+
+form {
+    position: sticky;
+    top: 0px;   
+}
+
+.form-row {
+display: flex;
+justify-content: flex-end;
+padding: .5em;
+}
+.form-row > label {
+padding: .5em 1em .5em 0;
+flex: 1;
+}
+.form-row > input {
+flex: 2;
+}
+.form-row > input,
+.form-row > button {
+padding: .5em;
+height: 80%;
+}
+.form-row > button {
+background: gray;
+color: white;
+border: 0;
+margin: 2;
+padding: 5 20;
+}
+
+/* Table */
+table {
+    border-collapse: collapse;
+}
+td, th{
+    
+    border-bottom: 1px solid lightgray;
+    padding: 4px;
+    padding-right: 8px;
+    margin: 0px;
+}
+
+.thead-dark{
+    text-align: left;
+    color: #fff;
+    background-color: #53a7ad;
+    border-color: oldlace; 
+    position: sticky;
+    top: 0px;
+}
+
+th a {
+    color: white;
+    text-decoration: none;
+}
+
+tr:hover td {
+    background: #b7e2e6;
+    }
