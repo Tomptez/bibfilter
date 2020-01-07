@@ -1,5 +1,9 @@
 /* General Layout */
 
+.container {
+    font-family: Helvetica, Arial, sans-serif;
+}
+
 @media (min-width: 600px) {
     .container {
         display: flex;
@@ -26,6 +30,7 @@
     
 }
 
+/* make the form stick to the top */
 form {
     position: sticky;
     top: 0px;   
@@ -41,39 +46,49 @@ padding: .5em 1em .5em 0;
 flex: 1;
 }
 .form-row > input {
-flex: 2;
+    flex: 2;
 }
 .form-row > input,
 .form-row > button {
-padding: .5em;
-height: 80%;
+    padding: .5em;
+    height: 90%;
 }
 .form-row > button {
-background: gray;
-color: white;
-border: 0;
-margin: 2;
-padding: 5 20;
+    background: #3a4a52;
+    font-size: 108%;
+    color: white;
+    border: 0;
+    margin: 2;
+    padding: 6 22;
+}
+.form-row > button:hover {
+    background: darkcyan;
 }
 
 /* Table */
 table {
     border-collapse: collapse;
 }
-td, th{
-    
+td {
+    vertical-align: top;
     border-bottom: 1px solid lightgray;
-    padding: 4px;
+    padding: 10px;
     padding-right: 8px;
     margin: 0px;
+}
+
+tr:nth-child(odd) {
+    background-color: #f2f2f2;
 }
 
 .thead-dark{
     text-align: left;
     color: #fff;
-    background-color: #53a7ad;
+    /* background-color: #53a7ad; */
+    background-color: #3a4a52;
     border-color: oldlace; 
     position: sticky;
+    padding: 4px;
     top: 0px;
 }
 
