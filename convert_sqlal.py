@@ -3,6 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import pandas as pd
 from backend import Article, db
+import math
 
 def Load_Data(file_name):
     data = pd.read_csv('OpinionPolicy.csv', sep=',',header=1)
@@ -18,23 +19,31 @@ def create_db_from_csv():
     session = db.session()
 
     try:
-        file_name = "OpinionPolicy.csv" #sample CSV file used:  http://www.google.com/finance/historical?q=NYSE%3AT&ei=W4ikVam8LYWjmAGjhoHACw&output=csv
+        file_name = "OpinionPolicy.csv" 
         data = Load_Data(file_name) 
-    
+
+        csv_bib_pattern = {"journalArticle": "article", "book": "book", "conferencePaper": "inproceedings", "manuscript": "Article", "bookSection": "book", "webpage": "inproceedings"}
+        #techreport?
+        #misc?
+        #webpage
+        #booksection
+
         for row in data:
             record = Article(**{
-                "key" : row[0],
-                "ltype" : row[1],
-                "title" : row[4],
-                "year" : row[2],
-                "author" : row[3],
-                "publication" : row[5],
-                "doi" : row[8],
-                "pages" : row[15],
-                "issue" : row[17],
-                "volume" : row[18],
+                "ID" : row[0],
+                "ENTRYTYPE" : csv_bib_pattern[row[1]],
+                "title" : row[4] if str(row[4]) != "nan" else "",
+                "author" : row[3] if str(row[3]) != "nan" else "",
+                "year" : int(row[2]) if str(row[2]) != "nan" else "",
+                "journal" : row[5] if str(row[5]) != "nan" else "",
+                "abstract": row[10] if str(row[10]) != "nan" else "",
+                "doi" : row[8] if str(row[8]) != "nan" else "",
+                "pages" : row[15] if str(row[15]) != "nan" else "",
+                "volume" : row[18] if str(row[18]) != "nan" else "",
+                "number" : row[17] if str(row[17]) != "nan" else "",
                 "tags" : row[39]
             })
+            #month??
             session.add(record) #Add all the records
 
         session.commit() #Attempt to commit all the records

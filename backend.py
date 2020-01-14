@@ -3,6 +3,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_cors import CORS
 from sqlalchemy.sql.expression import asc, desc, or_
+from pprint import pprint
+from bibtexparser.bwriter import BibTexWriter
+from bibtexparser.bibdatabase import BibDatabase
+import bibtexparser
 
 #init app
 app = Flask(__name__)
@@ -28,18 +32,19 @@ class Article(db.Model):
     #__table_args__ = {'sqlite_autoincrement': True}
     
     #tell SQLAlchemy the name of column and its attributes:    
-    id = db.Column(db.Integer, primary_key=True, nullable=False) 
-    key = db.Column(db.String)
-    ltype = db.Column(db.String)
+    dbid = db.Column(db.Integer, primary_key=True, nullable=False) 
+    ID = db.Column(db.String)
+    ENTRYTYPE = db.Column(db.String)
     title = db.Column(db.String)
     author = db.Column(db.String)
-    year = db.Column(db.Integer)
-    publication = db.Column(db.String)
+    year = db.Column(db.String)
+    journal = db.Column(db.String)
     doi = db.Column(db.String)
-    pages = db.Column(db.Integer)
-    issue = db.Column(db.String)
+    pages = db.Column(db.String)
     volume = db.Column(db.String)
+    number = db.Column(db.String)
     tags = db.Column(db.String)
+    abstract = db.Column(db.String)
 
     # ToDo: needed?
     # def __init__(self, name, description, price, qty):
@@ -57,9 +62,51 @@ class ArticleSchema(ma.Schema):
         fields = ("title", "author", "year")
         ordered = True
 
+class BibliographySchema(ma.Schema):
+    class Meta:
+        fields = ("title", "author","ID", "ENTRYTYPE", "year", "abstract", "volume", "number", "journal")
+
 # Init schema
 article_schema = ArticleSchema()
 articles_schema = ArticleSchema(many=True)
+
+bibliography_schema = BibliographySchema(many=True)
+
+#return .bib as string
+@app.route("/bibfile", methods=["POST"])
+def get_bibfile():
+    req_data = request.get_json()
+    print(req_data)
+
+    title =  req_data["title"]
+    author = req_data["author"]
+    sortby = req_data["sortby"]
+    sortorder = req_data["sortorder"]
+    
+    titlelist = title.split(" ")
+    or_filter_title = [Article.title.like(f'%{term}%') for term in titlelist]
+    authorlist = author.split(" ")
+    or_filter_author = [Article.author.like(f'%{term}%') for term in authorlist]
+
+    direction = desc if sortorder == 'desc' else asc
+
+    requested_articles = db.session.query(Article).\
+        filter(or_(*or_filter_title), or_(*or_filter_author)).\
+            order_by(direction(getattr(Article, sortby)))
+    result = bibliography_schema.dump(requested_articles)
+    
+    dbib = BibDatabase()
+    dbib.entries = result
+    
+    # pprint(result)
+    
+    # writer = BibTexWriter()
+    # with open('bibtex.bib', 'w') as bibfile:
+    #     bibfile.write(writer.write(dbib))
+
+    bibtex_str = bibtexparser.dumps(dbib)
+    return bibtex_str
+
 
 ## Return Articles
 @app.route("/articles", methods=["POST"])
@@ -88,10 +135,10 @@ def get_articles():
 
     direction = desc if sortorder == 'desc' else asc
 
-    all_articles = db.session.query(Article).\
+    requested_articles = db.session.query(Article).\
         filter(or_(*or_filter_title), or_(*or_filter_author)).\
             order_by(direction(getattr(Article, sortby)))
-    result = articles_schema.dump(all_articles)
+    result = articles_schema.dump(requested_articles)
 
     return jsonify(result)
 
