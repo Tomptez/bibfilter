@@ -6,7 +6,7 @@ from backend import Article, db
 import math
 
 def Load_Data(file_name):
-    data = pd.read_csv('OpinionPolicy.csv', sep=',',header=1)
+    data = pd.read_csv('bibliography.csv', sep=',',header=1)
     return data.values.tolist()
 
 def create_db_from_csv():
@@ -19,7 +19,7 @@ def create_db_from_csv():
     session = db.session()
 
     try:
-        file_name = "OpinionPolicy.csv" 
+        file_name = "bibliography.csv" 
         data = Load_Data(file_name) 
 
         csv_bib_pattern = {"journalArticle": "article", "book": "book", "conferencePaper": "inproceedings", "manuscript": "Article", "bookSection": "book", "webpage": "inproceedings"}
@@ -32,15 +32,15 @@ def create_db_from_csv():
             record = Article(**{
                 "ID" : row[0],
                 "ENTRYTYPE" : csv_bib_pattern[row[1]],
-                "title" : row[4] if str(row[4]) != "nan" else "",
-                "author" : row[3] if str(row[3]) != "nan" else "",
-                "year" : int(row[2]) if str(row[2]) != "nan" else "",
-                "journal" : row[5] if str(row[5]) != "nan" else "",
-                "abstract": row[10] if str(row[10]) != "nan" else "",
-                "doi" : row[8] if str(row[8]) != "nan" else "",
-                "pages" : row[15] if str(row[15]) != "nan" else "",
-                "volume" : row[18] if str(row[18]) != "nan" else "",
-                "number" : row[17] if str(row[17]) != "nan" else "",
+                "title" : row[4],
+                "author" : row[3],
+                "year" : row[2],
+                "journal" : row[5],
+                "abstract": row[10],
+                "doi" : row[8],
+                "pages" : row[15],
+                "volume" : row[18],
+                "number" : row[17],
                 "tags" : row[39]
             })
             #month??

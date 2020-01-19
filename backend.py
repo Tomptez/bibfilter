@@ -7,6 +7,8 @@ from pprint import pprint
 from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
 import bibtexparser
+from marshmallow import pre_dump, post_dump, Schema
+
 
 #init app
 app = Flask(__name__)
@@ -58,11 +60,20 @@ class Article(db.Model):
 
 # Article Schema
 class ArticleSchema(ma.Schema):
+
     class Meta:
         fields = ("title", "author", "year")
         ordered = True
 
 class BibliographySchema(ma.Schema):
+    SKIP_VALUES = set([None])
+
+    @post_dump
+    def remove_skip_values(self, data, **kwargs):
+        return {
+            key: value for key, value in data.items() if value not in self.SKIP_VALUES
+        }
+
     class Meta:
         fields = ("title", "author","ID", "ENTRYTYPE", "year", "abstract", "volume", "number", "journal")
 
@@ -140,7 +151,7 @@ def get_articles():
         filter(or_(*or_filter_title), or_(*or_filter_author)).\
             order_by(direction(getattr(Article, sortby)))
     result = articles_schema.dump(requested_articles)
-
+    print(result)
     return jsonify(result)
 
 # run Server
