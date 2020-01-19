@@ -94,6 +94,7 @@ def get_bibfile():
         filter(or_(*or_filter_title), or_(*or_filter_author)).\
             order_by(direction(getattr(Article, sortby)))
     result = bibliography_schema.dump(requested_articles)
+    print(result)
     
     dbib = BibDatabase()
     dbib.entries = result

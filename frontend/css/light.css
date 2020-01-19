@@ -23,6 +23,14 @@
     padding: 10px;
 }
 
+/* Text on top */
+.alignleft {
+	float: left;
+}
+.alignright {
+	float: right;
+}
+
 /* Form */
 .listwrapper {
     list-style-type: none;
