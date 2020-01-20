@@ -84,8 +84,7 @@ table {
 td {
     vertical-align: top;
     border-bottom: 1px solid lightgray;
-    padding: 10px;
-    padding-right: 8px;
+    padding: 10px 8px;
     margin: 0px;
 }
 
@@ -93,14 +92,14 @@ tr:nth-child(odd) {
     background-color: #f2f2f2;
 }
 
-.thead-dark{
+.thead{
     text-align: left;
     color: #fff;
     /* background-color: #53a7ad; */
     background-color: #3a4a52;
     border-color: oldlace; 
     position: sticky;
-    padding: 4px;
+    padding: 5px 10px;
     top: 0px;
 }
 

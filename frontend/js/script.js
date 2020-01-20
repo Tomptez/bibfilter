@@ -1,4 +1,5 @@
 var currentFilter = {"title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"year","sortorder":"asc"}
+// when changing currentFilter don't forget to change resetPage() as well
 
 async function getFilteredLiterature(input_json){
 
@@ -16,7 +17,7 @@ async function getFilteredLiterature(input_json){
             }).catch(function (error){
                 console.error(error);
                 var divContainer = document.getElementById("showData");
-                divContainer.innerHTML = '<p style="font-style: italic;"> A Neetwork Error occured. Please contact the Website administrator or try again later.</p>';
+                divContainer.innerHTML = '<p style="font-style: italic;"> A Network Error occured. Please contact the Website administrator or try again later.</p>';
             });
 }
 
@@ -39,6 +40,7 @@ async function downloadBib(){
 
 function updateSort(filter,column){
     console.log("updateSort()")
+    column = column.toLowerCase()
     oldsortorder = filter["sortorder"]
     oldcolumn = filter["sortby"]
     filter["sortby"] = column
@@ -54,7 +56,7 @@ function updateSort(filter,column){
 function resetPage() {
     console.log("resetPage()");
     document.getElementById("filterForm").reset();
-    currentFilter = {"title":"","author":"","sortby":"year","sortorder":"asc"}
+    currentFilter = {"title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"year","sortorder":"asc"}
     getFilteredLiterature(JSON.stringify(currentFilter))
 }
 
@@ -111,11 +113,11 @@ function CreateTableFromJSON(data) {
     // CREATE HTML TABLE HEADER ROW USING THE EXTRACTED HEADERS ABOVE.
 
     var tr = table.insertRow(-1);                   // TABLE ROW.
-    tr.className = "table table-hover table-striped ht-tm-element"
+    tr.className = "tr"
 
     for (var i = 0; i < col.length; i++) {
         var th = document.createElement("th");      // TABLE HEADER.
-        th.className = "table thead-dark sticky-top" 
+        th.className = "thead" 
         //th.innerHTML = 
 
         var a = document.createElement('a');

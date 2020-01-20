@@ -92,6 +92,7 @@ def get_bibfile():
     entries = selectEntries(req_data)
     result = bibliography_schema.dump(entries)
     print(f"JSON returned of length {len(result)}")
+
     dbib = BibDatabase()
     dbib.entries = result
     bibtex_str = bibtexparser.dumps(dbib)
@@ -103,8 +104,8 @@ def get_articles():
     req_data = request.get_json()
     entries = selectEntries(req_data)
     result = articles_schema.dump(entries)
-    print(result)
     print(f"JSON returned of length {len(result)}")
+    
     return jsonify(result)
 
 def selectEntries(request_json):
