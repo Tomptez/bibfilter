@@ -34,7 +34,7 @@ def create_db_from_csv():
                 "ENTRYTYPE" : csv_bib_pattern[row[1]],
                 "title" : row[4],
                 "author" : row[3],
-                "year" : row[2],
+                "year" : int(row[2]) if not math.isnan(row[2]) else row[2],
                 "journal" : row[5],
                 "abstract": row[10],
                 "doi" : row[8],

@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from marshmallow import pre_dump, post_dump, Schema
 from flask_cors import CORS
-from sqlalchemy.sql.expression import asc, desc, or_
+from sqlalchemy.sql.expression import asc, desc, or_, and_
 from pprint import pprint
 from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
@@ -69,6 +69,7 @@ class ArticleSchema(ma.Schema):
 class BibliographySchema(ma.Schema):
     SKIP_VALUES = set([None])
 
+    # don't include NULL values in output JSON
     @post_dump
     def remove_skip_values(self, data, **kwargs):
         return {
@@ -90,8 +91,7 @@ def get_bibfile():
     req_data = request.get_json()
     entries = selectEntries(req_data)
     result = bibliography_schema.dump(entries)
-    print(result)
-    
+    print(f"JSON returned of length {len(result)}")
     dbib = BibDatabase()
     dbib.entries = result
     bibtex_str = bibtexparser.dumps(dbib)
@@ -104,6 +104,7 @@ def get_articles():
     entries = selectEntries(req_data)
     result = articles_schema.dump(entries)
     print(result)
+    print(f"JSON returned of length {len(result)}")
     return jsonify(result)
 
 def selectEntries(request_json):
@@ -120,16 +121,20 @@ def selectEntries(request_json):
     author = request_json["author"]
     sortby = request_json["sortby"]
     sortorder = request_json["sortorder"]
+    timestart = int(request_json["timestart"]) if len(request_json["timestart"]) == 4 and request_json["timestart"].isdigit else 1800
+    until = int(request_json["until"]) if len(request_json["until"]) == 4 and request_json["until"].isdigit else 2200
+    articletype = "%" if request_json["type"] == "all" else request_json["type"]
     
     titlelist = title.split(" ")
     or_filter_title = [Article.title.like(f'%{term}%') for term in titlelist]
     authorlist = author.split(" ")
     or_filter_author = [Article.author.like(f'%{term}%') for term in authorlist]
-
     direction = desc if sortorder == 'desc' else asc
 
     requested_articles = db.session.query(Article).\
-        filter(or_(*or_filter_title), or_(*or_filter_author)).\
+        filter(or_(*or_filter_title), or_(*or_filter_author),\
+            and_(Article.year >= timestart, Article.year <= until,\
+                Article.ENTRYTYPE.like(articletype))).\
             order_by(direction(getattr(Article, sortby)))
     return requested_articles
 

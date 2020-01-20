@@ -1,4 +1,4 @@
-var currentFilter = {"title":"","author":"","sortby":"year","sortorder":"asc"}
+var currentFilter = {"title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"year","sortorder":"asc"}
 
 async function getFilteredLiterature(input_json){
 
@@ -15,6 +15,8 @@ async function getFilteredLiterature(input_json){
                 CreateTableFromJSON(response_json);
             }).catch(function (error){
                 console.error(error);
+                var divContainer = document.getElementById("showData");
+                divContainer.innerHTML = '<p style="font-style: italic;"> A Neetwork Error occured. Please contact the Website administrator or try again later.</p>';
             });
 }
 
@@ -94,6 +96,7 @@ function CreateTableFromJSON(data) {
     // EXTRACT VALUE FOR HTML HEADER. 
     // ('Book ID', 'Book Name', 'Category' and 'Price')
     var col = [];
+    colname = {"title": "Title", "author": "Author", "year": "Year"}
     for (var i = 0; i < data.length; i++) {
         for (var key in data[i]) {
             if (col.indexOf(key) === -1) {
@@ -116,7 +119,7 @@ function CreateTableFromJSON(data) {
         //th.innerHTML = 
 
         var a = document.createElement('a');
-        var linkText = document.createTextNode(col[i]);
+        var linkText = document.createTextNode(colname[col[i]]);
         a.appendChild(linkText);
         a.href = "";
         a.onclick = function(){
@@ -137,12 +140,19 @@ function CreateTableFromJSON(data) {
             var tabCell = tr.insertCell(-1);
             tabCell.innerHTML = data[i][col[j]];
         }
+        
     }
 
     // FINALLY ADD THE NEWLY CREATED TABLE WITH JSON DATA TO A CONTAINER.
     var divContainer = document.getElementById("showData");
-    divContainer.innerHTML = "";
+    if (data.length == 0) {
+        divContainer.innerHTML = '<p style="font-style: italic;"> Unfortunately no literature met your criteria</p>';
+    }
+    else {
+        divContainer.innerHTML = "";
     divContainer.appendChild(table);
+    }
+    
 }
 
 //download.js v4.2, by dandavis; 2008-2016. [CCBY2] see http://danml.com/download.html for tests/usage

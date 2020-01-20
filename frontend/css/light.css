@@ -38,6 +38,10 @@
     
 }
 
+form fieldset p {
+    margin: 1px;
+}
+
 /* make the form stick to the top */
 form {
     position: sticky;
