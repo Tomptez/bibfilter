@@ -1,14 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
+from marshmallow import pre_dump, post_dump, Schema
 from flask_cors import CORS
 from sqlalchemy.sql.expression import asc, desc, or_
 from pprint import pprint
 from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
 import bibtexparser
-from marshmallow import pre_dump, post_dump, Schema
-
 
 #init app
 app = Flask(__name__)
@@ -22,8 +21,10 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 # Don't sort json elements alphabetically 
 app.config['JSON_SORT_KEYS'] = False
 
-# Init db
+## needed to communicate properly on local server
 CORS(app)
+
+# Init db
 db = SQLAlchemy(app)
 ## Init Marshmallow
 ma = Marshmallow(app)
@@ -48,14 +49,14 @@ class Article(db.Model):
     tags = db.Column(db.String)
     abstract = db.Column(db.String)
 
-    # ToDo: needed?
+    # needed?
     # def __init__(self, name, description, price, qty):
     #     self.name = name
     #     self.description = description
     #     self.price = price
     #     self.qty = qty
 
-# Create DB
+# Create DB / already done previously
 # db.create_all()
 
 # Article Schema
@@ -87,42 +88,25 @@ bibliography_schema = BibliographySchema(many=True)
 @app.route("/bibfile", methods=["POST"])
 def get_bibfile():
     req_data = request.get_json()
-    print(req_data)
-
-    title =  req_data["title"]
-    author = req_data["author"]
-    sortby = req_data["sortby"]
-    sortorder = req_data["sortorder"]
-    
-    titlelist = title.split(" ")
-    or_filter_title = [Article.title.like(f'%{term}%') for term in titlelist]
-    authorlist = author.split(" ")
-    or_filter_author = [Article.author.like(f'%{term}%') for term in authorlist]
-
-    direction = desc if sortorder == 'desc' else asc
-
-    requested_articles = db.session.query(Article).\
-        filter(or_(*or_filter_title), or_(*or_filter_author)).\
-            order_by(direction(getattr(Article, sortby)))
-    result = bibliography_schema.dump(requested_articles)
+    entries = selectEntries(req_data)
+    result = bibliography_schema.dump(entries)
     print(result)
     
     dbib = BibDatabase()
     dbib.entries = result
-    
-    # pprint(result)
-    
-    # writer = BibTexWriter()
-    # with open('bibtex.bib', 'w') as bibfile:
-    #     bibfile.write(writer.write(dbib))
-
     bibtex_str = bibtexparser.dumps(dbib)
     return bibtex_str
-
 
 ## Return Articles
 @app.route("/articles", methods=["POST"])
 def get_articles():
+    req_data = request.get_json()
+    entries = selectEntries(req_data)
+    result = articles_schema.dump(entries)
+    print(result)
+    return jsonify(result)
+
+def selectEntries(request_json):
     """ 
     JSON SCHEME
     {
@@ -132,13 +116,10 @@ def get_articles():
         'sortorder': 'asc'}
     }
     """
-    req_data = request.get_json()
-    print(req_data)
-
-    title =  req_data["title"]
-    author = req_data["author"]
-    sortby = req_data["sortby"]
-    sortorder = req_data["sortorder"]
+    title =  request_json["title"]
+    author = request_json["author"]
+    sortby = request_json["sortby"]
+    sortorder = request_json["sortorder"]
     
     titlelist = title.split(" ")
     or_filter_title = [Article.title.like(f'%{term}%') for term in titlelist]
@@ -150,9 +131,7 @@ def get_articles():
     requested_articles = db.session.query(Article).\
         filter(or_(*or_filter_title), or_(*or_filter_author)).\
             order_by(direction(getattr(Article, sortby)))
-    result = articles_schema.dump(requested_articles)
-    print(result)
-    return jsonify(result)
+    return requested_articles
 
 # run Server
 if __name__ == "__main__":
