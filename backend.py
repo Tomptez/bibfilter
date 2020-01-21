@@ -8,15 +8,25 @@ from pprint import pprint
 from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
 import bibtexparser
+import os
 
 #init app
 app = Flask(__name__)
 
-#Database
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///bib_sq.db"
+def get_env_variable(name):
+    try:
+        return os.environ[name]
+    except KeyError:
+        message = "Expected environment variable '{}' not set.".format(name)
+        raise Exception(message)
 
-#only needed so the console doesn't complain
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+# the values of those depend on your setup
+DB_URL = get_env_variable("DATABASE_URL")
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
+
+# silence the deprecation warning
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
 
 # Don't sort json elements alphabetically 
 app.config['JSON_SORT_KEYS'] = False
@@ -93,7 +103,7 @@ def get_bibfile():
     result = bibliography_schema.dump(entries)
     print(f"JSON returned of length {len(result)}")
 
-    dbib = BibDatabase()git
+    dbib = BibDatabase()
     dbib.entries = result
     bibtex_str = bibtexparser.dumps(dbib)
     return bibtex_str
@@ -122,8 +132,8 @@ def selectEntries(request_json):
     author = request_json["author"]
     sortby = request_json["sortby"]
     sortorder = request_json["sortorder"]
-    timestart = int(request_json["timestart"]) if len(request_json["timestart"]) == 4 and request_json["timestart"].isdigit else 1800
-    until = int(request_json["until"]) if len(request_json["until"]) == 4 and request_json["until"].isdigit else 2200
+    timestart = request_json["timestart"] if len(request_json["timestart"]) == 4 and request_json["timestart"].isdigit else str(1800)
+    until = request_json["until"] if len(request_json["until"]) == 4 and request_json["until"].isdigit else str(2200)
     articletype = "%" if request_json["type"] == "all" else request_json["type"]
     
     titlelist = title.split(" ")
