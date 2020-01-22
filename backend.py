@@ -137,9 +137,9 @@ def selectEntries(request_json):
     articletype = "%" if request_json["type"] == "all" else request_json["type"]
     
     titlelist = title.split(" ")
-    or_filter_title = [Article.title.like(f'%{term}%') for term in titlelist]
+    or_filter_title = [Article.title.ilike(f'%{term}%') for term in titlelist]
     authorlist = author.split(" ")
-    or_filter_author = [Article.author.like(f'%{term}%') for term in authorlist]
+    or_filter_author = [Article.author.ilike(f'%{term}%') for term in authorlist]
     direction = desc if sortorder == 'desc' else asc
 
     requested_articles = db.session.query(Article).\

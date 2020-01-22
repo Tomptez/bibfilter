@@ -3,7 +3,6 @@ var currentFilter = {"title":"","author":"", "timestart": "", "until": "", "type
 
 async function getFilteredLiterature(input_json){
 
-    // comme
     fetch('https://bibfilter.herokuapp.com/articles', {
             method: 'POST',
             body: input_json, // string or object
