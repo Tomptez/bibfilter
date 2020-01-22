@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from marshmallow import pre_dump, post_dump, Schema
@@ -21,6 +21,7 @@ def get_env_variable(name):
         raise Exception(message)
 
 # the values of those depend on your setup
+# DATABASE_URL = "postgresql://postgres:mypassword@localhost"
 DB_URL = get_env_variable("DATABASE_URL")
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
@@ -87,7 +88,7 @@ class BibliographySchema(ma.Schema):
         }
 
     class Meta:
-        fields = ("title", "author","ID", "ENTRYTYPE", "year", "abstract", "volume", "number", "journal")
+        fields = ("title", "author","ID", "ENTRYTYPE", "year", "abstract", "volume", "number", "journal", "doi")
 
 # Init schema
 article_schema = ArticleSchema()
@@ -117,6 +118,10 @@ def get_articles():
     print(f"JSON returned of length {len(result)}")
 
     return jsonify(result)
+
+@app.route("/", methods=["GET"])
+def main():
+    return render_template("main.html")
 
 def selectEntries(request_json):
     """ 
