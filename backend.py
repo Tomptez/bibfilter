@@ -79,10 +79,9 @@ class ArticleSchema(ma.Schema):
         ordered = True
 
 class BibliographySchema(ma.Schema):
-    SKIP_VALUES = set([None])
+    SKIP_VALUES = set([None, "NaN"])
 
-    # don't include NULL values in output JSON
-    # ToDo: working with postgresQL
+    # don't include NULL or "NaN" values in output JSON
     @post_dump
     def remove_skip_values(self, data, **kwargs):
         return {
