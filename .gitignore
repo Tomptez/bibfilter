@@ -6,3 +6,4 @@ venv
 .vscode
 *.old
 __pycache__
+.env

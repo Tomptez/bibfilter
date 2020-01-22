@@ -21,7 +21,8 @@ def get_env_variable(name):
         raise Exception(message)
 
 # the values of those depend on your setup
-# DATABASE_URL = "postgresql://postgres:mypassword@localhost"
+# DATABASE_URL = "postgresql://postgres:mypassword@localhost/bibfilter"
+# DATABASE_URL = "sqlite:///new.db"
 DB_URL = get_env_variable("DATABASE_URL")
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
@@ -81,6 +82,7 @@ class BibliographySchema(ma.Schema):
     SKIP_VALUES = set([None])
 
     # don't include NULL values in output JSON
+    # ToDo: working with postgresQL
     @post_dump
     def remove_skip_values(self, data, **kwargs):
         return {
