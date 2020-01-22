@@ -13,6 +13,12 @@
 
 <div class="container" >
     <div class="sidebar">
+        <div class="stickyside">
+        <div id="textbox">
+            <p class="alignleft"> Number of Results: <span id="result_count"> </span></p>
+            <p class="alignright"> <a href="javascript:void(0)" id="download" onclick="downloadBib()"> Download as .bib</a></p>
+            <div style="clear: both;"></div>
+        </div>
         <form id="filterForm">
             <ul class="listwrapper">
                 <li class="form-row">
@@ -45,14 +51,9 @@
             </ul>
         </form>
     </div>
+    </div>
 
     <div class="main">
-        <div id="textbox">
-            <p class="alignleft"> Number of Results: <span id="result_count"> </span></p>
-            <p class="alignright"> <a href="javascript:void(0)" id="download" onclick="downloadBib()"> Download as .bib</a></p>
-            <div style="clear: both;"></div>
-        </div>
-        
         <div id="showData"></div>
     </div>
     

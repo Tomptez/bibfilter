@@ -8,46 +8,47 @@
 
 <div class="container" >
     <div class="sidebar">
-        <form id="filterForm">
-            <ul class="listwrapper">
-                <li class="form-row">
-                    <label for="title">Title</label>
-                    <input type="text" name="title">
-                </li>
-                <li class="form-row">
-                    <label for="author">Author</label>
-                    <input type="text" name="author"> 
-                </li>
-                <li class="form-row">
-                    <label for="title">From</label>
-                    <input type="text" name="timestart" id="timestart">
-                </li>
-                <li class="form-row">
-                    <label for="author">Until</label>
-                    <input type="text" name="until" id="until"> 
-                </li>
-                
-                <fieldset class="source">
-                <legend>Literature Type</legend>
-                <p><label> <input type="radio" name="type" value="article"> Article </label></p>
-                <p><label> <input type="radio" name="type" value="book"> Book(chapter) </label></p>
-                <p><label> <input type="radio" name="type" value="all" checked> All </label></p>
-                </fieldset>
-                <li class="form-row">
-                <button type="submit">Filter</button>
-                <button onclick="resetPage()">Reset</button>
-                </li>
-            </ul>
-        </form>
+        <div class="stickyside">
+            <div id="textbox">
+                <p class="alignleft"> Number of Results: <span id="result_count"> </span></p>
+                <p class="alignright"> <a href="javascript:void(0)" id="download" onclick="downloadBib()"> Download as .bib</a></p>
+                <div style="clear: both;"></div>
+            </div>
+            <form id="filterForm">
+                <ul class="listwrapper">
+                    <li class="form-row">
+                        <label for="title">Title</label>
+                        <input type="text" name="title">
+                    </li>
+                    <li class="form-row">
+                        <label for="author">Author</label>
+                        <input type="text" name="author"> 
+                    </li>
+                    <li class="form-row">
+                        <label for="title">From</label>
+                        <input type="text" name="timestart" id="timestart">
+                    </li>
+                    <li class="form-row">
+                        <label for="author">Until</label>
+                        <input type="text" name="until" id="until"> 
+                    </li>
+                    
+                    <fieldset class="source">
+                    <legend>Literature Type</legend>
+                    <p><label> <input type="radio" name="type" value="article"> Article </label></p>
+                    <p><label> <input type="radio" name="type" value="book"> Book(chapter) </label></p>
+                    <p><label> <input type="radio" name="type" value="all" checked> All </label></p>
+                    </fieldset>
+                    <li class="form-row">
+                    <button type="submit">Filter</button>
+                    <button onclick="resetPage()">Reset</button>
+                    </li>
+                </ul>
+            </form>
+        </div>
     </div>
 
     <div class="main">
-        <div id="textbox">
-            <p class="alignleft"> Number of Results: <span id="result_count"> </span></p>
-            <p class="alignright"> <a href="javascript:void(0)" id="download" onclick="downloadBib()"> Download as .bib</a></p>
-            <div style="clear: both;"></div>
-        </div>
-        
         <div id="showData"></div>
     </div>
     
