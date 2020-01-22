@@ -90,7 +90,25 @@ flex: 1;
 /* Table */
 table {
     border-collapse: collapse;
+    width: 100%;
 }
+/* column size 
+table colgroup #author {
+    width: 80%;
+}
+table colgroup #year {
+    width: 5%;
+}
+table colgroup #title {
+    width: 5%;
+}
+table colgroup #journal {
+    width: 5%;
+}
+table colgroup #doi {
+    width: 5%;
+}
+*/
 td {
     vertical-align: top;
     border-bottom: 1px solid lightgray;
@@ -98,10 +116,12 @@ td {
     margin: 0px;
 }
 
+/* add stripes to table */
 tr:nth-child(odd) {
     background-color: #f2f2f2;
 }
 
+/* make table header look nice */
 .thead{
     text-align: left;
     color: #fff;

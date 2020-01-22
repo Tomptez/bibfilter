@@ -1,5 +1,5 @@
-var currentFilter = {"title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"year","sortorder":"asc"}
-// when changing currentFilter don't forget to change resetPage() as well
+var originalFilter = {"title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"author","sortorder":"asc"};
+var currentFilter = originalFilter;
 
 async function getFilteredLiterature(input_json){
 
@@ -56,7 +56,7 @@ function updateSort(filter,column){
 function resetPage() {
     console.log("resetPage()");
     document.getElementById("filterForm").reset();
-    currentFilter = {"title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"year","sortorder":"asc"}
+    currentFilter = originalFilter;
     getFilteredLiterature(JSON.stringify(currentFilter))
 }
 
@@ -98,7 +98,7 @@ function CreateTableFromJSON(data) {
     // EXTRACT VALUE FOR HTML HEADER. 
     // ('Book ID', 'Book Name', 'Category' and 'Price')
     var col = [];
-    colname = {"title": "Title", "author": "Author", "year": "Year"}
+    colname = {"title": "Title", "author": "Author", "year": "Year", "doi": "DOI", "journal": "Journal"}
     for (var i = 0; i < data.length; i++) {
         for (var key in data[i]) {
             if (col.indexOf(key) === -1) {
@@ -109,17 +109,34 @@ function CreateTableFromJSON(data) {
 
     // CREATE DYNAMIC TABLE.
     var table = document.createElement("table");
+    var tbody = document.createElement("tbody")
+    var colgroup = document.createElement("colgroup")
+
+    // create cols with width
+    for (var i = 0; i < col.length; i++){
+        var newcol = document.createElement("col")
+        newcol.id = col[i]
+        colgroup.appendChild(newcol)
+    }
 
     // CREATE HTML TABLE HEADER ROW USING THE EXTRACTED HEADERS ABOVE.
 
-    var tr = table.insertRow(-1);                   // TABLE ROW.
+    var tr = tbody.insertRow(-1);                   // tbody ROW.
     tr.className = "tr"
 
     for (var i = 0; i < col.length; i++) {
-        var th = document.createElement("th");      // TABLE HEADER.
+        var th = document.createElement("th");      // tbody HEADER.
         th.className = "thead" 
         //th.innerHTML = 
 
+        
+        // mark which column its sorted by
+        if (col[i] == currentFilter["sortby"]){
+            var sp = document.createElement('span');
+            var spanText = document.createTextNode(" \u2195");
+            sp.appendChild(spanText);
+            th.appendChild(sp);
+        }
         var a = document.createElement('a');
         var linkText = document.createTextNode(colname[col[i]]);
         a.appendChild(linkText);
@@ -128,31 +145,42 @@ function CreateTableFromJSON(data) {
             event.preventDefault();
             currentFilter = updateSort(currentFilter,this.text);
             getFilteredLiterature(JSON.stringify(currentFilter))};
-        th.appendChild(a);
+        th.appendChild(linkText);
         tr.appendChild(th); 
         
     }
 
-    // ADD JSON DATA TO THE TABLE AS ROWS.
+    // ADD JSON DATA TO THE tbody AS ROWS.
     for (var i = 0; i < data.length; i++) {
 
-        tr = table.insertRow(-1);
+        tr = tbody.insertRow(-1);
 
         for (var j = 0; j < col.length; j++) {
             var tabCell = tr.insertCell(-1);
-            tabCell.innerHTML = data[i][col[j]];
+            if (col[j] == "doi"){
+                var a = document.createElement('a');
+                a.href = "https://search.crossref.org/?q="+data[i][col[j]];
+                var linkText = document.createTextNode("DOI");
+                a.appendChild(linkText)
+                tabCell.appendChild(a);  
+            }
+            else {
+                tabCell.innerHTML = data[i][col[j]];
+            }
         }
         
     }
 
-    // FINALLY ADD THE NEWLY CREATED TABLE WITH JSON DATA TO A CONTAINER.
+    // FINALLY ADD THE NEWLY CREATED tbody and table WITH JSON DATA TO A CONTAINER.
     var divContainer = document.getElementById("showData");
     if (data.length == 0) {
         divContainer.innerHTML = '<p style="font-style: italic;"> Unfortunately no literature met your criteria</p>';
     }
     else {
         divContainer.innerHTML = "";
-    divContainer.appendChild(table);
+        table.appendChild(colgroup)
+        table.appendChild(tbody)
+        divContainer.appendChild(table);
     }
     
 }
