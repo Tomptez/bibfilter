@@ -14,6 +14,7 @@ bibtexparser = "*"
 pandas = "*"
 psycopg2 = "*"
 marshmallow-sqlalchemy = "*"
+flask-basicauth = "*"
 
 [requires]
 python_version = "3.8"

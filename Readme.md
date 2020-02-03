@@ -37,6 +37,11 @@ In your .env file you can then put the following line (replacing myusername and 
 
     DATABASE_URL = "postgresql://myusername:mypassword@localhost/bibfilter"
 
+For the login page within .env you also need to set. You can chage the values to whatever you like
+
+    APP_USERNAME = "username"
+    APP_PASSWORD = "password"
+
 then you can activate the environment via
     
     pipenv shell

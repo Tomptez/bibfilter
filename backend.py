@@ -9,6 +9,7 @@ from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
 import bibtexparser
 import os
+from flask_basicauth import BasicAuth
 
 #init app
 app = Flask(__name__)
@@ -20,12 +21,18 @@ def get_env_variable(name):
         message = "Expected environment variable '{}' not set.".format(name)
         raise Exception(message)
 
-# the values of those depend on your setup
+# the URI for the Databse depend on your setup and 
+# should be setup as an environment variable DATABASE_URL (for example in your .env file)
+#
+# Examples
 # DATABASE_URL = "postgresql://postgres:mypassword@localhost/bibfilter"
 # DATABASE_URL = "sqlite:///new.db"
-DB_URL = get_env_variable("DATABASE_URL")
 
-app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
+app.config['SQLALCHEMY_DATABASE_URI'] = get_env_variable("DATABASE_URL")
+
+# Set Up Username and Password for Basic Auth as environment variables APP_USERNAME annd APP_PASSWORD
+app.config['BASIC_AUTH_USERNAME'] = get_env_variable("APP_USERNAME")
+app.config['BASIC_AUTH_PASSWORD'] = get_env_variable("APP_PASSWORD")
 
 # silence the deprecation warning
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
@@ -33,13 +40,14 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Don't sort json elements alphabetically 
 app.config['JSON_SORT_KEYS'] = False
 
-## needed to communicate properly on local server
+# Init Cors (needed to communicate properly on local server)
 CORS(app)
-
 # Init db
 db = SQLAlchemy(app)
-## Init Marshmallow
+# Init Marshmallow
 ma = Marshmallow(app)
+# Init BasicAuth
+basic_auth = BasicAuth(app)
 
 ## Define Article Class
 class Article(db.Model):
@@ -120,9 +128,16 @@ def get_articles():
 
     return jsonify(result)
 
+## Return our frontend
 @app.route("/", methods=["GET"])
 def main():
     return render_template("main.html")
+
+## Return our authentication page
+@app.route("/login", methods=["GET"])
+@basic_auth.required
+def secret_view():
+    return render_template("admin.html")
 
 def selectEntries(request_json):
     """ 
