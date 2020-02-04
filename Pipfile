@@ -15,6 +15,10 @@ pandas = "*"
 psycopg2 = "*"
 marshmallow-sqlalchemy = "*"
 flask-basicauth = "*"
+python-dotenv = "*"
 
 [requires]
 python_version = "3.8"
+
+[dev-packages]
+requests = "*"
