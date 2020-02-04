@@ -138,7 +138,6 @@ def get_articles():
 
 ## API: Return Articles for Admin page
 @app.route("/articles_admin", methods=["POST"])
-@basic_auth.required
 def get_admin():
     req_data = request.get_json()
     entries = selectEntries(req_data)
@@ -164,6 +163,7 @@ def main():
 
 ## Frontend: Return admin page
 @app.route("/admin", methods=["GET"])
+@basic_auth.required
 def admin():
     return render_template("admin.html")
 
