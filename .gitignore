@@ -1,9 +1,11 @@
 *.directory
 *.db
-*.csv
+*.csv*
 *.bib
 venv
 .vscode
 *.old
 __pycache__
 .env
+.todo
+.sqlite

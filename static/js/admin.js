@@ -3,7 +3,8 @@ var currentFilter = originalFilter;
 
 async function getFilteredLiterature(input_json){
 
-    fetch('http://127.0.0.1:5000/articles', {
+    // different than main
+    fetch('http://127.0.0.1:5000/articles_admin', {
             method: 'POST',
             body: input_json, // string or object
             headers: {
@@ -98,7 +99,7 @@ function CreateTableFromJSON(data) {
     // EXTRACT VALUE FOR HTML HEADER. 
     // ('Book ID', 'Book Name', 'Category' and 'Price')
     var col = [];
-    colname = {"title": "Title", "author": "Author", "year": "Year", "doi": "DOI", "journal": "Journal"}
+    colname = {"title": "Title", "author": "Author", "year": "Year", "doi": "DOI", "journal": "Journal", "ID": "Delete"}
     for (var i = 0; i < data.length; i++) {
         for (var key in data[i]) {
             if (col.indexOf(key) === -1) {
@@ -157,13 +158,26 @@ function CreateTableFromJSON(data) {
 
         for (var j = 0; j < col.length; j++) {
             var tabCell = tr.insertCell(-1);
-            if (col[j] == "doi"){
+
+            // different than main
+            // create DELETE button 
+            if (col[j] == "ID"){
+                var a = document.createElement('a');
+                a.href = "http://127.0.0.1:5000/delete/"+data[i][col[j]];
+                var linkText = document.createTextNode("DELETE");
+                a.appendChild(linkText);
+                tabCell.appendChild(a);  
+            }
+            // create link for DOI and append it to cell
+            else if (col[j] == "doi"){
                 var a = document.createElement('a');
                 a.href = "https://search.crossref.org/?q="+data[i][col[j]];
                 var linkText = document.createTextNode("DOI");
-                a.appendChild(linkText)
+                a.appendChild(linkText);
                 tabCell.appendChild(a);  
             }
+
+            // append json content into cell
             else {
                 tabCell.innerHTML = data[i][col[j]];
             }

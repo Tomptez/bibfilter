@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from marshmallow import pre_dump, post_dump, Schema
@@ -86,6 +86,12 @@ class ArticleSchema(ma.Schema):
         fields = ("author","year", "title", "journal", "doi")
         ordered = True
 
+class ArticleSchemaAdmin(ma.Schema):
+
+    class Meta:
+        fields = ("ID","author","year", "title", "journal", "doi")
+        ordered = True
+
 class BibliographySchema(ma.Schema):
     SKIP_VALUES = set([None, "NaN"])
 
@@ -105,7 +111,9 @@ articles_schema = ArticleSchema(many=True)
 
 bibliography_schema = BibliographySchema(many=True)
 
-#return .bib as string
+articles_schema_admin = ArticleSchemaAdmin(many=True)
+
+## API: return .bib as string
 @app.route("/bibfile", methods=["POST"])
 def get_bibfile():
     req_data = request.get_json()
@@ -118,7 +126,7 @@ def get_bibfile():
     bibtex_str = bibtexparser.dumps(dbib)
     return bibtex_str
 
-## Return Articles
+## API: Return Articles
 @app.route("/articles", methods=["POST"])
 def get_articles():
     req_data = request.get_json()
@@ -128,16 +136,37 @@ def get_articles():
 
     return jsonify(result)
 
-## Return our frontend
+## API: Return Articles for Admin page
+@app.route("/articles_admin", methods=["POST"])
+@basic_auth.required
+def get_admin():
+    req_data = request.get_json()
+    entries = selectEntries(req_data)
+    result = articles_schema_admin.dump(entries)
+    print(f"JSON returned of length {len(result)}")
+    return jsonify(result)
+
+# API: Delete an article
+@app.route("/delete/<key>", methods=["GET"])
+@basic_auth.required
+def delete_article(key):
+    article = db.session.query(Article).filter(Article.ID == key).first()
+    if article != None:
+        print(f" Deleted Article: {article.title}")
+        db.session.delete(article)
+        # db.session.commit()
+    return redirect("/admin")
+
+## Frontend: Return our frontend
 @app.route("/", methods=["GET"])
 def main():
     return render_template("main.html")
 
-## Return our authentication page
-@app.route("/login", methods=["GET"])
-@basic_auth.required
-def secret_view():
+## Frontend: Return admin page
+@app.route("/admin", methods=["GET"])
+def admin():
     return render_template("admin.html")
+
 
 def selectEntries(request_json):
     """ 
