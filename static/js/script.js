@@ -137,17 +137,17 @@ function CreateTableFromJSON(data) {
             sp.appendChild(spanText);
             th.appendChild(sp);
         }
+
         var a = document.createElement('a');
         var linkText = document.createTextNode(colname[col[i]]);
-        a.appendChild(linkText);
         a.href = "";
         a.onclick = function(){
             event.preventDefault();
             currentFilter = updateSort(currentFilter,this.text);
             getFilteredLiterature(JSON.stringify(currentFilter))};
-        th.appendChild(linkText);
+        a.appendChild(linkText);
+        th.appendChild(a);
         tr.appendChild(th); 
-        
     }
 
     // ADD JSON DATA TO THE tbody AS ROWS.
