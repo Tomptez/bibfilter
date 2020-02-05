@@ -1,10 +1,13 @@
 var originalFilter = {"title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"author","sortorder":"asc"};
 var currentFilter = originalFilter;
 
+// set the base url so the app knows which page to call independent whether we're in development or production
+var base_url = window.location.origin;
+
 async function getFilteredLiterature(input_json){
 
     // different than main
-    fetch('http://127.0.0.1:5000/articles_admin', {
+    fetch(base_url+'/articles_admin', {
             method: 'POST',
             body: input_json, // string or object
             headers: {
@@ -24,7 +27,7 @@ async function getFilteredLiterature(input_json){
 
 async function downloadBib(){
     var json = JSON.stringify(currentFilter)
-    fetch('http://127.0.0.1:5000/bibfile', {
+    fetch(base_url+'/bibfile', {
             method: 'POST',
             body: json, // string or object
             headers: {
