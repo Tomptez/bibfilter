@@ -53,6 +53,8 @@ def delete_article(key):
     if article != None:
         print(f" Deleted Article: {article.title}")
         db.session.delete(article)
+
+        # ToDo: uncomment to actually delete
         # db.session.commit()
     return redirect("/admin")
 

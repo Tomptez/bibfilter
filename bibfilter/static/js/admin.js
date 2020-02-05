@@ -166,7 +166,7 @@ function CreateTableFromJSON(data) {
             // create DELETE button 
             if (col[j] == "ID"){
                 var a = document.createElement('a');
-                a.href = "http://127.0.0.1:5000/delete/"+data[i][col[j]];
+                a.href = base_url+"/delete/"+data[i][col[j]];
                 var linkText = document.createTextNode("DELETE");
                 a.appendChild(linkText);
                 tabCell.appendChild(a);  
