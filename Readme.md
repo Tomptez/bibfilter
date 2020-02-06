@@ -28,21 +28,20 @@ After that we initiate the virtual environment and install all required modules 
     pipenv install --dev
 
 Before we can start the application, we need to set our environment variables.
-To do so, create a new file in the main directory (bibfilter) called .env where you define the environment variables which we will use in the project.
-
-As a database you can either use sqlite if you just want to have a look at the application for which you put a line in `.env`:
+To do so, create a new file in the main directory (in which the Pipfile sits) called `.env` where you define the environment variables which we will use in the project.
+The `.env` file should look something like this:
 
     DATABASE_URL = "sqlite:///mydatabase.db"
+    APP_USERNAME = "username"
+    APP_PASSWORD = "password"
 
-If you want to build the application for actual production it would be best to first install and setup [PostgreSQL](https://www.postgresql.org/download/) and create a new Database called bibfilter.
-In your `.env` file you can then put the following line (replacing `myusername` and `mypassword` with your actual username/password and `bibfilter` with whatever you called your database)
+You can change the values of `APP_USERNAME` and `APP_PASSWORD` to whatever you like. They will be used for the login for the `/admin` page.
+
+For testing you can leave the `DATABASE_URL` untouched (it will use a simple sqlite3 database). For serious development and actual production it would be best to first install and setup [PostgreSQL](https://www.postgresql.org/download/) and create a new Database called bibfilter.
+You can then change `DATABASE_URL` to the following value (replacing `myusername` and `mypassword` with your actual username/password and `bibfilter` with whatever you called your database)
 
     DATABASE_URL = "postgresql://myusername:mypassword@localhost/bibfilter"
 
-For the admin page within we also need to set the admin username and password as an environment variable in `.env`. You can chage the values to whatever you like
-
-    APP_USERNAME = "username"
-    APP_PASSWORD = "password"
 
 Then you can activate the environment via
 
