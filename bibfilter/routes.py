@@ -60,6 +60,7 @@ def delete_article(key):
 
 ## Frontend: Return our frontend
 @app.route("/", methods=["GET"])
+@app.route("/index", methods=["GET"])
 def main():
     return render_template("main.html")
 
