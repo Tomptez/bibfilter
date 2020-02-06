@@ -92,6 +92,7 @@ table {
     border-collapse: collapse;
     width: 100%;
 }
+
 /* column size 
 table colgroup #author {
     width: 80%;
@@ -121,11 +122,15 @@ tr:nth-child(odd) {
     background-color: #f2f2f2;
 }
 
+/* Hover over table rowse */
+tr:hover td {
+    background: #b7e2e6;
+    }
+
 /* make table header look nice */
-.thead{
+th {
     text-align: left;
     color: #fff;
-    /* background-color: #53a7ad; */
     background-color: #3a4a52;
     border-color: oldlace; 
     position: sticky;
@@ -136,8 +141,9 @@ tr:nth-child(odd) {
 th a {
     color: white;
     text-decoration: none;
+    display: block;
 }
 
-tr:hover td {
-    background: #b7e2e6;
-    }
+th:hover {
+    background-color: #516874
+}

@@ -44,7 +44,6 @@ async function downloadBib(){
 
 function updateSort(filter,column){
     console.log("updateSort()")
-    column = column.toLowerCase()
     oldsortorder = filter["sortorder"]
     oldcolumn = filter["sortby"]
     filter["sortby"] = column
@@ -130,28 +129,27 @@ function CreateTableFromJSON(data) {
 
     for (var i = 0; i < col.length; i++) {
         var th = document.createElement("th");      // tbody HEADER.
-        th.className = "thead" 
-        //th.innerHTML = 
+        var titleprefix = ""                        // prefix for the title
 
-        
         // mark which column its sorted by
-        if (col[i] == currentFilter["sortby"]){
-            var sp = document.createElement('span');
-            var spanText = document.createTextNode(" \u2195");
-            sp.appendChild(spanText);
-            th.appendChild(sp);
+        if (col[i] == currentFilter["sortby"] & currentFilter["sortorder"] == "asc"){
+            var titleprefix = "\u2193"
         }
+        else if (col[i] == currentFilter["sortby"] && currentFilter["sortorder"] == "desc"){
+            var titleprefix = "\u2191"
+        }
+        
         var a = document.createElement('a');
-        var linkText = document.createTextNode(colname[col[i]]);
-        a.appendChild(linkText);
+        var linkText = document.createTextNode(titleprefix+colname[col[i]]);
         a.href = "";
+        a.id = col[i]
         a.onclick = function(){
             event.preventDefault();
-            currentFilter = updateSort(currentFilter,this.text);
+            currentFilter = updateSort(currentFilter,this.id);
             getFilteredLiterature(JSON.stringify(currentFilter))};
-        th.appendChild(linkText);
+        a.appendChild(linkText);
+        th.appendChild(a);
         tr.appendChild(th); 
-        
     }
 
     // ADD JSON DATA TO THE tbody AS ROWS.

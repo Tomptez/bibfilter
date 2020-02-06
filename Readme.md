@@ -67,3 +67,19 @@ If your are finished you can close the virtual environment by typing
     exit
 
 or just close the terminal.
+
+## Normal Usage
+
+After the initial setup when you want to start the application you should first open the repository folder in your bash terminal.
+
+Then you can check whether there have been andy updates in the gitlab repository and if there is, download them by running
+
+    git pull
+
+then you first start the virtual environment
+
+    pipenv shell
+
+and then run the flask app with
+
+    python app.py
