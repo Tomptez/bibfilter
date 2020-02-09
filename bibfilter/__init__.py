@@ -3,7 +3,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_cors import CORS
 from flask_basicauth import BasicAuth
+from dotenv import load_dotenv
 import os
+load_dotenv()
 
 def get_env_variable(name):
     try:

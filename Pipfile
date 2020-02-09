@@ -16,6 +16,7 @@ psycopg2 = "*"
 marshmallow-sqlalchemy = "*"
 flask-basicauth = "*"
 gunicorn = "*"
+python-dotenv = "*"
 
 [requires]
 python_version = "3.8"
