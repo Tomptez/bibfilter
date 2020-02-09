@@ -8,7 +8,7 @@ The front-end, which can be found under templates/main.html is being served from
 
 ## How to run the application on your local computer
 
-First make sure you have [git](https://github.com/git-for-windows/git/releases/latest), `bash` (which is comes with git) and a recent version of [python](https://www.python.org/downloads/) (and `pip` which will be installed together with python on windows) installed.
+First make sure you have [git](https://github.com/git-for-windows/git/releases/latest), `bash` (which is comes with git) and Version 3.8.1 of [python](https://www.python.org/downloads/release/python-381/) (and `pip` which will be installed together with python on windows) installed.
 
 Next, clone the repository to your local machine from your (git) bash terminal
 
@@ -19,23 +19,31 @@ and then open the cloned directory
     cd bibfilter
 
 The next step is to create a virtual environment and install all the required modules using `pipenv`.
-First make sure you have `pipenv` installed by running
+First make sure you have `pipenv` installed by running. 
 
     pip install pipenv
 
 After that we initiate the virtual environment and install all required modules by running
+This can take a while.
 
     pipenv install
 
 Before we can start the application, we need to set our environment variables.
 To do so, create a new file in the main directory (in which the Pipfile sits) called `.env` where you define the environment variables which we will use in the project.
-The `.env` file should look something like this:
+To create it type we will use the terminal editor `nano`. In your bash terminal type
+
+    nano .env
+
+and type (or paste) in the following variables
 
     DATABASE_URL = "sqlite:///mydatabase.db"
     APP_USERNAME = "username"
     APP_PASSWORD = "password"
 
 You can change the values of `APP_USERNAME` and `APP_PASSWORD` to whatever you like. They will be used for the login for the `/admin` page.
+
+You can now close the `nano` editor by hitting Ctr+X and then typing `Y` and then `Enter` to save the file
+
 
 >**Optional:**
 > -----------
@@ -49,7 +57,7 @@ Then you can activate the environment via
 
     pipenv shell
 
-Before you can use the application you need to create the database.
+You could now already open the application but it will not show any articles because we have no database yet.
 To create the database you need to export a .csv file from zotero, put it in the folder of the repository (same as the `Pipfile`) with the name `bibliography.csv` and run
 
     python tools/convert_sqal.py
@@ -76,10 +84,10 @@ Then you can check whether there have been andy updates in the gitlab repository
 
     git pull
 
-then you first start the virtual environment
+to start the application, you always need to launch the virtual environment first
 
     pipenv shell
 
-and then run the flask app with
+and then you can run the flask app with
 
     python app.py
