@@ -2,11 +2,17 @@ from time import time
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import pandas as pd
-from backend import Article, db
+import sys, os
+from pathlib import Path
+parentDir = str(Path(os.path.realpath(__file__)).parent.parent)
+sys.path.append(parentDir)
+from bibfilter import db
+from bibfilter.models import Article
 import math
+import datetime
 
 def Load_Data(file_name):
-    data = pd.read_csv('bibliography.csv', sep=',',header=1)
+    data = pd.read_csv(os.path.join(parentDir,'bibliography.csv'), sep=',',header=1)
     return data.values.tolist()
 
 def create_db_from_csv():
@@ -29,6 +35,9 @@ def create_db_from_csv():
         #booksection
 
         for row in data:
+            if len(list(session.query(Article).filter(Article.ID == row[0]))) > 0:
+                continue
+
             record = Article(**{
                 "ID" : row[0],
                 "ENTRYTYPE" : csv_bib_pattern[row[1]],
@@ -38,10 +47,15 @@ def create_db_from_csv():
                 "journal" : row[5],
                 "abstract": row[10],
                 "doi" : row[8],
+                "url" : row[9],
                 "pages" : row[15],
                 "volume" : row[18],
+                "publisher" : row[26],
                 "number" : row[17],
-                "tags" : row[39]
+                "tags" : row[39],
+                "_date_created_int" : time(),
+                "_date_created_str" : str(datetime.datetime.fromtimestamp(time()).strftime("%Y-%m-%d %H:%M:%S"))
+
             })
             #month??
             session.add(record) #Add all the records

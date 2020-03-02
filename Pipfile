@@ -17,6 +17,7 @@ marshmallow-sqlalchemy = "*"
 flask-basicauth = "*"
 gunicorn = "*"
 python-dotenv = "*"
+requests = "*"
 
 [requires]
 python_version = "3.8"

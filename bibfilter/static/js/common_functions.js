@@ -12,6 +12,20 @@ else {
 }
 
 // Function to get articles as JSOn from the flask API
+async function addArticle(mydoi){
+    fetch(base_url+"/add/"+mydoi, {
+            method: 'GET',
+            }).then(function (response) {
+                return response.text();
+            }).then(function (response_text){
+                alert(response_text);
+                window.location.href=base_url;
+            }).catch(function (error){
+                console.error(error);
+                alert("A Network Error occured. Please contact the Website administrator or try again later.")
+            });
+}
+
 async function getFilteredLiterature(input_json){
     fetch(base_url+articles_url, {
             method: 'POST',
@@ -102,6 +116,26 @@ function setUpFilter() {
         console.log(currentFilter)
         var json = JSON.stringify(filter);
         getFilteredLiterature(json);
+    });
+
+    const addArticleForm = document.getElementById("addArticleForm");
+
+    addArticleForm.addEventListener("submit", function (e){
+        e.preventDefault();
+
+        var doicontent = document.getElementById('mydoi').value;
+        var copy = doicontent
+        if (copy.replace(/[^\/]/g, "").length != 1) {
+            alert('PLease enter an actual DOI');
+            return false;
+        }
+
+        const formData = new FormData(this);
+        formData.forEach(function(value, key){
+            doicontent = value;
+        });
+        
+        addArticle(doicontent)
     });
 }
 

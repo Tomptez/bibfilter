@@ -23,6 +23,11 @@ class Article(db.Model):
     number = db.Column(db.String)
     tags = db.Column(db.String)
     abstract = db.Column(db.String)
+    publisher = db.Column(db.String)
+    url = db.Column(db.String)
+    _date_created_str = db.Column(db.String)
+    _date_created_int = db.Column(db.Float)
+
 
     # needed?
     # def __init__(self, name, description, price, qty):
@@ -44,7 +49,7 @@ class ArticleSchema(ma.Schema):
 class ArticleSchemaAdmin(ma.Schema):
 
     class Meta:
-        fields = ("ID","author","year", "title", "journal", "doi")
+        fields = ("ID","author","year", "title", "journal", "doi", "_date_created_str")
         ordered = True
 
 class BibliographySchema(ma.Schema):

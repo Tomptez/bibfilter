@@ -6,6 +6,7 @@ import bibtexparser
 from bibfilter.models import Article, ArticleSchema, ArticleSchemaAdmin, BibliographySchema
 from bibfilter import app, basic_auth, db
 from pprint import pprint
+from bibfilter.DOI_lookup import add_item
 
 # Init schemas
 article_schema = ArticleSchema()
@@ -58,6 +59,11 @@ def delete_article(key):
         # db.session.commit()
     return redirect("/admin")
 
+# API: Add an article
+@app.route("/add/<prefix>/<suffix>", methods=["GET"])
+def add_article(prefix, suffix):
+    return add_item(prefix+"/"+suffix)
+
 ## Frontend: Return our frontend
 @app.route("/", methods=["GET"])
 @app.route("/index", methods=["GET"])
@@ -69,7 +75,6 @@ def main():
 @basic_auth.required
 def admin():
     return render_template("admin.html")
-
 
 def selectEntries(request_json):
     """ 
