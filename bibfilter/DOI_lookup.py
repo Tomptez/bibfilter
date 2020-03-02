@@ -1,6 +1,6 @@
 import requests
 import sys
-sys.path.append("..")
+sys.path.append(".")
 import time
 import datetime
 from sqlalchemy import create_engine
@@ -16,20 +16,48 @@ def add_item(doi):
 
     else:
         resultjson = r.json()
-
         result = resultjson["message"]
 
-        title = result["title"][0]
-        url = result["URL"]
-        publisher = result["publisher"]
-        ENTRYTYPE = result["type"]
-        author = f'{result["author"][0]["family"]}, {result["author"][0]["given"]}'
-        year = str(result["published-print"]["date-parts"][0][0])
-        journal = result["container-title"][0]
-        # pages = db.Column(db.String)
-        volume = result["volume"]
-        number = result["issue"]
-        ID = title.split()[1]+result["author"][0]["family"]+year
+        #fields = ["title", "URL", "publisher", "type", "author", "published-print", "container-title", "volume", "issue"]
+
+        try:
+            if result.get("title") != None and len(result.get("title")) > 0:
+                title = result["title"][0]
+            else:
+                title = ""
+
+            url = result.get("URL")
+            publisher = result.get("publisher")
+            ENTRYTYPE = result.get("type")
+
+            if result.get("author") != None and len(result.get("author")) > 0:
+                author = f'{result["author"][0]["family"]}, {result["author"][0]["given"]}'
+            else:
+                if result.get("editor") != None and len(result.get("editor")) > 0:
+                    author = f'{result["editor"][0]["family"]}, {result["editor"][0]["given"]}'
+                else:
+                    author = ""
+
+            if result.get("published-print") != None and len(result.get("published-print")) > 0:
+                year = str(result["published-print"]["date-parts"][0][0])
+            else:
+                year = ""
+
+            if result.get("container-title") != None and len(result.get("container-title")) > 0:
+                journal = result["container-title"][0]
+            else:
+                journal = ""
+
+            # pages = db.Column(db.String)
+            volume = result.get("volume")
+            number = result.get("issue")
+
+            if result.get("author") != None and len(result.get("author")) > 0:
+                ID = title.split()[1]+result["author"][0]["family"]+year
+            else:
+                ID = title.split()[1]+doi.replace("/","").replace(".","")
+        except Exception as e:
+            print("ERROR", e)
 
         #Create the session
         session = db.session()
@@ -45,5 +73,5 @@ def add_item(doi):
         return f"Added article to the Database. \n\nTitle:{title}\nDOI: {doi}"
 
 if __name__ == "__main__":
-    doi = "10.1007/s11109-017-9399-3"
+    doi = "10.1007/978-3-319-69626-3"
     add_item(doi)

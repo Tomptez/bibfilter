@@ -55,8 +55,7 @@ def delete_article(key):
         print(f" Deleted Article: {article.title}")
         db.session.delete(article)
 
-        # ToDo: uncomment to actually delete
-        # db.session.commit()
+        db.session.commit()
     return redirect("/admin")
 
 # API: Add an article
