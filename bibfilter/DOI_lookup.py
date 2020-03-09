@@ -31,10 +31,10 @@ def add_item(doi):
             ENTRYTYPE = result.get("type")
 
             if result.get("author") != None and len(result.get("author")) > 0:
-                author = f'{result["author"][0]["family"]}, {result["author"][0]["given"]}'
+                author = f'{result["author"][0].get("family","")}, {result["author"][0].get("given","")}'
             else:
                 if result.get("editor") != None and len(result.get("editor")) > 0:
-                    author = f'{result["editor"][0]["family"]}, {result["editor"][0]["given"]}'
+                    author = f'{result["editor"][0].get("family","")}, {result["editor"][0].get("given","")}'
                 else:
                     author = ""
 
