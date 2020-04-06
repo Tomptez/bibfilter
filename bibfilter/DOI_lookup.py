@@ -59,17 +59,18 @@ def add_item(doi):
         except Exception as e:
             print("ERROR", e)
 
-        #Create the session
-        session = db.session()
-
-        if len(list(session.query(Article).filter(Article.ID == ID))) > 0:
+        if title == "" or author == "":
+            return f"Couldn't receive required metadata of {doi}"
+        elif len(list(session.query(Article).filter(Article.ID == ID))) > 0:
             return f"{title} already exists in the database."
 
         new_art = Article(title=title, url=url, publisher=publisher, ID=ID, ENTRYTYPE=ENTRYTYPE, author=author, year=year, doi=doi, journal=journal, volume=volume, number=number, _date_created_int = time.time(), _date_created_str = str(datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d %H:%M:%S")))
 
+        #Create the session
+        session = db.session()
         session.add(new_art)
-
         session.commit()
+
         return f"Added article to the Database. \n\nTitle:{title}\nDOI: {doi}"
 
 if __name__ == "__main__":

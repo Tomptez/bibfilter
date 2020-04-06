@@ -124,7 +124,7 @@ if __name__ == "__main__":
         outputWriter.writerow(["References", "Author", "Title", "Year", "DOI"])
         c = 0
 
-        for refs in list(countedArticles)[0:60]:
+        for refs in list(countedArticles)[0:100]:
             for each in countedArticles[refs]:
                 outputWriter.writerow([refs, each["author"], each["title"], each["year"], each["doi"]])
     

@@ -92,8 +92,8 @@ def selectEntries(request_json):
     author = request_json["author"]
     sortby = request_json["sortby"]
     sortorder = request_json["sortorder"]
-    timestart = request_json["timestart"] if len(request_json["timestart"]) == 4 and request_json["timestart"].isdigit else str(1800)
-    until = request_json["until"] if len(request_json["until"]) == 4 and request_json["until"].isdigit else str(2200)
+    timestart = request_json["timestart"] if len(request_json["timestart"]) == 4 and request_json["timestart"].isdigit else str(-1111)
+    until = request_json["until"] if len(request_json["until"]) == 4 and request_json["until"].isdigit else str(3333)
     articletype = "%" if request_json["type"] == "all" else request_json["type"]
     
     titlelist = title.split(" ")
@@ -102,9 +102,16 @@ def selectEntries(request_json):
     or_filter_author = [Article.author.ilike(f'%{term}%') for term in authorlist]
     direction = desc if sortorder == 'desc' else asc
 
-    requested_articles = db.session.query(Article).\
-        filter(or_(*or_filter_title), or_(*or_filter_author),\
-            and_(Article.year >= timestart, Article.year <= until,\
-                Article.ENTRYTYPE.like(articletype))).\
-            order_by(direction(getattr(Article, sortby)))
+    if timestart != "-1111" or until != "3333":
+        requested_articles = db.session.query(Article).\
+            filter(or_(*or_filter_title), or_(*or_filter_author),\
+                and_(Article.year >= timestart, Article.year <= until,\
+                    Article.ENTRYTYPE.like(articletype))).\
+                order_by(direction(getattr(Article, sortby)))
+    else:
+        requested_articles = db.session.query(Article).\
+            filter(or_(*or_filter_title), or_(*or_filter_author),\
+                and_(Article.ENTRYTYPE.like(articletype))).\
+                order_by(direction(getattr(Article, sortby)))
+
     return requested_articles
