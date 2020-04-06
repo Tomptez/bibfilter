@@ -1,3 +1,5 @@
+var originalFilter = {"title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"author","sortorder":"asc"};
+
 function CreateTableFromJSON(data) {
     console.log("Start CreateTableFromJSON()")
     

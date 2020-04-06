@@ -1,4 +1,3 @@
-var originalFilter = {"title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"author","sortorder":"asc"};
 var currentFilter = originalFilter;
 
 // set the base url so the app knows which page to call independent whether we're in development or production
@@ -11,7 +10,7 @@ else {
     var articles_url = "/articles"
 }
 
-// Function to get articles as JSOn from the flask API
+// Function to ad an article
 async function addArticle(mydoi){
     fetch(base_url+"/add/"+mydoi, {
             method: 'GET',
@@ -26,6 +25,7 @@ async function addArticle(mydoi){
             });
 }
 
+// Function to get articles as JSON from the flask API
 async function getFilteredLiterature(input_json){
     fetch(base_url+articles_url, {
             method: 'POST',

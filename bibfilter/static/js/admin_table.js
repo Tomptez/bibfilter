@@ -1,3 +1,5 @@
+var originalFilter = {"title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"_date_created_str","sortorder":"desc"};
+
 function CreateTableFromJSON(data) {
     console.log("Start CreateTableFromJSON()")
     
@@ -67,6 +69,7 @@ function CreateTableFromJSON(data) {
             // create DELETE button 
             if (col[j] == "ID"){
                 var a = document.createElement('a');
+                a.href = "#"
                 a.href = base_url+"/delete/"+data[i][col[j]];
                 var linkText = document.createTextNode("DELETE");
                 a.appendChild(linkText);
