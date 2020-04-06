@@ -26,7 +26,7 @@ class Article(db.Model):
     publisher = db.Column(db.String)
     url = db.Column(db.String)
     _date_created_str = db.Column(db.String)
-    _date_created_int = db.Column(db.Float)
+    _date_created = db.Column(db.DateTime)
 
 
     # needed?

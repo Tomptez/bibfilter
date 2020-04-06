@@ -43,7 +43,8 @@ def create_db_from_csv():
                     "title" : row[4],
                     "author" : row[3],
                     "year" : int(row[2]) if not math.isnan(row[2]) else row[2],
-                    "journal" : row[5] if not row[5] == "" else csv_bib_pattern[row[1]],
+                    # "journal" : row[5] if not str(row[5]) == "nan" else csv_bib_pattern[row[1]].title() if not str(csv_bib_pattern[row[1]]) == "nan" else "None",
+                    "journal" : row[5] if not str(row[5]) == "nan" else "None",
                     "abstract": row[10],
                     "doi" : row[8],
                     "url" : row[9],
@@ -52,10 +53,11 @@ def create_db_from_csv():
                     "publisher" : row[26],
                     "number" : row[17],
                     "tags" : row[39],
-                    "_date_created_int" : time(),
-                    "_date_created_str" : str(datetime.datetime.fromtimestamp(time()).strftime("%Y-%m-%d %H:%M:%S"))
+                    "_date_created" : datetime.datetime.now(),
+                    "_date_created_str" : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 })
                 #month??
+                
                 session.add(record) #Add all the records
             except Exception:
                 e = traceback.format_exc()
