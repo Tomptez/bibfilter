@@ -7,6 +7,7 @@ from bibfilter.models import Article, ArticleSchema, ArticleSchemaAdmin, Bibliog
 from bibfilter import app, basic_auth, db
 from pprint import pprint
 from bibfilter.DOI_lookup import add_item
+from datetime import datetime
 
 # Init schemas
 article_schema = ArticleSchema()
@@ -54,9 +55,26 @@ def delete_article(key):
     if article != None:
         print(f" Deleted Article: {article.title}")
         db.session.delete(article)
-
         db.session.commit()
+
     return redirect("/admin")
+
+# API: Delete an article
+@app.route("/deleteTimePeriod/<dateFrom>/<dateUntil>", methods=["GET"])
+@basic_auth.required
+def deleteTimePeriod(dateFrom,dateUntil):
+    datetimeFrom = datetime.strptime(dateFrom,"%Y-%m-%d")
+    datetimeUntil = datetime.strptime(dateUntil,"%Y-%m-%d")
+    
+    articles = db.session.query(Article).filter(and_(Article._date_created >= datetimeFrom, Article._date_created <= datetimeUntil))
+    if articles != None:
+        numberDeleted = len(articles.all())
+        articles.delete(synchronize_session=False)
+        db.session.commit()
+        print(f"Deleted {numberDeleted} Articles")
+        return str(numberDeleted)
+    else:
+        return "0"
 
 # API: Add an article
 @app.route("/add/<prefix>/<suffix>", methods=["GET"])

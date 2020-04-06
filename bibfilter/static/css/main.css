@@ -147,3 +147,18 @@ th a {
 th:hover {
     background-color: #516874
 }
+
+/* Admin Head */
+.header {
+    min-height: 100px;
+}
+#deleteArticlesForm{
+    width: 200px;
+}
+#deleteArticlesForm button{
+    background: red;
+    font-size: 108%;
+    border: 0;
+    margin: 2;
+    padding: 6 22;
+}

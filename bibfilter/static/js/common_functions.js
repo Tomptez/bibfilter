@@ -124,23 +124,12 @@ function setUpFilter() {
         e.preventDefault();
 
         var doicontent = document.getElementById('mydoi').value;
-        var copy = doicontent
+        var copy = doicontent;
         if (copy.replace(/[^\/]/g, "").length != 1) {
-            alert('PLease enter an actual DOI');
+            alert('Please enter an actual DOI');
             return false;
-        }
-
-        const formData = new FormData(this);
-        formData.forEach(function(value, key){
-            doicontent = value;
-        });
-        
-        addArticle(doicontent)
+        };
+        addArticle(doicontent);
     });
-}
-
-// load setUpFilter() and get the articles when loading the page after importing all Javascript functions
-window.onload = function(){
-    getFilteredLiterature(JSON.stringify(currentFilter))
-    setUpFilter();
+    
 }

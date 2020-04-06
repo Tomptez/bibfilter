@@ -95,3 +95,9 @@ function CreateTableFromJSON(data) {
     }
     
 }
+
+// load setUpFilter() and get the articles when loading the page after importing all Javascript functions
+window.onload = function(){
+    getFilteredLiterature(JSON.stringify(currentFilter));
+    setUpFilter();
+}

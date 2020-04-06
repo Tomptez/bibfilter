@@ -12,7 +12,26 @@
 <!-- different than main-->
 <script src="{{ url_for('static', filename='js/download.js') }}"></script>
 <script src="{{ url_for('static', filename='js/admin_table.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 <script src="{{ url_for('static', filename='js/common_functions.js') }}"></script>
+
+<div class="header">
+    <form id="deleteArticlesForm">
+        <b>Delete Articles</b>
+        <li class="form-row">
+            <label for="from">From</label>
+            <input type="date" name="from" id="dateFrom"> 
+        </li>
+        <li class="form-row">
+            <label for="until">Until</label>
+            <input type="date" name="until" id="dateUntil"> 
+        </li>
+            <li class="form-row">
+            <button type="submit">DELETE</button>
+        </li>
+        </ul>
+    </form>
+</div>
 
 <div class="container" >
     <div class="sidebar">
@@ -53,6 +72,16 @@
                 </li>
             </ul>
         </form>
+        <br>
+        <form id="addArticleForm">
+            <b>Add new Article</b>
+            <li class="form-row">
+            <label for="DOI">DOI</label>
+            <input type="text" name="DOI" id="mydoi"> 
+            <button type="submit">Add</button>
+            </li>
+            </ul>
+        </form>
     </div>
     </div>
 
@@ -61,5 +90,6 @@
     </div>
     
 </div>
+
 </body>
 </html>
