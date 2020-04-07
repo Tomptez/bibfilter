@@ -125,11 +125,14 @@ function setUpFilter() {
 
         var doicontent = document.getElementById('mydoi').value;
         var copy = doicontent;
-        if (copy.replace(/[^\/]/g, "").length != 1) {
-            alert('Please enter an actual DOI');
+        var slashcount = copy.replace(/[^\/]/g, "").length;
+        if (slashcount  != 1 && slashcount  != 2 && slashcount != 3) {
+            alert("DOI format is not compatible. Please check if entered correctly.");
             return false;
         };
-        addArticle(doicontent);
+        // Replace all Slashes '/' with '&&sl' to forward the doi as a single parameter to the API
+        var doi = doicontent.replace(/\//g,"&&sl")
+        addArticle(doi);
     });
     
 }

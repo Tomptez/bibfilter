@@ -77,9 +77,11 @@ def deleteTimePeriod(dateFrom,dateUntil):
         return "0"
 
 # API: Add an article
-@app.route("/add/<prefix>/<suffix>", methods=["GET"])
-def add_article(prefix, suffix):
-    return add_item(prefix+"/"+suffix)
+@app.route("/add/<doi>", methods=["GET"])
+def add_article(doi):
+    # Convert the parameter back to the DOI by replacing all instances of '&&sl' with a slash '/'
+    doi = doi.replace("&&sl","/")
+    return add_item(doi)
 
 ## Frontend: Return our frontend
 @app.route("/", methods=["GET"])

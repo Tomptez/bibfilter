@@ -26,7 +26,7 @@ def add_item(doi):
     r = requests.get(f"https://api.crossref.org/works/{doi}")
 
     if r.text == "Resource not found.":
-        return f"DOI not found"
+        return f'DOI "{doi}" not found'
 
     else:
         resultjson = r.json()
