@@ -1,4 +1,6 @@
 from flask import request, jsonify, render_template, redirect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from sqlalchemy.sql.expression import asc, desc, or_, and_
 from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
@@ -12,6 +14,13 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 import urllib.request
 import os
+
+# Rate limiting Setup
+limiter = Limiter(
+    app,
+    key_func=get_remote_address,
+    default_limits=["100/minute"]
+)
 
 # Init schemas
 article_schema = ArticleSchema()
@@ -34,6 +43,7 @@ def get_bibfile():
 
 ## API: Return Articles
 @app.route("/articles", methods=["POST"])
+@limiter.exempt
 def get_articles():
     req_data = request.get_json()
     entries = selectEntries(req_data)
@@ -82,6 +92,7 @@ def deleteTimePeriod(dateFrom,dateUntil):
 
 # API: Add an article
 @app.route("/add/<doi>", methods=["GET"])
+@limiter.limit("40/day")
 def add_article(doi):
     # Convert the parameter back to the DOI by replacing all instances of '&&sl' with a slash '/'
     doi = doi.replace("&&sl","/")
@@ -90,6 +101,7 @@ def add_article(doi):
 ## Frontend: Return our frontend
 @app.route("/", methods=["GET"])
 @app.route("/index", methods=["GET"])
+@limiter.exempt
 def main():
     return render_template("main.html")
 
@@ -154,6 +166,7 @@ def allowed_file(filename):
 	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/file-upload', methods=['POST'])
+@limiter.limit("15/day")
 def upload_file():
     print(str(request.files))
     # check if the post request has the file part
