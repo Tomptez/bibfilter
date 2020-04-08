@@ -7,7 +7,11 @@ from bibfilter.models import Article, ArticleSchema, ArticleSchemaAdmin, Bibliog
 from bibfilter import app, basic_auth, db
 from pprint import pprint
 from bibfilter.DOI_lookup import add_item
+from bibfilter.convert_csv import create_db_from_csv
 from datetime import datetime
+from werkzeug.utils import secure_filename
+import urllib.request
+import os
 
 # Init schemas
 article_schema = ArticleSchema()
@@ -135,3 +139,45 @@ def selectEntries(request_json):
                 order_by(direction(getattr(Article, sortby)))
 
     return requested_articles
+
+# Upload .csv to update db
+UPLOAD_FOLDER = 'csvupload'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+app.secret_key = "secret key"
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
+ALLOWED_EXTENSIONS = set(['csv'])
+
+def allowed_file(filename):
+	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/file-upload', methods=['POST'])
+def upload_file():
+    print(str(request.files))
+    # check if the post request has the file part
+    if 'file' not in request.files:
+        resp = jsonify({'message' : 'No file part in the request'})
+        print("No file part in the request")
+        resp.status_code = 400
+        return resp
+    file = request.files['file']
+    if file.filename == '':
+        resp = jsonify({'message' : 'No file selected for uploading'})
+        print("No file selected for uploading")
+        resp.status_code = 400
+        return resp
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        cnt_add, cnt_exist, cnt_err = create_db_from_csv(filename)
+        print("Updated the database")
+        resp = jsonify({'message' : f"File successfully uploaded. \n\nAdded {cnt_add} new Articles. {cnt_exist} Articles already existed in the database. {cnt_err} Articles couldn't be addded because of an error"})
+        resp.status_code = 201
+        return resp
+    else:
+        resp = jsonify({'message' : 'Allowed file type is .csv'})
+        print("Wrong type")
+        resp.status_code = 400
+        return resp

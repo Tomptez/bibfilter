@@ -60,7 +60,7 @@ Then you can activate the environment via
 You could now already open the application but it will not show any articles because we have no database yet.
 To create the database you need to export a .csv file from zotero, put it in the folder of the repository (same as the `Pipfile`) with the name `bibliography.csv` and run
 
-    python tools/convert_sqal.py
+    python bibfilter/convert_csv.py
 
 If there's any errors, there is probably an issue with your postgreql setup.
 If not, you have successfully setup the database and can now start the application with

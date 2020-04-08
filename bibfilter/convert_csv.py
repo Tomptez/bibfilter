@@ -2,22 +2,25 @@ from time import time
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import pandas as pd
-import sys, os
-from pathlib import Path
-parentDir = str(Path(os.path.realpath(__file__)).parent.parent)
-sys.path.append(parentDir)
-from bibfilter import db
-from bibfilter.models import Article
 import math
 import datetime
 import traceback
+import sys, os
+sys.path.append(".")
+# Old Syspath when the file was located somewhere different than the bibfilter directory
+# from pathlib import Path
+# parentDir = str(Path(os.path.realpath(__file__)).parent.parent)
+# sys.path.append(parentDir)
+from bibfilter import db
+from bibfilter.models import Article
 
 def Load_Data(file_name):
-    data = pd.read_csv(os.path.join(parentDir,'bibliography.csv'), sep=',',header=1)
+    data = pd.read_csv(file_name, sep=',',header=1)
     return data.values.tolist()
 
-def create_db_from_csv():
+def create_db_from_csv(file_name):
     t = time()
+    cnt_add, cnt_exist, cnt_err = 0, 0, 0
 
     #Create the database
     db.create_all()
@@ -26,7 +29,6 @@ def create_db_from_csv():
     session = db.session()
 
     try:
-        file_name = "bibliography.csv" 
         data = Load_Data(file_name) 
 
         csv_bib_pattern = {"journalArticle": "article", "book": "book", "conferencePaper": "inproceedings", "manuscript": "Article", "bookSection": "book", "webpage": "inproceedings", "techreport": "article", "report": "article", "document": "misc", "thesis": "phdthesis"}
@@ -35,6 +37,7 @@ def create_db_from_csv():
         for row in data:
             try:
                 if len(list(session.query(Article).filter(Article.ID == row[0]))) > 0:
+                    cnt_exist += 1
                     continue
 
                 record = Article(**{
@@ -59,9 +62,11 @@ def create_db_from_csv():
                 #month??
                 
                 session.add(record) #Add all the records
+                cnt_add += 1
             except Exception:
                 e = traceback.format_exc()
                 print(e)
+                cnt_err += 1
 
         session.commit() #Attempt to commit all the records
     except Exception:
@@ -70,7 +75,11 @@ def create_db_from_csv():
         session.rollback() #Rollback the changes on error
     finally:
         session.close() #Close the connection
+    
+    print(f"Added {cnt_add} new Articles. {cnt_exist} Articles already existed in the database. {cnt_err} Articles couldn't be addded because of an error")
     print("Time elapsed: " + str(time() - t) + " s.") #0.091s
+    return [cnt_add, cnt_exist, cnt_err]
 
 if __name__ == "__main__":
-    create_db_from_csv()
+    file_name = "bibliography.csv" 
+    create_db_from_csv(file_name)

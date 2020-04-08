@@ -1,6 +1,32 @@
 var originalFilter = {"title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"_date_created_str","sortorder":"desc"};
 
-// Function to ad an article
+function setUpUpload() {
+    // Select your input type file and store it in a variable
+    const input = document.getElementById("fileinput");
+
+    uploadForm.addEventListener("submit", function (e){
+        e.preventDefault();
+
+        var data = new FormData();
+        data.append('file', input.files[0]);
+        const uploadForm = document.getElementById("uploadForm");
+        
+        fetch(base_url+"/file-upload", {
+            method: 'POST',
+            body: data
+            }).then(function (response) {
+                return response.json();
+            }).then(function (response_text){
+                alert(response_text["message"]);
+                window.location.href=base_url+"/admin";
+            }).catch(function (error){
+                console.error(error);
+                alert("A Network Error occured. Please contact the Website administrator or try again later.")
+            });
+        });
+}
+
+// Function to add an article
 async function deleteTimePeriod(from,until){
     fetch(base_url+"/deleteTimePeriod/"+from+"/"+until, {
             method: 'GET',
@@ -41,4 +67,5 @@ window.onload = function(){
     getFilteredLiterature(JSON.stringify(currentFilter));
     setUpFilter();
     timeDelete();
+    setUpUpload();
 }

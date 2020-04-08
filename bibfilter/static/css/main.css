@@ -1,4 +1,7 @@
 /* General Layout */
+body {
+    margin: 0;
+}
 
 .container {
     font-family: Helvetica, Arial, sans-serif;
@@ -7,8 +10,6 @@
 @media (min-width: 600px) {
     .container {
         display: flex;
-        width: 100%;
-        margin: auto;
     }
 }
 
@@ -23,14 +24,7 @@
     padding: 10px;
 }
 
-/* Text on top */
-/*.alignleft {
-	float: left;
-}
-.alignright {
-	float: right;
-}*/
-
+/* Textbox for number of results */
 #textbox {
     background-color: #f2f2f2;
     border: 1px dashed grey;
@@ -69,14 +63,12 @@ flex: 1;
 }
 .form-row > input {
     flex: 2;
-}
-.form-row > input,
-.form-row > button {
     padding: .5em;
     height: 90%;
 }
 .form-row > button {
     background: #3a4a52;
+    height: 90%;
     font-size: 108%;
     color: white;
     border: 0;
@@ -148,17 +140,37 @@ th:hover {
     background-color: #516874
 }
 
-/* Admin Head */
+/* Admin Header Style */
 .header {
-    min-height: 100px;
+    background-color: lightsteelblue;
+    border: 0;
 }
-#deleteArticlesForm{
-    width: 200px;
+@media (min-width: 600px) {
+    .header {
+        display: flex;
+        padding: 20px 60px;
+    }
+}
+
+.left, .right {
+    flex: 1;
+}
+
+#deleteArticlesForm, #uploadForm{
+    max-width: 250px;
+    margin: 0 auto;
 }
 #deleteArticlesForm button{
     background: red;
-    font-size: 108%;
-    border: 0;
-    margin: 2;
-    padding: 6 22;
 }
+
+.headform-row {
+    margin: 0 10px;
+    padding: 0;
+    /* Align the buttons to the left */
+    justify-content: flex-start;
+}
+
+/* .headform-row > label, .headform-row > input {
+    margin: 0;
+} */

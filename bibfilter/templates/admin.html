@@ -16,21 +16,35 @@
 <script src="{{ url_for('static', filename='js/common_functions.js') }}"></script>
 
 <div class="header">
-    <form id="deleteArticlesForm">
-        <b>Delete Articles</b>
-        <li class="form-row">
-            <label for="from">From</label>
-            <input type="date" name="from" id="dateFrom"> 
-        </li>
-        <li class="form-row">
-            <label for="until">Until</label>
-            <input type="date" name="until" id="dateUntil"> 
-        </li>
-            <li class="form-row">
-            <button type="submit">DELETE</button>
-        </li>
-        </ul>
-    </form>
+    <div class="left">
+        <form id="deleteArticlesForm">
+            <li class="form-row headform-row"><b>Delete Articles</b></li>
+            <li class="form-row headform-row">
+                <label for="from">From</label>
+                <label for="until">Until</label>
+            </li>
+            <li class="form-row headform-row">
+                <input type="date" name="from" id="dateFrom"> 
+                <input type="date" name="until" id="dateUntil"> 
+            </li>
+                <li class="form-row headform-row">
+                <button type="submit">DELETE</button>
+            </li>
+            </ul>
+        </form>
+    </div>
+    <div class="right">
+        <form id="uploadForm">
+            <li class="form-row headform-row">
+            <label for="fileupload"><b>Select .csv file to upload</b></label>
+            </li>
+            <li class="form-row headform-row">
+            <input type="file" name="fileupload" id="fileinput">
+            </li><li class="form-row headform-row">
+            <button type="submit">Upload</button>
+            </li>
+        </form>
+    </div>
 </div>
 
 <div class="container" >
