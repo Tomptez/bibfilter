@@ -6,7 +6,7 @@ function CreateTableFromJSON(data) {
     // EXTRACT VALUE FOR HTML HEADER. 
     // ('Book ID', 'Book Name', 'Category' and 'Price')
     var col = [];
-    colname = {"title": "Title", "author": "Author", "year": "Year", "doi": "DOI", "journal": "Journal", "ID": "Delete"}
+    colname = {"title": "Title", "author": "Author", "year": "Year", "url": "URL", "journal": "Journal", "ID": "Delete"}
     for (var i = 0; i < data.length; i++) {
         for (var key in data[i]) {
             if (col.indexOf(key) === -1) {
@@ -65,13 +65,18 @@ function CreateTableFromJSON(data) {
         for (var j = 0; j < col.length; j++) {
             var tabCell = tr.insertCell(-1);
 
-            // create link for DOI and append it to cell
-            if (col[j] == "doi"){
-                var a = document.createElement('a');
-                a.href = "https://search.crossref.org/?q="+data[i][col[j]];
-                var linkText = document.createTextNode("DOI");
-                a.appendChild(linkText);
-                tabCell.appendChild(a);  
+            // create a button for the external URL
+            if (col[j] == "url"){
+                if (data[i][col[j]] != "NaN"){
+                    var a = document.createElement('a');
+                    a.classList.add("externalUrl")
+                    a.rel = "noopener noreferrer"
+                    a.target = "_blank"
+                    a.href = data[i][col[j]];
+                    var linkText = document.createTextNode("Source");
+                    a.appendChild(linkText);
+                    tabCell.appendChild(a);
+                };
             }
 
             // append json content into cell

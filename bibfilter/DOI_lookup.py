@@ -46,7 +46,7 @@ def add_item(doi):
             journal = get_json_value(result, ["container-title", 0], "")
 
             url = result.get("URL")
-            publisher = result.get("publisher")
+            institution = result.get("publisher")
             ENTRYTYPE = result.get("type")
             volume = result.get("volume")
             number = result.get("issue")

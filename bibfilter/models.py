@@ -9,7 +9,8 @@ class Article(db.Model):
     __tablename__ = "Article"
     #__table_args__ = {'sqlite_autoincrement': True}
     
-    #tell SQLAlchemy the name of column and its attributes:    
+    # Define the name of columns and their attributes using SQLAlchemy:   
+    # The naming of the collumns tries to follow the bibtex naming scheme https://www.bibtex.com/e/entry-types/
     dbid = db.Column(db.Integer, primary_key=True, nullable=False) 
     ID = db.Column(db.String)
     ENTRYTYPE = db.Column(db.String)
@@ -17,13 +18,16 @@ class Article(db.Model):
     author = db.Column(db.String)
     year = db.Column(db.String)
     journal = db.Column(db.String)
+    isbn = db.Column(db.String)
+    issn = db.Column(db.String)
     doi = db.Column(db.String)
     pages = db.Column(db.String)
     volume = db.Column(db.String)
     number = db.Column(db.String)
     tags = db.Column(db.String)
     abstract = db.Column(db.String)
-    publisher = db.Column(db.String)
+    institution = db.Column(db.String)
+    language = db.Column(db.String)
     url = db.Column(db.String)
     _date_created_str = db.Column(db.String)
     _date_created = db.Column(db.DateTime)
@@ -43,13 +47,13 @@ class Article(db.Model):
 class ArticleSchema(ma.Schema):
 
     class Meta:
-        fields = ("author","year", "title", "journal", "doi")
+        fields = ("author","year", "title", "journal", "url")
         ordered = True
 
 class ArticleSchemaAdmin(ma.Schema):
 
     class Meta:
-        fields = ("ID","author","year", "title", "journal", "doi", "_date_created_str")
+        fields = ("ID","author","year", "title", "journal", "url", "_date_created_str")
         ordered = True
 
 class BibliographySchema(ma.Schema):
@@ -63,4 +67,4 @@ class BibliographySchema(ma.Schema):
         }
 
     class Meta:
-        fields = ("title", "author","ID", "ENTRYTYPE", "year", "abstract", "volume", "number", "journal", "doi")
+        fields = ("title", "author","ID", "pages", "ENTRYTYPE", "year", "abstract", "volume", "institution", "number", "language", "journal", "url", "doi", "issn", "isbn")

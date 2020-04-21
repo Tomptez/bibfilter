@@ -4,7 +4,7 @@ function CreateTableFromJSON(data) {
     // EXTRACT VALUE FOR HTML HEADER. 
     // ('Book ID', 'Book Name', 'Category' and 'Price')
     var col = [];
-    colname = {"title": "Title", "author": "Author", "year": "Year", "doi": "DOI", "journal": "Journal", "ID": "Delete", "_date_created_str": "Added"}
+    colname = {"title": "Title", "author": "Author", "year": "Year", "url": "URL", "journal": "Journal", "ID": "Delete", "_date_created_str": "Added"}
     for (var i = 0; i < data.length; i++) {
         for (var key in data[i]) {
             if (col.indexOf(key) === -1) {
@@ -67,19 +67,24 @@ function CreateTableFromJSON(data) {
             // create DELETE button 
             if (col[j] == "ID"){
                 var a = document.createElement('a');
-                a.href = "#"
+                a.classList.add("delete")
                 a.href = base_url+"/delete/"+data[i][col[j]];
                 var linkText = document.createTextNode("DELETE");
                 a.appendChild(linkText);
                 tabCell.appendChild(a);  
             }
-            // create link for DOI and append it to cell
-            else if (col[j] == "doi"){
-                var a = document.createElement('a');
-                a.href = "https://search.crossref.org/?q="+data[i][col[j]];
-                var linkText = document.createTextNode("DOI");
-                a.appendChild(linkText);
-                tabCell.appendChild(a);  
+            // create a button for the external URL
+            else if (col[j] == "url"){
+                if (data[i][col[j]] != "NaN"){
+                    var a = document.createElement('a');
+                    a.rel = "noopener noreferrer"
+                    a.target = "_blank"
+                    a.classList.add("externalUrl")
+                    a.href = data[i][col[j]];
+                    var linkText = document.createTextNode("Source");
+                    a.appendChild(linkText);
+                    tabCell.appendChild(a);
+                };
             }
 
             // append json content into cell

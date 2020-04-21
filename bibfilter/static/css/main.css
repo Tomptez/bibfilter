@@ -52,6 +52,7 @@ form fieldset p {
     top: 40px;   
 }
 
+/* Form */
 .form-row {
 display: flex;
 justify-content: flex-end;
@@ -114,7 +115,7 @@ tr:nth-child(odd) {
     background-color: #f2f2f2;
 }
 
-/* Hover over table rowse */
+/* Hover over table rows */
 tr:hover td {
     background: #b7e2e6;
     }
@@ -130,7 +131,7 @@ th {
     top: 0px;
 }
 
-th a {
+table a {
     color: white;
     text-decoration: none;
     display: block;
@@ -140,7 +141,29 @@ th:hover {
     background-color: #516874
 }
 
-/* Admin Header Style */
+a.externalUrl {
+    color: #fff;
+    background-color: #3a4a52;
+    border-radius: 3px;
+    padding: 5px;
+}
+a.externalUrl:hover {
+    background-color: darkcyan;
+}
+
+/* Delete buttons for admin page */
+a.delete {
+    background-color: red;
+    border-radius: 3px;
+    color: white;
+    padding: 4px;
+}
+a.delete:hover {
+    background-color: lightyellow;
+    color: red;
+}
+
+/* Admin Header*/
 .header {
     background-color: lightsteelblue;
     border: 0;
@@ -161,7 +184,11 @@ th:hover {
     margin: 0 auto;
 }
 #deleteArticlesForm button{
-    background: red;
+    background-color: red;
+}
+
+#deleteArticlesForm button:hover{
+    background-color: darkcyan;
 }
 
 .headform-row {
@@ -170,7 +197,3 @@ th:hover {
     /* Align the buttons to the left */
     justify-content: flex-start;
 }
-
-/* .headform-row > label, .headform-row > input {
-    margin: 0;
-} */
