@@ -26,38 +26,42 @@ function setUpUpload() {
         });
 }
 
-// Function to add an article
-async function deleteTimePeriod(from,until){
-    fetch(base_url+"/deleteTimePeriod/"+from+"/"+until, {
+// Function to delete Articles in a timeperiod
+// Explanation how to assign fetch values = https://stackoverflow.com/questions/54034875/how-can-i-acces-the-values-of-my-async-fetch-function
+async function deleteTimePeriod(from,until,dry){
+    console.log(dry)
+    const respText = await fetch(base_url+"/deleteTimePeriod/"+from+"/"+until+"/"+dry, {
             method: 'GET',
             }).then(function (response) {
                 return response.text();
-            }).then(function (response_text){
-                alert("Deleted "+response_text+" Articles");
-                window.location.href=base_url+"/admin";
             }).catch(function (error){
                 console.error(error);
                 alert("A Network Error occured. Please contact the Website administrator or try again later.")
             });
+    return respText;
 }
 
 function timeDelete() {
     const deleteArticlesForm = document.getElementById("deleteArticlesForm");
 
-    deleteArticlesForm.addEventListener("submit", function (e){
+    deleteArticlesForm.addEventListener("submit", async function (e){
         e.preventDefault();
 
         var dateFrom = document.getElementById('dateFrom').value;
         var dateUntil = document.getElementById('dateUntil').value;
 
         if (dateFrom.length == 0 || dateUntil.length == 0) {
-            alert('Please enter dates between which creation dates you want to delete all articles');
+            alert('Please enter the two adding-dates between which(including those dates) you want to delete all created articles');
             return false;
         }
+        
+        var cnt_delete = await deleteTimePeriod(dateFrom, dateUntil, "dry");
 
-        var r = confirm("Do you reall want to delete all Articles that were added \n between (including) "+dateFrom+" and "+dateUntil+"?");
+        var r = confirm("Do you really want to delete all "+ cnt_delete +" Articles that were added \n between (including) "+dateFrom+" and "+dateUntil+"?");
         if (r == true) {
-            deleteTimePeriod(dateFrom, dateUntil);
+            var response_text = await deleteTimePeriod(dateFrom, dateUntil, "delete");
+            alert("Deleted "+response_text+" Articles");
+            window.location.href=base_url+"/admin";
         } 
     });
 }

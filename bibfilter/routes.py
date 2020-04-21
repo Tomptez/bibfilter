@@ -74,21 +74,24 @@ def delete_article(key):
     return redirect("/admin")
 
 # API: Delete an article
-@app.route("/deleteTimePeriod/<dateFrom>/<dateUntil>", methods=["GET"])
+@app.route("/deleteTimePeriod/<dateFrom>/<dateUntil>/<dry>", methods=["GET"])
 @basic_auth.required
-def deleteTimePeriod(dateFrom,dateUntil):
+def deleteTimePeriod(dateFrom,dateUntil,dry):
     datetimeFrom = datetime.strptime(dateFrom,"%Y-%m-%d")
     datetimeUntil = datetime.strptime(dateUntil,"%Y-%m-%d")
     
     articles = db.session.query(Article).filter(and_(Article._date_created >= datetimeFrom, Article._date_created <= datetimeUntil))
-    if articles != None:
+    if dry == "dry":
+        numberDeleted = len(articles.all())
+        return str(numberDeleted)
+    elif dry == "delete":
         numberDeleted = len(articles.all())
         articles.delete(synchronize_session=False)
         db.session.commit()
         print(f"Deleted {numberDeleted} Articles")
         return str(numberDeleted)
     else:
-        return "0"
+        return 0
 
 # API: Add an article
 @app.route("/add/<doi>", methods=["GET"])
