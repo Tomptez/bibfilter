@@ -1,13 +1,11 @@
 /* General Layout */
 body {
     margin: 0;
-}
-
-.container {
     font-family: Helvetica, Arial, sans-serif;
+    font-size: 0.8em;
 }
 
-@media (min-width: 600px) {
+@media (min-width: 802px) {
     .container {
         display: flex;
     }
@@ -17,11 +15,14 @@ body {
     flex: 1;
     margin: 0 20;
     padding-top: 50;
+    font-size: 0.9em;
 }
 
-.main{
-    flex: 3;
-    padding: 10px;
+@media (min-width: 802px) {
+    .main{
+        flex: 4;
+        padding: 10px;
+    }
 }
 
 /* Textbox for number of results */
@@ -39,9 +40,11 @@ body {
 .listwrapper {
     list-style-type: none;
     padding: 0;
-    
 }
 
+.fieldsetcontainer {
+    padding: .5em;
+}
 form fieldset p {
     margin: 1px;
 }
@@ -61,29 +64,43 @@ padding: .5em;
 .form-row > label {
 padding: .5em 1em .5em 0;
 flex: 1;
+margin: 3px;
 }
 .form-row > input {
+    font-size: 0.8em;
+    background-color: white;
+    height: 3em;
+    border: 1px solid lightgray;
+    margin: 3px;
+    padding: 9px;
+    border-radius: 4px;
     flex: 2;
-    padding: .5em;
-    height: 90%;
 }
 .form-row > button {
     background: #3a4a52;
-    height: 90%;
-    font-size: 108%;
+    font-size: 1.4em;
+    padding: 5px 20px;
     color: white;
     border: 0;
-    margin: 2;
-    padding: 6 22;
+    margin: 3px;
 }
 .form-row > button:hover {
     background: darkcyan;
+}
+
+button#add {
+    font-size: 0.8em;
+    height: 3em;
+}
+button#add span {
+    font-size: 1.6em;
 }
 
 /* Table */
 table {
     border-collapse: collapse;
     width: 100%;
+    font-size: 1em;
 }
 
 /* column size 
@@ -167,8 +184,10 @@ a.delete:hover {
 .header {
     background-color: lightsteelblue;
     border: 0;
+    font-size: 1.2em;
+    padding: 15px 0px;
 }
-@media (min-width: 600px) {
+@media (min-width: 802px) {
     .header {
         display: flex;
         padding: 20px 60px;
@@ -196,4 +215,8 @@ a.delete:hover {
     padding: 0;
     /* Align the buttons to the left */
     justify-content: flex-start;
+}
+
+#fileinput {
+    height: 4.5em;
 }

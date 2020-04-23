@@ -32,20 +32,21 @@
                     <input type="text" name="author"> 
                 </li>
                 <li class="form-row">
-                    <label for="title">From</label>
+                    <label for="title">From (year)</label>
                     <input type="text" name="timestart" id="timestart">
                 </li>
                 <li class="form-row">
-                    <label for="author">Until</label>
+                    <label for="author">Until (year)</label>
                     <input type="text" name="until" id="until"> 
                 </li>
                 
+                <li class="fieldsetcontainer">
                 <fieldset class="source">
                 <legend>Literature Type</legend>
                 <p><label> <input type="radio" name="type" value="article"> Article </label></p>
                 <p><label> <input type="radio" name="type" value="book"> Book(chapter) </label></p>
                 <p><label> <input type="radio" name="type" value="all" checked> All </label></p>
-                </fieldset>
+                </fieldset></li>
                 <li class="form-row">
                 <button type="submit">Filter</button>
                 <button onclick="resetPage()">Reset</button>
@@ -54,11 +55,11 @@
         </form>
         <br>
         <form id="addArticleForm">
-            <b>Add new Article</b>
+            <b>Add a new Article</b>
             <li class="form-row">
             <label for="DOI">DOI</label>
             <input type="text" name="DOI" id="mydoi"> 
-            <button type="submit">Add</button>
+            <button type="submit" id="add"><span>Add</span></button>
             </li>
             </ul>
         </form>
