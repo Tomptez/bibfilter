@@ -31,7 +31,7 @@ def create_db_from_csv(file_name):
     try:
         data = Load_Data(file_name) 
 
-        csv_bib_pattern = {"journalArticle": "article", "book": "book", "conferencePaper": "inproceedings", "manuscript": "Article", "bookSection": "book", "webpage": "inproceedings", "techreport": "article", "report": "article", "document": "misc", "thesis": "phdthesis"}
+        csv_bib_pattern = {"journalArticle": "article", "book": "book", "conferencePaper": "inproceedings", "manuscript": "Article", "bookSection": "incollection", "webpage": "inproceedings", "techreport": "article", "report": "report", "document": "misc", "thesis": "thesis"}
 
         # Skip already existing entries
         for row in data:
@@ -45,9 +45,10 @@ def create_db_from_csv(file_name):
                     "ENTRYTYPE" : csv_bib_pattern[row[1]],
                     "title" : row[4],
                     "author" : row[3],
-                    "year" : int(row[2]) if not math.isnan(row[2]) else row[2],
-                    # "journal" : row[5] if not str(row[5]) == "nan" else csv_bib_pattern[row[1]].title() if not str(csv_bib_pattern[row[1]]) == "nan" else "None",
-                    "journal" : row[5] if not str(row[5]) == "nan" else "None",
+                    "year" : int(row[2]) if not math.isnan(row[2]) else "",
+                    "publication" : row[5] if not str(row[5]) == "nan" else "",
+                    "journal" : row[5] if not str(row[5]) == "nan" and row[1] != "bookSection" else "",
+                    "booktitle" : row[5] if not str(row[5]) == "nan" and row[1] == "bookSection" else "",
                     "abstract": row[10],
                     "isbn": row[6],
                     "issn": row[7],
@@ -55,10 +56,12 @@ def create_db_from_csv(file_name):
                     "url" : row[9],
                     "pages" : row[15],
                     "volume" : row[18],
-                    "institution" : row[26],
                     "language" : row[28],
                     "number" : row[17],
                     "tags" : row[39],
+                    "institution" : row[26] if row[1] == "report" or row[1] == "thesis" else "",
+                    "publisher" : row[26] if row[1] != "report" and row[1] != "thesis" else "",
+                    "address" : row[27],
                     "_date_created" : datetime.datetime.now(),
                     "_date_created_str" : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 })

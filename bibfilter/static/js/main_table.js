@@ -6,7 +6,7 @@ function CreateTableFromJSON(data) {
     // EXTRACT VALUE FOR HTML HEADER. 
     // ('Book ID', 'Book Name', 'Category' and 'Price')
     var col = [];
-    colname = {"title": "Title", "author": "Author", "year": "Year", "url": "URL", "journal": "Journal", "ID": "Delete"}
+    colname = {"title": "Title", "author": "Author", "year": "Year", "url": "URL", "publication": "Publication", "ID": "Delete"}
     for (var i = 0; i < data.length; i++) {
         for (var key in data[i]) {
             if (col.indexOf(key) === -1) {

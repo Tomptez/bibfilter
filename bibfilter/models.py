@@ -18,6 +18,8 @@ class Article(db.Model):
     author = db.Column(db.String)
     year = db.Column(db.String)
     journal = db.Column(db.String)
+    publication = db.Column(db.String)
+    booktitle = db.Column(db.String)
     isbn = db.Column(db.String)
     issn = db.Column(db.String)
     doi = db.Column(db.String)
@@ -26,7 +28,9 @@ class Article(db.Model):
     number = db.Column(db.String)
     tags = db.Column(db.String)
     abstract = db.Column(db.String)
+    address = db.Column(db.String)
     institution = db.Column(db.String)
+    publisher = db.Column(db.String)
     language = db.Column(db.String)
     url = db.Column(db.String)
     _date_created_str = db.Column(db.String)
@@ -47,17 +51,17 @@ class Article(db.Model):
 class ArticleSchema(ma.Schema):
 
     class Meta:
-        fields = ("author","year", "title", "journal", "url")
+        fields = ("author","year", "title", "publication", "url")
         ordered = True
 
 class ArticleSchemaAdmin(ma.Schema):
 
     class Meta:
-        fields = ("ID","author","year", "title", "journal", "url", "_date_created_str")
+        fields = ("ID","author","year", "title", "publication", "url", "_date_created_str")
         ordered = True
 
 class BibliographySchema(ma.Schema):
-    SKIP_VALUES = set([None, "NaN"])
+    SKIP_VALUES = set([None, "NaN", ""])
 
     # don't include NULL or "NaN" values in output JSON
     @post_dump
@@ -67,4 +71,4 @@ class BibliographySchema(ma.Schema):
         }
 
     class Meta:
-        fields = ("title", "author","ID", "pages", "ENTRYTYPE", "year", "abstract", "volume", "institution", "number", "language", "journal", "url", "doi", "issn", "isbn")
+        fields = ("address", "title", "author","ID", "pages", "ENTRYTYPE", "year", "publisher", "abstract", "volume", "institution", "number", "language", "journal", "booktitle", "url", "doi", "issn", "isbn")
