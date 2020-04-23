@@ -15,7 +15,7 @@ body {
     flex: 1;
     margin: 0 20;
     padding-top: 50;
-    font-size: 0.9em;
+    /* font-size: 0.9em; */
 }
 
 @media (min-width: 802px) {
