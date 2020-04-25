@@ -64,7 +64,7 @@ def add_item(doi):
         elif len(list(session.query(Article).filter(Article.ID == ID))) > 0:
             return f"{title} already exists in the database."
 
-        new_art = Article(title=title, url=url, publisher=publisher, ID=ID, ENTRYTYPE=ENTRYTYPE, author=author, year=year, doi=doi, journal=journal, volume=volume, number=number, _date_created = datetime.datetime.now(), _date_created_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        new_art = Article(title=title, url=url, publisher=publisher, ID=ID, ENTRYTYPE=ENTRYTYPE, author=author, year=year, doi=doi, journal=journal, volume=volume, number=number, _date_created = datetime.datetime.now().date(), _date_created_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
         # print(title, author, year, journal, volume, url, publisher, ID, ENTRYTYPE)
         session.add(new_art)
         session.commit()

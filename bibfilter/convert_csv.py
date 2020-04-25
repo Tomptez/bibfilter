@@ -62,8 +62,8 @@ def create_db_from_csv(file_name):
                     "institution" : row[26] if row[1] == "report" or row[1] == "thesis" else "",
                     "publisher" : row[26] if row[1] != "report" and row[1] != "thesis" else "",
                     "address" : row[27],
-                    "_date_created" : datetime.datetime.now(),
-                    "_date_created_str" : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    "_date_created" : datetime.datetime.now().date(),
+                    "_date_created_str" : datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
                 })
                 #month??
                 
