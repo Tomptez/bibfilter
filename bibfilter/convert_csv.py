@@ -31,7 +31,7 @@ def create_db_from_csv(file_name):
     try:
         data = Load_Data(file_name) 
 
-        csv_bib_pattern = {"journalArticle": "article", "book": "book", "conferencePaper": "inproceedings", "manuscript": "Article", "bookSection": "incollection", "webpage": "inproceedings", "techreport": "article", "report": "report", "document": "misc", "thesis": "thesis"}
+        csv_bib_pattern = {"journalArticle": "article", "book": "book", "conferencePaper": "inproceedings", "manuscript": "Article", "bookSection": "incollection", "webpage": "inproceedings", "techreport": "article", "letter": "misc", "report": "report", "document": "misc", "thesis": "thesis"}
 
         # Skip already existing entries
         for row in data:

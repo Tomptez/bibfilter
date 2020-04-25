@@ -11,6 +11,9 @@ filename = 'bibliography.csv'
 doi_agency = []
 noResult={}
 dictNoDOI = {}
+dictNoURL = {}
+dictNoURLbook = {}
+dictNoURLbutDOI = {}
 crossrefdois = []
 rankedarticles = {}
 
@@ -27,14 +30,14 @@ def cls():
     os.system('cls' if os.name=='nt' else 'clear')
 
 def checkdois():
-    global doi_agency, noResult, dictNoDOI, crossrefdois, cnt, totallen, nodoi, hasdoi, nojournal
+    global doi_agency, noResult, dictNoDOI, dictNoURL, dictNoURLbook, dictNoURLbutDOI, crossrefdois, cnt, totallen, nodoi, hasdoi, nojournal
     try:
         with open(filename, newline='') as csvfile:
             literature = csv.reader(csvfile, delimiter=',')
             literature.__next__()
             
             for row in literature:
-                time.sleep(0.3)
+                time.sleep(0.1)
                 # Clearing terminal and measuring progress
                 cls()
                 cnt+=1
@@ -62,8 +65,16 @@ def checkdois():
                     else:
                         dictNoDOI[row[4]] = row[3]
                         nodoi += 1
+
+                    if row[9] == "":
+                        if row[8] != "":
+                            dictNoURLbutDOI[row[4]] = row[3]
+                        else: 
+                            dictNoURL[row[4]] = row[3]
                 else:
                     nojournal += 1
+                    if row[9] == "":
+                        dictNoURLbook[row[4]] = row[3]
 
     except KeyboardInterrupt:
         pass
@@ -71,7 +82,7 @@ def checkdois():
 def getReferenceCount():
     rankedarticles = {}
     for doi in crossrefdois:
-        time.sleep(0.3)
+        time.sleep(0.1y)
         r = requests.get(f"https://api.crossref.org/works/{doi}")
         if r.text == "Resource not found.":
             print(f"{doi} not found")
@@ -139,7 +150,21 @@ if __name__ == "__main__":
         outputWriter.writerow(["DOI", "Title"])
         for doi, title in noResult.items():
             outputWriter.writerow([doi, title])
-    # print(f"Wasn't able to resolve the following DOIs:")
-    #pprint(noResult)
-    # print("\n Following articles don't have a DOI:")
-    # pprint(listNoDOI)
+
+    with open('noURLupdated.csv', 'w', newline='') as outputFile:
+        outputWriter = csv.writer(outputFile)
+        outputWriter.writerow(["Author", "Title"])
+        for title, author in dictNoURL.items():
+            outputWriter.writerow([author, title])
+        
+        outputWriter.writerow([""])
+        outputWriter.writerow(["no URL but DOI:"])
+        outputWriter.writerow(["Author", "Title"])
+        for title, author in dictNoURLbutDOI.items():
+            outputWriter.writerow([author, title])
+
+        outputWriter.writerow([""])
+        outputWriter.writerow(["Books"])
+        outputWriter.writerow(["Author", "Title"])
+        for title, author in dictNoURLbook.items():
+            outputWriter.writerow([author, title])
