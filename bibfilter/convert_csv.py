@@ -59,6 +59,7 @@ def create_db_from_csv(file_name):
                     "language" : row[28],
                     "number" : row[17],
                     "tags" : row[39],
+                    "icon" : "book" if row[1] == "bookSection" or row[1] == "book" else "article",
                     "institution" : row[26] if row[1] == "report" or row[1] == "thesis" else "",
                     "publisher" : row[26] if row[1] != "report" and row[1] != "thesis" else "",
                     "address" : row[27],

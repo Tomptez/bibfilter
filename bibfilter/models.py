@@ -27,6 +27,7 @@ class Article(db.Model):
     volume = db.Column(db.String)
     number = db.Column(db.String)
     tags = db.Column(db.String)
+    icon = db.Column(db.String)
     abstract = db.Column(db.String)
     address = db.Column(db.String)
     institution = db.Column(db.String)
@@ -51,13 +52,13 @@ class Article(db.Model):
 class ArticleSchema(ma.Schema):
 
     class Meta:
-        fields = ("author","year", "title", "publication", "url")
+        fields = ("icon", "author","year", "title", "publication", "url")
         ordered = True
 
 class ArticleSchemaAdmin(ma.Schema):
 
     class Meta:
-        fields = ("ID","author","year", "title", "publication", "url", "_date_created_str")
+        fields = ("ID","icon", "author","year", "title", "publication", "url", "_date_created_str")
         ordered = True
 
 class BibliographySchema(ma.Schema):

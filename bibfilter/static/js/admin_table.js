@@ -4,7 +4,7 @@ function CreateTableFromJSON(data) {
     // EXTRACT VALUE FOR HTML HEADER. 
     // ('Book ID', 'Book Name', 'Category' and 'Price')
     var col = [];
-    colname = {"title": "Title", "author": "Author", "year": "Year", "url": "URL", "publication": "Publication", "ID": "Delete", "_date_created_str": "Added"}
+    colname = {"icon":"", "title": "Title", "author": "Author", "year": "Year", "url": "URL", "publication": "Publication", "ID": "Delete", "_date_created_str": "Added"}
     for (var i = 0; i < data.length; i++) {
         for (var key in data[i]) {
             if (col.indexOf(key) === -1) {
@@ -85,6 +85,20 @@ function CreateTableFromJSON(data) {
                     a.appendChild(linkText);
                     tabCell.appendChild(a);
                 };
+            }
+
+            // create icons
+            else if (col[j] == "icon"){
+                if (data[i][col[j]] == "book"){
+                    var imgpath = base_url+"/static/img/book.png";
+                }
+                else {
+                    var imgpath = base_url+"/static/img/article.png";
+                }
+                var img = document.createElement('img');
+                img.src = imgpath;
+                img.classList.add("typeicon")
+                tabCell.appendChild(img);
             }
 
             // append json content into cell
