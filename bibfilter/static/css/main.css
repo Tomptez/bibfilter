@@ -5,7 +5,7 @@ body {
     font-size: 0.8em;
 }
 
-@media (min-width: 802px) {
+@media (min-width: 902px) {
     .container {
         display: flex;
     }
@@ -18,7 +18,7 @@ body {
     /* font-size: 0.9em; */
 }
 
-@media (min-width: 802px) {
+@media (min-width: 902px) {
     .main{
         flex: 4;
         padding: 10px;
@@ -28,7 +28,7 @@ body {
 /* Textbox for number of results */
 #textbox {
     background-color: #f2f2f2;
-    border: 1px solid grey;
+    border: 1px solid lightgrey;
     padding: 5px 10px;
     margin: 10px;
 }
@@ -101,31 +101,86 @@ button#add span {
 /* Table */
 table {
     border-collapse: collapse;
-    width: 100%;
-    font-size: 1em;
+    word-break: break-word;
 }
 
-/* column size 
-table colgroup #author {
-    width: 80%;
+/* column size  */
+th {
+    word-break: keep-all;
 }
-table colgroup #year {
-    width: 5%;
+@media (min-width: 451px) {
+    th a{
+        font-size: 1.1em;
+    }
+    table {
+        font-size: 1em;
+    }
+    table colgroup #authorlast {
+        max-width: 13%;
+    }
+    td {
+        padding: 10px 8px;
+    }
+
+    a.externalUrl {
+        padding: 5px;
+    }
+    colgroup #url {
+        min-width: 50pt;
+    }
+    colgroup #year {
+        min-width: 45pt;
+    } 
+    colgroup #ID {
+        min-width: 55pt;
+    }
+    colgroup #_date_created_str{
+        min-width: 62pt;
+    }
 }
-table colgroup #title {
-    width: 5%;
+
+/* For very small screens */
+@media (max-width: 450px) {
+    /* td {
+        word-break: keep-all;
+    } */
+    a.externalUrl {
+        padding: 2px;
+    }
+    th a{
+        font-size: 0.9em;
+    }
+    table {
+        font-size: 0.8em;
+    }
+    td {
+        padding: 10px 1px;
+    }
+    colgroup #title {
+        width: 200pt;
+    }
+    colgroup #url {
+        min-width: 40pt;
+    }
+    colgroup #year {
+        min-width: 30pt;
+    }
 }
-table colgroup #journal {
-    width: 5%;
+
+@media (min-width: 902px) {
+    colgroup #title {
+        min-width: 48%;
+    }
 }
-table colgroup #doi {
-    width: 5%;
+@media (max-width: 901px) {
+    colgroup #title {
+        min-width: 30%;
+    }
 }
-*/
+
 td {
     vertical-align: top;
     border-bottom: 1px solid lightgray;
-    padding: 10px 8px;
     margin: 0px;
 }
 
@@ -150,15 +205,15 @@ th {
     top: 0px;
 }
 
-th a{
-    font-size: 1.1em;
-}
+
 table a {
     color: white;
     text-decoration: none;
-    display: block;
 }
 
+th a {
+    display: block;
+}
 th:hover {
     background-color: #4d6e80
 }
@@ -167,7 +222,6 @@ a.externalUrl {
     color: #fff;
     background-color: #3a4a52;
     border-radius: 2px;
-    padding: 5px;
 }
 a.externalUrl:hover {
     background-color: #4d6e80;
@@ -197,7 +251,7 @@ a.delete:hover {
     font-size: 1.2em;
     padding: 15px 0px;
 }
-@media (min-width: 802px) {
+@media (min-width: 902px) {
     .header {
         display: flex;
         padding: 20px 60px;

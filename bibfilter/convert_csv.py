@@ -45,6 +45,7 @@ def create_db_from_csv(file_name):
                     "ENTRYTYPE" : csv_bib_pattern[row[1]],
                     "title" : row[4],
                     "author" : row[3],
+                    "authorlast" : "; ".join([n.split(",")[0].strip(" ") for n in row[3].split(";")]),
                     "year" : int(row[2]) if not math.isnan(row[2]) else "",
                     "publication" : row[5] if not str(row[5]) == "nan" else "",
                     "journal" : row[5] if not str(row[5]) == "nan" and row[1] != "bookSection" else "",

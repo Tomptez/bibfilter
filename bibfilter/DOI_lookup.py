@@ -37,11 +37,19 @@ def add_item(doi):
         try:
             title = get_json_value(result, ["title",0],"")
 
+            author = ""
             if result.get("author") != None and len(result.get("author")) > 0:
-                author = f'{get_json_value(result, ["author", 0, "family"], "")}, {get_json_value(result, ["author", 0, "given"], "")}'
+                keyword = "author"
             else:
-                author = f'{get_json_value(result, ["editor", 0, "family"], "")}, {get_json_value(result, ["editor", 0, "given"], "")}'
-            
+                keyword = "editor"
+            for i in len(result.get(keyword)):
+                if i > 0:
+                    author += ";"
+                author += f'{get_json_value(result, [keyword, i, "family"], "")}, {get_json_value(result, [keyword, i, "given"], "")}'
+                if x == 3:
+                    break
+            authorlast = "; ".join([n.split(",")[0].strip(" ") for n in author.split(";")]),
+
             year = get_json_value(result, ["published-print", "date-parts", 0, 0], "")
             journal = get_json_value(result, ["container-title", 0], "")
 
@@ -64,7 +72,7 @@ def add_item(doi):
         elif len(list(session.query(Article).filter(Article.ID == ID))) > 0:
             return f"{title} already exists in the database."
 
-        new_art = Article(title=title, url=url, publisher=publisher, ID=ID, ENTRYTYPE=ENTRYTYPE, author=author, year=year, doi=doi, journal=journal, volume=volume, number=number, icon="article", _date_created = datetime.datetime.now().date(), _date_created_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+        new_art = Article(title=title, url=url, publisher=publisher, ID=ID, ENTRYTYPE=ENTRYTYPE, author=author, authorlast=authorlast, year=year, doi=doi, journal=journal, volume=volume, number=number, icon="article", _date_created = datetime.datetime.now().date(), _date_created_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
         # print(title, author, year, journal, volume, url, publisher, ID, ENTRYTYPE)
         session.add(new_art)
         session.commit()

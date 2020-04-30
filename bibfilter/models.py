@@ -16,6 +16,7 @@ class Article(db.Model):
     ENTRYTYPE = db.Column(db.String)
     title = db.Column(db.String)
     author = db.Column(db.String)
+    authorlast = db.Column(db.String)
     year = db.Column(db.String)
     journal = db.Column(db.String)
     publication = db.Column(db.String)
@@ -52,13 +53,13 @@ class Article(db.Model):
 class ArticleSchema(ma.Schema):
 
     class Meta:
-        fields = ("icon", "author","year", "title", "publication", "url")
+        fields = ("icon", "authorlast","year", "title", "publication", "url")
         ordered = True
 
 class ArticleSchemaAdmin(ma.Schema):
 
     class Meta:
-        fields = ("ID","icon", "author","year", "title", "publication", "url", "_date_created_str")
+        fields = ("ID","icon", "authorlast","year", "title", "publication", "url", "_date_created_str")
         ordered = True
 
 class BibliographySchema(ma.Schema):

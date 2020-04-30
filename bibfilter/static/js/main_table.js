@@ -1,4 +1,4 @@
-var originalFilter = {"title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"author","sortorder":"asc"};
+var originalFilter = {"title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"authorlast","sortorder":"asc"};
 
 function CreateTableFromJSON(data) {
     console.log("Start CreateTableFromJSON()")
@@ -6,7 +6,7 @@ function CreateTableFromJSON(data) {
     // EXTRACT VALUE FOR HTML HEADER. 
     // ('Book ID', 'Book Name', 'Category' and 'Price')
     var col = [];
-    colname = {"title": "Title", "author": "Author", "year": "Year", "url": "URL", "publication": "Publication", "ID": "Delete", "icon": ""}
+    colname = {"title": "Title", "authorlast": "Author", "year": "Year", "url": "URL", "publication": "Publication", "ID": "Delete", "icon": ""}
     for (var i = 0; i < data.length; i++) {
         for (var key in data[i]) {
             if (col.indexOf(key) === -1) {
@@ -35,6 +35,9 @@ function CreateTableFromJSON(data) {
     for (var i = 0; i < col.length; i++) {
         var th = document.createElement("th");      // tbody HEADER.
         var titleprefix = ""                        // prefix for the title arrows
+
+        console.log(currentFilter["sortby"]);
+        console.log(currentFilter["sortorder"]);
 
         // mark which column its sorted by
         if (col[i] == currentFilter["sortby"] & currentFilter["sortorder"] == "asc"){

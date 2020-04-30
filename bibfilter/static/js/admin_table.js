@@ -1,10 +1,12 @@
+var originalFilter = {"title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"_date_created_str","sortorder":"desc"};
+
 function CreateTableFromJSON(data) {
     console.log("Start CreateTableFromJSON()")
     
     // EXTRACT VALUE FOR HTML HEADER. 
     // ('Book ID', 'Book Name', 'Category' and 'Price')
     var col = [];
-    colname = {"icon":"", "title": "Title", "author": "Author", "year": "Year", "url": "URL", "publication": "Publication", "ID": "Delete", "_date_created_str": "Added"}
+    colname = {"icon":"", "title": "Title", "authorlast": "Author", "year": "Year", "url": "URL", "publication": "Publication", "ID": "Delete", "_date_created_str": "Added"}
     for (var i = 0; i < data.length; i++) {
         for (var key in data[i]) {
             if (col.indexOf(key) === -1) {

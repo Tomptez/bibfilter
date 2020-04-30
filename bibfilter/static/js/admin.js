@@ -1,5 +1,3 @@
-var originalFilter = {"title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"_date_created_str","sortorder":"desc"};
-
 function setUpUpload() {
     // Select your input type file and store it in a variable
     const input = document.getElementById("fileinput");
