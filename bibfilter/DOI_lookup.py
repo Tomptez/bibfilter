@@ -3,6 +3,7 @@ import sys
 sys.path.append(".")
 import time
 import datetime
+import traceback
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from bibfilter import db
@@ -42,11 +43,11 @@ def add_item(doi):
                 keyword = "author"
             else:
                 keyword = "editor"
-            for i in len(result.get(keyword)):
+            for i in range(len(result.get(keyword))):
                 if i > 0:
                     author += ";"
                 author += f'{get_json_value(result, [keyword, i, "family"], "")}, {get_json_value(result, [keyword, i, "given"], "")}'
-                if x == 3:
+                if i == 3:
                     break
             authorlast = "; ".join([n.split(",")[0].strip(" ") for n in author.split(";")]),
 
@@ -54,7 +55,7 @@ def add_item(doi):
             journal = get_json_value(result, ["container-title", 0], "")
 
             url = result.get("URL")
-            institution = result.get("publisher")
+            publisher = result.get("publisher")
             ENTRYTYPE = result.get("type")
             volume = result.get("volume")
             number = result.get("issue")
@@ -62,22 +63,28 @@ def add_item(doi):
 
             ID = title.split()[1]+doi.replace("/","").replace(".","")
 
-        except Exception as e:
-            print("ERROR", e)
+        except Exception:
+            e = traceback.format_exc()
+            print("ERROR:", e)
+            return f"Couldn't receive required metadata of {doi}"
 
         # Create the session
         session = db.session()
         if title == "" or author == "":
             return f"Couldn't receive required metadata of {doi}"
         elif len(list(session.query(Article).filter(Article.ID == ID))) > 0:
-            return f"{title} already exists in the database."
+            return f"Error:\n\n{title} already exists in the database."
 
-        new_art = Article(title=title, url=url, publisher=publisher, ID=ID, ENTRYTYPE=ENTRYTYPE, author=author, authorlast=authorlast, year=year, doi=doi, journal=journal, volume=volume, number=number, icon="article", _date_created = datetime.datetime.now().date(), _date_created_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
-        # print(title, author, year, journal, volume, url, publisher, ID, ENTRYTYPE)
+        date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        new_art = Article(title=title, url=url, publisher=publisher, ID=ID, ENTRYTYPE=ENTRYTYPE, 
+                        author=author, authorlast=authorlast, year=year, doi=doi, journal=journal, publication=journal,
+                        volume=volume, number=number, icon="article", _date_created = datetime.datetime.now().date(), 
+                        _date_created_str = date_str[:-3], date_added = date_str, date_modified = date_str)
         session.add(new_art)
         session.commit()
 
-        return f"Added article to the Database. \n\nTitle:{title}\nDOI: {doi}"
+        return f"Added article to the Database. \n\nTitle: {title}\nDOI: {doi}"
 
 if __name__ == "__main__":
     doi = "10.1007/978-3-319-69626-3"
