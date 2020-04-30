@@ -28,7 +28,7 @@ body {
 /* Textbox for number of results */
 #textbox {
     background-color: #f2f2f2;
-    border: 1px solid lightgrey;
+    border: 1px solid lightgray;
     padding: 5px 10px;
     margin: 10px;
 }
@@ -46,8 +46,12 @@ body {
 .fieldsetcontainer {
     padding: .5em;
 }
+fieldset {
+    border: 1px solid lightgray;
+}
 form fieldset p {
     margin: 1px;
+    
 }
 
 /* make the form stick to the top */
@@ -126,7 +130,7 @@ th {
         padding: 5px;
     }
     colgroup #url {
-        min-width: 50pt;
+        width: 55pt;
     }
     colgroup #year {
         min-width: 45pt;
