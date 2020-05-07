@@ -186,8 +186,9 @@ def upload_file():
         return resp
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        cnt_add, cnt_exist, cnt_err = create_db_from_csv(filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        cnt_add, cnt_exist, cnt_err = create_db_from_csv(filepath)
         print("Updated the database")
         resp = jsonify({'message' : f"File successfully uploaded. \n\nAdded {cnt_add} new Articles. {cnt_exist} Articles already existed in the database. {cnt_err} Articles couldn't be addded because of an error"})
         resp.status_code = 201
