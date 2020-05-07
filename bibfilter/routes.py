@@ -171,7 +171,7 @@ def allowed_file(filename):
 @app.route('/file-upload', methods=['POST'])
 @limiter.limit("15/day")
 def upload_file():
-    print(str(request.files))
+    print("Running upload_file()")
     # check if the post request has the file part
     if 'file' not in request.files:
         resp = jsonify({'message' : 'No file part in the request'})
@@ -190,7 +190,7 @@ def upload_file():
         file.save(filepath)
         cnt_add, cnt_exist, cnt_err = create_db_from_csv(filepath)
         print("Updated the database")
-        resp = jsonify({'message' : f"File successfully uploaded. \n\nAdded {cnt_add} new Articles. {cnt_exist} Articles already existed in the database. {cnt_err} Articles couldn't be addded because of an error"})
+        resp = jsonify({'message' : f"File successfully uploaded. \n\nAdded {cnt_add} new Articles. {cnt_exist} Articles already existed in the database. {cnt_err} Articles couldn't be addded because of an error\n\nMaybe not all of the articles could be added because of a slow internet connection or the serverload. In this case, please upload the file again."})
         resp.status_code = 201
         return resp
     else:

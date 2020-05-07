@@ -75,16 +75,15 @@ def create_db_from_csv(file_name):
                     "_date_created" : datetime.datetime.now().date(),
                     "_date_created_str" : datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
                 })
-                #month??
                 
-                session.add(record) #Add all the records
+                session.add(record) #Add the record
+                session.commit() # Commit the record
                 cnt_add += 1
             except Exception:
                 e = traceback.format_exc()
                 print(e)
                 cnt_err += 1
 
-        session.commit() #Attempt to commit all the records
     except Exception:
         e = traceback.format_exc()
         print(e)
