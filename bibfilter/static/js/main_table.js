@@ -31,6 +31,7 @@ function CreateTableFromJSON(data) {
 
     var tr = tbody.insertRow(-1);                   // tbody ROW.
     tr.className = "tr"
+    tr.classList.add("articlerow")                  // add class for css
 
     for (var i = 0; i < col.length; i++) {
         var th = document.createElement("th");      // tbody HEADER.
@@ -87,8 +88,11 @@ function CreateTableFromJSON(data) {
                 if (data[i][col[j]] == "book"){
                     var imgpath = base_url+"/static/img/book.png";
                 }
-                else {
+                else if (data[i][col[j]] == "article"){
                     var imgpath = base_url+"/static/img/article.png";
+                }
+                else {
+                    var imgpath = base_url+"/static/img/other.png";
                 }
                 var img = document.createElement('img');
                 img.src = imgpath;

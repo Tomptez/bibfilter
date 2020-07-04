@@ -74,12 +74,21 @@
                     <input type="text" name="until" id="until"> 
                 </li>
                 
+                <li class="fieldsetcontainer">
                 <fieldset class="source">
-                <legend>Literature Type</legend>
-                <p><label> <input type="radio" name="type" value="article"> Article </label></p>
-                <p><label> <input type="radio" name="type" value="book"> Book(chapter) </label></p>
-                <p><label> <input type="radio" name="type" value="all" checked> All </label></p>
+                    <legend>Literature Type</legend>
+                    <table style="width:100%" class="fieldset_table">
+                        <tr>
+                            <td><p><label> <input type="radio" name="type" value="article"> Article </label></p></td>
+                            <td><p><label> <input type="radio" name="type" value="book"> Book(chapter) </label></p></td>
+                        </tr>
+                        <tr>
+                            <td><p><label> <input type="radio" name="type" value="other"> Other </label></p></td>
+                            <td><p><label> <input type="radio" name="type" value="all" checked> All </label></p></td>
+                        </tr>
+                    </table>
                 </fieldset>
+                </li>
                 <li class="form-row">
                 <button type="submit">Filter</button>
                 <button onclick="resetPage()">Reset</button>

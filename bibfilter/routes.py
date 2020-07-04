@@ -136,21 +136,24 @@ def selectEntries(request_json):
     articletype = "%" if request_json["type"] == "all" else request_json["type"]
     
     titlelist = title.split(" ")
+    #ILIKE is similar to LIKE in all aspects except in one thing: it performs a case in-sensitive matching
     or_filter_title = [Article.title.ilike(f'%{term}%') for term in titlelist]
     authorlist = author.split(" ")
     or_filter_author = [Article.author.ilike(f'%{term}%') for term in authorlist]
     direction = desc if sortorder == 'desc' else asc
+    # Filter by Article.icon because unlike Artikcle.ENTRYTYPE, Article.icon groups books and bookchapters together
+    filter_type = [~Article.icon.like("book"), ~Article.icon.like("article")] if articletype == "other" else [Article.icon.like(articletype)]
 
     if timestart != "-1111" or until != "3333":
         requested_articles = db.session.query(Article).\
             filter(or_(*or_filter_title), or_(*or_filter_author),\
-                and_(Article.year >= timestart, Article.year <= until,\
-                    Article.ENTRYTYPE.like(articletype))).\
+                and_(Article.year >= timestart, Article.year <= until),\
+                and_(*filter_type)).\
                 order_by(direction(getattr(Article, sortby)))
     else:
         requested_articles = db.session.query(Article).\
             filter(or_(*or_filter_title), or_(*or_filter_author),\
-                and_(Article.ENTRYTYPE.like(articletype))).\
+                and_(*filter_type)).\
                 order_by(direction(getattr(Article, sortby)))
 
     return requested_articles

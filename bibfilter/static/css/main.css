@@ -94,6 +94,10 @@ margin: 3px;
     background: #4d6e80;
 }
 
+.fieldset_table td {
+    border: none;
+}
+
 button#add {
     font-size: 0.8em;
     height: 3em;
@@ -189,12 +193,12 @@ td {
 }
 
 /* add stripes to table */
-tr:nth-child(odd) {
+.articlerow:nth-child(odd) {
     background-color: #f2f2f2;
 }
 
 /* Hover over table rows */
-tr:hover td {
+.articlerow:hover td {
     background: #dbf5fa;
     }
 
