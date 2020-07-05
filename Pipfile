@@ -19,6 +19,7 @@ gunicorn = "*"
 python-dotenv = "*"
 requests = "*"
 flask-limiter = "*"
+pyzotero = "*"
 
 [requires]
 python_version = "3.8"

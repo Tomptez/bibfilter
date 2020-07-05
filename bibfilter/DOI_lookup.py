@@ -83,6 +83,7 @@ def add_item(doi):
                         _date_created_str = date_str[:-3], date_added = date_str, date_modified = date_str)
         session.add(new_art)
         session.commit()
+        session.close()
 
         return f"Added article to the Database. \n\nTitle: {title}\nDOI: {doi}"
 
