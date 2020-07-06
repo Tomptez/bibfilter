@@ -2,6 +2,7 @@ from flask import request, jsonify, render_template, redirect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from sqlalchemy.sql.expression import asc, desc, or_, and_
+from sqlalchemy.sql import func
 from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
 import bibtexparser
@@ -54,12 +55,20 @@ def get_articles():
 
 ## API: Return Articles for Admin page
 @app.route("/articles_admin", methods=["POST"])
+@basic_auth.required
 def get_admin():
     req_data = request.get_json()
     entries = selectEntries(req_data)
     result = articles_schema_admin.dump(entries)
     print(f"JSON returned of length {len(result)}")
     return jsonify(result)
+
+## API: Infos when last zotero sync occured
+@app.route("/zotero_sync", methods=["POST"])
+@basic_auth.required
+def zotero_sync():
+    max_value = db.session.query(func.max(Article.date_last_zotero_sync)).scalar()
+    return max_value
 
 # API: Delete an article
 @app.route("/delete/<key>", methods=["GET"])

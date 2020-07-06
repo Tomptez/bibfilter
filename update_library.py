@@ -54,9 +54,9 @@ def add_item(item):
 
     req = session.query(Article).filter(Article.ID == data["key"])
     
-    Checks if Article already exists
+    # Checks if Article already exists
     if len(list(req)) > 0:
-        req.date_last_zotero_sync = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        req[0].date_last_zotero_sync = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         session.commit()
         session.close()
         return False
