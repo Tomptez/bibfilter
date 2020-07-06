@@ -75,12 +75,14 @@ def add_item(doi):
         elif len(list(session.query(Article).filter(Article.ID == ID))) > 0:
             return f"Error:\n\n{title} already exists in the database."
 
-        date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        date_str_pretty = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        date_str_zot = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M%:SZ")
 
         new_art = Article(title=title, url=url, publisher=publisher, ID=ID, ENTRYTYPE=ENTRYTYPE, 
                         author=author, authorlast=authorlast, year=year, doi=doi, journal=journal, publication=journal,
-                        volume=volume, number=number, icon="article", _date_created = datetime.datetime.now().date(), 
-                        _date_created_str = date_str[:-3], date_added = date_str, date_modified = date_str)
+                        volume=volume, number=number, icon="article", date_created = date_str_zot, 
+                        date_modified = date_str_zot, date_added_pretty = date_str_pretty, date_modified_pretty = date_str_pretty, 
+                        date_last_zotero_sync = "",)
         session.add(new_art)
         session.commit()
         session.close()

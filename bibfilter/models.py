@@ -43,10 +43,12 @@ class Article(db.Model):
     publisher = db.Column(db.String)
     language = db.Column(db.String)
     url = db.Column(db.String)
+    date_last_zotero_sync = db.Column(db.String)
+    date_modified_pretty = db.Column(db.String)
+    date_added_pretty = db.Column(db.String)
     _date_created_str = db.Column(db.String)
-    _date_created = db.Column(db.DateTime)
-
-
+    _date_created= db.Column(db.DateTime)
+    
     # needed?
     # def __init__(self, name, description, price, qty):
     #     self.name = name

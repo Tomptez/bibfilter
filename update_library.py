@@ -8,16 +8,60 @@ from sqlalchemy.orm import sessionmaker
 from bibfilter import db
 from bibfilter.models import Article
 from pyzotero import zotero
+from pprint import pprint
+import time
 
-csv_bib_pattern = {"journalArticle": "article", "book": "book", "conferencePaper": "inproceedings", "manuscript": "article", "bookSection": "incollection", "webpage": "inproceedings", "techreport": "article", "letter": "misc", "report": "report", "document": "misc", "thesis": "thesis"}
+def update_from_zotero():
+    session = db.session()
+    #Create the database
+    db.create_all()
+    session.close()
+
+    libraryID = os.environ["libraryID"]
+    collectionID = os.environ["collectionID"]
+
+    zot = zotero.Zotero(libraryID, "group")
+    items = zot.collection_items_top(collectionID, limit=50)
+    size = zot.num_collectionitems(collectionID)
+    new, existed = 0, 0
+    for num in range(size):
+
+        for item in items:
+
+            added = add_item(item)
+            if added:
+                new += 1
+            else:
+                existed += 1
+        
+        try:
+            items = zot.follow()
+        except Exception:
+            print("Got all items")
+            break
+
+    session = db.session()
+    total = len(list(session.query(Article)))
+    session.close()
+    print(f"Added {new} new articles.\n {existed} articles existed already.\n\nTotal Articles: {total}")
+
+
+
 def add_item(item):
     # Create the session
     session = db.session()
     data = item["data"]
+
+    req = session.query(Article).filter(Article.ID == data["key"])
     
-    #Checks if Article already exists
-    if len(list(session.query(Article).filter(Article.ID == data["key"]))) > 0:
+    Checks if Article already exists
+    if len(list(req)) > 0:
+        req.date_last_zotero_sync = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        session.commit()
+        session.close()
         return False
+
+    csv_bib_pattern = {"journalArticle": "article", "book": "book", "conferencePaper": "inproceedings", "manuscript": "article", "bookSection": "incollection", "webpage": "inproceedings", "techreport": "article", "letter": "misc", "report": "report", "document": "misc", "thesis": "thesis"}
 
     content = {"title": "","url":"", "key":"" ,"itemType":"", "DOI": "", "ISSN":"", "publicationTitle":"","journalAbbreviation":"","abstractNote":"","pages":"","language":"","volume":"","issue":"","dateAdded":"","dateModified":"","ISBN":"", "numPages":""}
     
@@ -50,7 +94,10 @@ def add_item(item):
                 authorlast = data["creators"][0]["lastName"] + ", " + data["creators"][0]["firstName"]
         except Exception as e:
             pass
+    
 
+    date_str = date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    
     # Create new Database entry with all the attributes
     new_art = Article(title=content["title"], 
                         url=content["url"], 
@@ -73,44 +120,18 @@ def add_item(item):
                         volume=content["volume"], 
                         number=content["issue"], 
                         icon="book" if content["itemType"].startswith("book") else csv_bib_pattern[content["itemType"]], 
-                        _date_created = datetime.datetime.now().date(),
-                        _date_created_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+                        date_last_zotero_sync = datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
                         date_added = content["dateAdded"],
-                        date_modified = content["dateModified"])
+                        date_modified = content["dateModified"],
+                        date_modified_pretty = content["dateModified"].split("T")[0] + " " + content["dateModified"].split("T")[1][:-4],
+                        date_added_pretty = content["dateAdded"].split("T")[0] + " " + content["dateAdded"].split("T")[1][:-4],
+                        _date_created_str = date_str,
+                        _date_created = date_str)
     session.add(new_art)
     session.commit()
     session.close()
 
     return True
-session = db.session()
-#Create the database
-db.create_all()
-session.close()
 
-libraryID = os.environ["libraryID"]
-collectionID = os.environ["collectionID"]
-
-zot = zotero.Zotero(libraryID, "group")
-items = zot.collection_items_top(collectionID, limit=50)
-size = zot.num_collectionitems(collectionID)
-new, existed = 0, 0
-for num in range(size):
-
-    for item in items:
-
-        added = add_item(item)
-        if added:
-            new += 1
-        else:
-            existed += 1
-    
-    try:
-        items = zot.follow()
-    except Exception:
-        print("Got all items")
-        break
-
-session = db.session()
-total = len(list(session.query(Article)))
-session.close()
-print(f"Added {new} new articles.\n {existed} articles existed already.\n\nTotal Articles: {total}")
+if __name__ == "__main__":
+    update_from_zotero()

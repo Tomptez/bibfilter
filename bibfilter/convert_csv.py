@@ -39,6 +39,8 @@ def create_db_from_csv(file_name):
                 if len(list(session.query(Article).filter(Article.ID == row[0]))) > 0:
                     cnt_exist += 1
                     continue
+                
+                date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
                 record = Article(**{
                     "ID" : row[0],
@@ -72,8 +74,11 @@ def create_db_from_csv(file_name):
                     "institution" : row[26] if row[1] == "report" or row[1] == "thesis" else "",
                     "publisher" : row[26] if row[1] != "report" and row[1] != "thesis" else "",
                     "address" : row[27],
-                    "_date_created" : datetime.datetime.now().date(),
-                    "_date_created_str" : datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+                    "date_last_zotero_sync" : "",
+                    "date_modified_pretty" : date_str,
+                    "date_added_pretty" : date_str,
+                    "_date_created" : date_str,
+                    "_date_created_str" : date_str,
                 })
                 
                 session.add(record) #Add the record

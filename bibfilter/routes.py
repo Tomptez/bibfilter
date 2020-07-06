@@ -73,7 +73,8 @@ def delete_article(key):
 
     return redirect("/admin")
 
-# API: Delete an article
+# API: Delete timeperiod
+# Todo
 @app.route("/deleteTimePeriod/<dateFrom>/<dateUntil>/<dry>", methods=["GET"])
 @basic_auth.required
 def deleteTimePeriod(dateFrom,dateUntil,dry):
