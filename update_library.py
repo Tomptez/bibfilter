@@ -10,6 +10,7 @@ from bibfilter.models import Article
 from pyzotero import zotero
 from pprint import pprint
 import time
+import schedule
 
 # List to store key of all items in zotero to later check if some of the items in the database have been deleted in zotero
 zotero_keylist = []
@@ -181,5 +182,12 @@ def delete_old():
 
     return count
 
+# Sync once with the zotero library, after that sync ever 3 hours
 if __name__ == "__main__":
     update_from_zotero()
+    
+    schedule.every(3).hours.do(update_from_zotero)
+    
+    while True:
+        schedule.run_pending()
+        time.sleep(60)
