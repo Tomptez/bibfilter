@@ -14,6 +14,9 @@ import time
 # List to store key of all items in zotero to later check if some of the items in the database have been deleted in zotero
 zotero_keylist = []
 
+# Count new and updated articles for finish report
+report = {"new" : 0, "updated" : 0, "existed" : 0}
+
 def update_from_zotero():
     session = db.session()
     #Create the database
@@ -25,22 +28,20 @@ def update_from_zotero():
 
     zot = zotero.Zotero(libraryID, "group")
     items = zot.collection_items_top(collectionID, limit=50)
-    size = zot.num_collectionitems(collectionID)
-    new, existed = 0, 0
+    size = zot.num_collectionitems(collectionID) 
+
     for num in range(size):
 
         for item in items:
 
-            added = add_item(item)
-            if added:
-                new += 1
-            else:
-                existed += 1
+            # check_item return (1,0,0) when adding new item, (0,1,0) when updating, (0,0,1) when item existed
+            check_item(item)
         
+        # Get next set of entries
         try:
             items = zot.follow()
+        # Stop when there are no items left
         except Exception:
-            print("Got all items")
             break
 
     # Delete all articles which are not in zotero anymore
@@ -50,13 +51,15 @@ def update_from_zotero():
     session = db.session()
     total = len(list(session.query(Article)))
     session.close()
-    print("------------------------------------\nSummary")
-    print(f"Added {new} new articles.\n{existed} articles existed already.\nDeleted {deleted} articles.\n\nTotal Articles: {total}")
+    print("------------------------------------")
+    print("Summary of synchronization with Zotero:")
+    print(f"Added {report['new']} new entries.\n{report['existed']} entries existed already.")
+    print(f"Updated {report['updated']} entries\nDeleted {deleted} articles.\n\nTotal Articles: {total}")
 
 
-
-def add_item(item):
+def check_item(item):
     global zotero_keylist
+    global report
 
     # Create the session
     session = db.session()
@@ -65,14 +68,23 @@ def add_item(item):
     ## Adding each key the keylist to check them later
     zotero_keylist.append(data["key"])
 
-    req = session.query(Article).filter(Article.ID == data["key"])
-    
-    # Checks if Article already exists
-    if len(list(req)) > 0:
+    req = session.query(Article).filter(Article.ID ==   data["key"])
+    # If article exists and hasn't been modified, update last sync date and return
+    if len(list(req)) > 0 and req[0].date_modified == data["dateModified"]:
         req[0].date_last_zotero_sync = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         session.commit()
         session.close()
+        report["existed"] += 1
         return False
+
+    # If the item existed but has been modified delete it now and continue to add it again
+    elif len(list(req)) > 0 and req[0].date_modified != data["dateModified"]:
+        session.delete(req[0])
+        session.commit()
+        report["updated"] += 1
+
+    else:
+        report["new"] += 1
 
     csv_bib_pattern = {"journalArticle": "article", "book": "book", "conferencePaper": "inproceedings", "manuscript": "article", "bookSection": "incollection", "webpage": "inproceedings", "techreport": "article", "letter": "misc", "report": "report", "document": "misc", "thesis": "thesis"}
 
@@ -159,6 +171,7 @@ def delete_old():
     count = 0
     for entry in request:
         if entry.ID not in zoteroKeys:
+            print(f"delete {entry.title}")
             session.delete(entry)
             session.commit()
             count +=1
