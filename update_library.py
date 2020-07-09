@@ -11,6 +11,9 @@ from pyzotero import zotero
 from pprint import pprint
 import time
 
+# List to store key of all items in zotero to later check if some of the items in the database have been deleted in zotero
+zotero_keylist = []
+
 def update_from_zotero():
     session = db.session()
     #Create the database
@@ -40,17 +43,27 @@ def update_from_zotero():
             print("Got all items")
             break
 
+    # Delete all articles which are not in zotero anymore
+    deleted = delete_old()
+
+    # Count how many items are in the database in total
     session = db.session()
     total = len(list(session.query(Article)))
     session.close()
-    print(f"Added {new} new articles.\n {existed} articles existed already.\n\nTotal Articles: {total}")
+    print("------------------------------------\nSummary")
+    print(f"Added {new} new articles.\n{existed} articles existed already.\nDeleted {deleted} articles.\n\nTotal Articles: {total}")
 
 
 
 def add_item(item):
+    global zotero_keylist
+
     # Create the session
     session = db.session()
     data = item["data"]
+
+    ## Adding each key the keylist to check them later
+    zotero_keylist.append(data["key"])
 
     req = session.query(Article).filter(Article.ID == data["key"])
     
@@ -79,7 +92,7 @@ def add_item(item):
     except Exception as e:
         itemYear = ""
     
-    # Get authornames
+    # Get author names
     author, authorlast = "", ""
     for dic in data["creators"]:
         try:
@@ -98,7 +111,7 @@ def add_item(item):
 
     date_str = date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     
-    # Create new Database entry with all the attributes
+    # Create a new Database entry with all the attributes
     new_art = Article(title=content["title"], 
                         url=content["url"], 
                         # publisher=publisher, 
@@ -132,6 +145,28 @@ def add_item(item):
     session.close()
 
     return True
+
+def delete_old():
+    # Convert zotero keys from list to tuple to make iteration faster
+    zoteroKeys = tuple(zotero_keylist)
+
+    session = db.session()
+
+    # Select all entries in the database
+    request = session.query(Article)
+
+    # Delete each item from the database which isn't in the zotero database
+    count = 0
+    for entry in request:
+        if entry.ID not in zoteroKeys:
+            session.delete(entry)
+            session.commit()
+            count +=1
+
+
+    session.close()
+
+    return count
 
 if __name__ == "__main__":
     update_from_zotero()

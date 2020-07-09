@@ -80,7 +80,7 @@ def add_item(doi):
 
         new_art = Article(title=title, url=url, publisher=publisher, ID=ID, ENTRYTYPE=ENTRYTYPE, 
                         author=author, authorlast=authorlast, year=year, doi=doi, journal=journal, publication=journal,
-                        volume=volume, number=number, icon="article", date_created = date_str_zot, 
+                        volume=volume, number=number, icon="article", date_added = date_str_zot, 
                         date_modified = date_str_zot, date_added_pretty = date_str_pretty, date_modified_pretty = date_str_pretty, 
                         date_last_zotero_sync = "",)
         session.add(new_art)
