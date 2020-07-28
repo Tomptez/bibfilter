@@ -19,6 +19,7 @@ zotero_keylist = []
 report = {"new" : 0, "updated" : 0, "existed" : 0}
 
 def update_from_zotero():
+    print("Started syncing with zotero collection")
     session = db.session()
     #Create the database
     db.create_all()
@@ -110,14 +111,14 @@ def check_item(item):
     for dic in data["creators"]:
         try:
             if len(authorlast) > 0:
-                authorlast += "; " + data["creators"][0]["lastName"]
+                authorlast += "; " + dic["lastName"]
             else:
-                authorlast = data["creators"][0]["lastName"]
+                authorlast = dic["lastName"]
 
             if len(author) > 0:
-                author += "; " + data["creators"][0]["lastName"] + ", " + data["creators"][0]["firstName"]
+                author += "; " + dic + ", " + dic["firstName"]
             else:
-                authorlast = data["creators"][0]["lastName"] + ", " + data["creators"][0]["firstName"]
+                author = dic["lastName"] + ", " + dic["firstName"]
         except Exception as e:
             pass
     
