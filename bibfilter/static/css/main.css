@@ -106,6 +106,19 @@ button#add span {
     font-size: 1.6em;
 }
 
+
+#addArticleForm {
+    text-align: right;
+}
+
+.suggestTitle {
+    font-size: 1.3em;
+}
+
+#suggestArticle {
+    background-color: orange;
+    color: black;
+}
 /* Table */
 table {
     border-collapse: collapse;

@@ -23,6 +23,39 @@ function setUpUpload() {
             });
         });
 }
+// Function to ad an article
+async function addArticle(mydoi){
+    fetch(base_url+"/add/"+mydoi, {
+            method: 'GET',
+            }).then(function (response) {
+                return response.text();
+            }).then(function (response_text){
+                alert(response_text);
+                window.location.href=base_url;
+            }).catch(function (error){
+                console.error(error);
+                alert("A Network Error occured. Please contact the Website administrator or try again later.")
+            });
+}
+
+function addArticleSetUp() {
+    const addArticleForm = document.getElementById("addArticleForm");
+
+        addArticleForm.addEventListener("submit", function (e){
+            e.preventDefault();
+
+            var doicontent = document.getElementById('mydoi').value;
+            var copy = doicontent;
+            var slashcount = copy.replace(/[^\/]/g, "").length;
+            if (slashcount  != 1 && slashcount  != 2 && slashcount != 3) {
+                alert("DOI format is not compatible. Please check if entered correctly.");
+                return false;
+            };
+            // Replace all Slashes '/' with '&&sl' to forward the doi as a single parameter to the API
+            var doi = doicontent.replace(/\//g,"&&sl")
+            addArticle(doi);
+        });
+}
 
 // Function to delete Articles in a timeperiod
 // Explanation how to assign fetch values = https://stackoverflow.com/questions/54034875/how-can-i-acces-the-values-of-my-async-fetch-function
@@ -70,4 +103,5 @@ window.onload = function(){
     setUpFilter();
     timeDelete();
     setUpUpload();
+    addArticleSetUp();
 }

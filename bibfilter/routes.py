@@ -14,6 +14,8 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 import urllib.request
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 # Rate limiting Setup
 limiter = Limiter(
@@ -106,7 +108,9 @@ def add_article(doi):
 @app.route("/index", methods=["GET"])
 @limiter.exempt
 def main():
-    return render_template("main.html")
+    link = os.environ["suggestLiteratureURL"]
+    print(link)
+    return render_template("main.html", suggestLink=link)
 
 ## Frontend: Return admin page
 @app.route("/admin", methods=["GET"])

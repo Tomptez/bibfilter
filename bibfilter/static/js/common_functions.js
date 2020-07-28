@@ -10,21 +10,6 @@ else {
     var articles_url = "/articles"
 }
 
-// Function to ad an article
-async function addArticle(mydoi){
-    fetch(base_url+"/add/"+mydoi, {
-            method: 'GET',
-            }).then(function (response) {
-                return response.text();
-            }).then(function (response_text){
-                alert(response_text);
-                window.location.href=base_url;
-            }).catch(function (error){
-                console.error(error);
-                alert("A Network Error occured. Please contact the Website administrator or try again later.")
-            });
-}
-
 // Function to get articles as JSON from the flask API
 async function getFilteredLiterature(input_json){
     fetch(base_url+articles_url, {
@@ -117,22 +102,4 @@ function setUpFilter() {
         var json = JSON.stringify(filter);
         getFilteredLiterature(json);
     });
-
-    const addArticleForm = document.getElementById("addArticleForm");
-
-    addArticleForm.addEventListener("submit", function (e){
-        e.preventDefault();
-
-        var doicontent = document.getElementById('mydoi').value;
-        var copy = doicontent;
-        var slashcount = copy.replace(/[^\/]/g, "").length;
-        if (slashcount  != 1 && slashcount  != 2 && slashcount != 3) {
-            alert("DOI format is not compatible. Please check if entered correctly.");
-            return false;
-        };
-        // Replace all Slashes '/' with '&&sl' to forward the doi as a single parameter to the API
-        var doi = doicontent.replace(/\//g,"&&sl")
-        addArticle(doi);
-    });
-    
 }
