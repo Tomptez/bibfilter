@@ -74,6 +74,7 @@ def create_db_from_csv(file_name):
                     "institution" : row[26] if row[1] == "report" or row[1] == "thesis" else "",
                     "publisher" : row[26] if row[1] != "report" and row[1] != "thesis" else "",
                     "address" : row[27],
+                    "searchIndex" : " ".join([str(row[4]), str(row[3]), str(row[5]), str(row[10]), str(row[8])]),
                     "date_last_zotero_sync" : "",
                     "date_modified_pretty" : date_str,
                     "date_added_pretty" : date_str,

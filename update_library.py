@@ -146,6 +146,7 @@ def check_item(item):
                         volume=content["volume"], 
                         number=content["issue"], 
                         icon="book" if content["itemType"].startswith("book") else csv_bib_pattern[content["itemType"]], 
+                        searchIndex = " ".join([content["title"], author, content["publicationTitle"], content["abstractNote"], content["DOI"], content["ISSN"], content["ISBN"]]),
                         date_last_zotero_sync = datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
                         date_added = content["dateAdded"],
                         date_modified = content["dateModified"],
