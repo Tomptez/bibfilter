@@ -39,8 +39,11 @@ and type (or paste) in the following variables
     DATABASE_URL = "sqlite:///mydatabase.db"
     APP_USERNAME = "username"
     APP_PASSWORD = "password"
+    LIBRARY_ID = "2364338"
+    COLLECTION_ID = "VIZDZ4PX"
 
 You can change the values of `APP_USERNAME` and `APP_PASSWORD` to whatever you like. They will be used for the login for the `/admin` page.
+`LIBRARY_ID` and `COLLECTION_ID` should reflect the respective ID of your zotero Library and collection. You can retrieve these IDs from the adress field in your browser if you open the collection at zotero.org in your browser. Note that it has to be a public library, otherwise you also need to use an API-Key which this application does not yet account for. 
 
 You can now close the `nano` editor by hitting Ctr+X and then typing `Y` and then `Enter` to save the file
 

@@ -24,8 +24,8 @@ def update_from_zotero():
     db.create_all()
     session.close()
 
-    libraryID = os.environ["libraryID"]
-    collectionID = os.environ["collectionID"]
+    libraryID = os.environ["LIBRARY_ID"]
+    collectionID = os.environ["COLLECTION_ID"]
 
     zot = zotero.Zotero(libraryID, "group")
     items = zot.collection_items_top(collectionID, limit=50)

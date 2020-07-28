@@ -117,7 +117,7 @@ def add_article(doi):
 @app.route("/index", methods=["GET"])
 @limiter.exempt
 def main():
-    link = os.environ["suggestLiteratureURL"]
+    link = os.environ["SUGGEST_LITERATURE_URL"]
     print(link)
     return render_template("main.html", suggestLink=link)
 
