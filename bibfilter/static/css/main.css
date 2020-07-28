@@ -81,7 +81,7 @@ margin: 3px;
     border-radius: 4px;
     flex: 2;
 }
-.form-row > button {
+.form-row > button, .form-row > .button{
     background: #3a4a52;
     font-size: 1.4em;
     padding: 5px 20px;
@@ -111,14 +111,26 @@ button#add span {
     text-align: right;
 }
 
+#addArticleForm .form-row {
+    padding: .1em .5em;
+}
+
 .suggestTitle {
     font-size: 1.3em;
 }
 
-#suggestArticle {
+#suggestButton {
     background-color: orange;
     color: black;
+    padding: 8 20;
+    text-decoration: none;
+    display: inline-block;
 }
+
+#suggestButton:hover {
+    background-color: orangered;
+}
+
 /* Table */
 table {
     border-collapse: collapse;
