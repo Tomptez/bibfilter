@@ -9,6 +9,7 @@ The front-end, which can be found under templates/main.html is being served from
 ## How to run the application on your local computer
 
 First make sure you have [git](https://github.com/git-for-windows/git/releases/latest), `bash` (which is comes with git) and Version 3.8.1 of [python](https://www.python.org/downloads/release/python-381/) (and `pip` which will be installed together with python on windows) installed.
+You will also need [PostgreSQL](https://www.postgresql.org/download/) to start the application and create a new Database called bibfilter
 
 Next, clone the repository to your local machine from your (git) bash terminal
 
@@ -28,6 +29,12 @@ This can take a while.
 
     pipenv install
 
+To use the application, you will also need to create a `PostgreSQL` Database called bibfilter and install an extension called unaccent.
+This is done by typing in you terminal
+    psql
+    \c bibfilter;
+    CREATE EXTENSION unaccent;
+
 Before we can start the application, we need to set our environment variables.
 To do so, create a new file in the main directory (in which the Pipfile sits) called `.env` where you define the environment variables which we will use in the project.
 To create it type we will use the terminal editor `nano`. In your bash terminal type
@@ -36,24 +43,20 @@ To create it type we will use the terminal editor `nano`. In your bash terminal 
 
 and type (or paste) in the following variables
 
-    DATABASE_URL = "sqlite:///mydatabase.db"
+    DATABASE_URL = "postgresql://myusername:mypassword@localhost/bibfilter"
     APP_USERNAME = "username"
     APP_PASSWORD = "password"
     LIBRARY_ID = "2364338"
     COLLECTION_ID = "VIZDZ4PX"
+    SUGGEST_LITERATURE_URL="duckduckgo.com"
 
 You can change the values of `APP_USERNAME` and `APP_PASSWORD` to whatever you like. They will be used for the login for the `/admin` page.
-`LIBRARY_ID` and `COLLECTION_ID` should reflect the respective ID of your zotero Library and collection. You can retrieve these IDs from the adress field in your browser if you open the collection at zotero.org in your browser. Note that it has to be a public library, otherwise you also need to use an API-Key which this application does not yet account for. 
+`LIBRARY_ID` and `COLLECTION_ID` should reflect the respective ID of your zotero Library and collection. You can retrieve these IDs from the adress field in your browser if you open the collection at zotero.org in your browser. Note that it has to be a public library, otherwise you also need to use an API-Key which this application does not yet account for.
+`SUGGEST_LITERATURE_URL` should be the URL to a page where users can suggest articles to add.
+
+You then change `DATABASE_URL` replacing `myusername` and `mypassword` with your actual username/password
 
 You can now close the `nano` editor by hitting Ctr+X and then typing `Y` and then `Enter` to save the file
-
-
->**Optional:**
-> -----------
->For testing you can leave the `DATABASE_URL` untouched (it will use a simple sqlite3 database). For serious development and actual production it would be best to first install and setup [PostgreSQL](https://www.postgresql.org/download/) and create a new Database called bibfilter.
->You can then change `DATABASE_URL` to the following value (replacing `myusername` and `mypassword` with your actual username/password and `bibfilter` with whatever you called your database) 
-
->    `DATABASE_URL = "postgresql://myusername:mypassword@localhost/bibfilter"`
 
 
 Then you can activate the environment via

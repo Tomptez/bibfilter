@@ -15,8 +15,14 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 import urllib.request
 import os
+from sqlalchemy.sql.functions import ReturnTypeFromArgs
+from unidecode import unidecode
 from dotenv import load_dotenv
+
 load_dotenv()
+
+class unaccent(ReturnTypeFromArgs):
+    pass
 
 # Rate limiting Setup
 limiter = Limiter(
@@ -150,24 +156,26 @@ def selectEntries(request_json):
     
     titlelist = title.split(" ")
     #ILIKE is similar to LIKE in all aspects except in one thing: it performs a case in-sensitive matching
-    or_filter_title = [Article.title.ilike(f'%{term}%') for term in titlelist]
+    #Unidecode removes accent from the search string whereas unaccent removes accents from the database. The unaccent Extension has to be installed for postgresql
+    title_filter = [unaccent(Article.title).ilike(f'%{unidecode(term)}%') for term in titlelist]
     authorlist = author.split(" ")
-    or_filter_author = [Article.author.ilike(f'%{term}%') for term in authorlist]
+    author_filter = [unaccent(Article.author).ilike(f'%{unidecode(term)}%') for term in authorlist]
     direction = desc if sortorder == 'desc' else asc
     # Filter by Article.icon because unlike Artikcle.ENTRYTYPE, Article.icon groups books and bookchapters together
     filter_type = [~Article.icon.like("book"), ~Article.icon.like("article")] if articletype == "other" else [Article.icon.like(articletype)]
 
     if timestart != "-1111" or until != "3333":
         requested_articles = db.session.query(Article).\
-            filter(or_(*or_filter_title), or_(*or_filter_author),\
+            filter(and_(*title_filter), or_(*author_filter),\
                 and_(Article.year >= timestart, Article.year <= until),\
                 and_(*filter_type)).\
                 order_by(direction(getattr(Article, sortby)))
     else:
         requested_articles = db.session.query(Article).\
-            filter(or_(*or_filter_title), or_(*or_filter_author),\
+            filter(and_(*title_filter), or_(*author_filter),\
                 and_(*filter_type)).\
                 order_by(direction(getattr(Article, sortby)))
+
 
     return requested_articles
 

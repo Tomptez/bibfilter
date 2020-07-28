@@ -21,6 +21,7 @@ requests = "*"
 flask-limiter = "*"
 pyzotero = "*"
 schedule = "*"
+unidecode = "*"
 
 [requires]
 python_version = "3.8"
