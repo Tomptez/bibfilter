@@ -39,6 +39,8 @@ def create_db_from_csv(file_name):
                 if len(list(session.query(Article).filter(Article.ID == row[0]))) > 0:
                     cnt_exist += 1
                     continue
+                
+                date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
                 record = Article(**{
                     "ID" : row[0],
@@ -48,14 +50,14 @@ def create_db_from_csv(file_name):
                     "authorlast" : "; ".join([n.split(",")[0].strip(" ") for n in row[3].split(";")]),
                     "year" : int(row[2]) if not math.isnan(row[2]) else "",
                     "publication" : row[5] if not str(row[5]) == "nan" else "",
-                    "journal" : row[5] if not str(row[5]) == "nan" and row[1] != "bookSection" else "",
-                    "booktitle" : row[5] if not str(row[5]) == "nan" and row[1] == "bookSection" else "",
+                    "journal" : row[5] if not str(row[5]) == "nan" and not row[1].startswith("book") else "",
+                    "booktitle" : row[5] if not str(row[5]) == "nan" and row[1].startswith("book") else "",
                     "abstract": row[10],
                     "isbn": row[6],
                     "issn": row[7],
                     "doi" : row[8],
                     "url" : row[9],
-                    "pages" : row[15],
+                    "pages" : row[15] if row[15] != "" else row[16],
                     "volume" : row[18],
                     "journal_abbrev" : row[20],
                     "date_added" : row[12],
@@ -68,12 +70,16 @@ def create_db_from_csv(file_name):
                     "language" : row[28],
                     "number" : row[17],
                     "tags" : row[39],
-                    "icon" : "book" if row[1] == "bookSection" or row[1] == "book" else csv_bib_pattern[row[1]],
+                    "icon" : "book" if row[1].startswith("book") else csv_bib_pattern[row[1]],
                     "institution" : row[26] if row[1] == "report" or row[1] == "thesis" else "",
                     "publisher" : row[26] if row[1] != "report" and row[1] != "thesis" else "",
                     "address" : row[27],
-                    "_date_created" : datetime.datetime.now().date(),
-                    "_date_created_str" : datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+                    "searchIndex" : " ".join([str(row[4]), str(row[3]), str(row[5]), str(row[10]), str(row[8])]),
+                    "date_last_zotero_sync" : "",
+                    "date_modified_pretty" : date_str,
+                    "date_added_pretty" : date_str,
+                    "_date_created" : date_str,
+                    "_date_created_str" : date_str,
                 })
                 
                 session.add(record) #Add the record

@@ -1,13 +1,14 @@
-var currentFilter = originalFilter;
+let  currentFilter = originalFilter;
 
 // set the base url so the app knows which page to call independent whether we're in development or production
-var base_url = window.location.origin;
+const base_url = window.location.origin;
 
+let articles_url = ""
 if (window.location.pathname == "/admin") {
-    var articles_url = "/articles_admin"
+    articles_url = "/articles_admin"
 }
 else {
-    var articles_url = "/articles"
+    articles_url = "/articles"
 }
 
 // Function to get articles as JSON from the flask API
@@ -25,14 +26,14 @@ async function getFilteredLiterature(input_json){
                 CreateTableFromJSON(response_json);
             }).catch(function (error){
                 console.error(error);
-                var divContainer = document.getElementById("showData");
+                const divContainer = document.getElementById("showData");
                 divContainer.innerHTML = '<p style="font-style: italic;"> A Network Error occured. Please contact the Website administrator or try again later.</p>';
             });
 }
 
 // Function to download the .bib file as plain text from the flask API
 async function downloadBib(){
-    var json = JSON.stringify(currentFilter)
+    let  json = JSON.stringify(currentFilter)
     fetch(base_url+'/bibfile', {
             method: 'POST',
             body: json, // string or object
@@ -79,27 +80,45 @@ function setUpFilter() {
     filterForm.addEventListener("submit", function (e){
         e.preventDefault();
         
-        var x = document.getElementById('timestart').value;
+        const x = document.getElementById('timestart').value;
         if (x.length != 4 && x.length != 0) {
             alert('please enter a year (YYYY)');
             return false;
         }
-        var y = document.getElementById('until').value;
+        const y = document.getElementById('until').value;
         if (y.length != 4 && y.length != 0) {
             alert('please enter a year (YYYY)');
             return false;
         }
 
-        const formData = new FormData(this);
+        let  formData = new FormData(this);
 
         // convert formdata to json
-        var filter = currentFilter;
+        let  filter = currentFilter;
         formData.forEach(function(value, key){
             filter[key] = value;
         });
         currentFilter = filter
         console.log(currentFilter)
-        var json = JSON.stringify(filter);
+        const json = JSON.stringify(filter);
         getFilteredLiterature(json);
     });
+
+    const addArticleForm = document.getElementById("addArticleForm");
+
+    addArticleForm.addEventListener("submit", function (e){
+        e.preventDefault();
+
+        const doicontent = document.getElementById('mydoi').value;
+        const copy = doicontent;
+        const slashcount = copy.replace(/[^\/]/g, "").length;
+        if (slashcount  != 1 && slashcount  != 2 && slashcount != 3) {
+            alert("DOI format is not compatible. Please check if entered correctly.");
+            return false;
+        };
+        // Replace all Slashes '/' with '&&sl' to forward the doi as a single parameter to the API
+        const doi = doicontent.replace(/\//g,"&&sl")
+        addArticle(doi);
+    });
+    
 }

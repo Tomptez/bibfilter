@@ -279,14 +279,12 @@ a.delete:hover {
     }
 }
 
-.left, .right {
+.left, .right, .center {
     flex: 1;
-}
-
-#deleteArticlesForm, #uploadForm{
     max-width: 250px;
     margin: 0 auto;
 }
+
 #deleteArticlesForm button{
     background-color: red;
 }
@@ -296,7 +294,6 @@ a.delete:hover {
 }
 
 .headform-row {
-    margin: 0 10px;
     padding: 0;
     /* Align the buttons to the left */
     justify-content: flex-start;

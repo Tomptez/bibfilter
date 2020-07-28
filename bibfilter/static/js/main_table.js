@@ -1,14 +1,14 @@
-var originalFilter = {"title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"authorlast","sortorder":"asc"};
+let originalFilter = {"title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"authorlast","sortorder":"asc"};
 
 function CreateTableFromJSON(data) {
     console.log("Start CreateTableFromJSON()")
     
     // EXTRACT VALUE FOR HTML HEADER. 
     // ('Book ID', 'Book Name', 'Category' and 'Price')
-    var col = [];
+    let col = [];
     colname = {"title": "Title", "authorlast": "Author", "year": "Year", "url": "URL", "publication": "Publication", "ID": "Delete", "icon": ""}
-    for (var i = 0; i < data.length; i++) {
-        for (var key in data[i]) {
+    for (let i = 0; i < data.length; i++) {
+        for (let key in data[i]) {
             if (col.indexOf(key) === -1) {
                 col.push(key);
             }
@@ -16,40 +16,37 @@ function CreateTableFromJSON(data) {
     }
 
     // CREATE DYNAMIC TABLE.
-    var table = document.createElement("table");
-    var tbody = document.createElement("tbody")
-    var colgroup = document.createElement("colgroup")
+    const table = document.createElement("table");
+    const tbody = document.createElement("tbody")
+    const colgroup = document.createElement("colgroup")
 
     // create cols with width
-    for (var i = 0; i < col.length; i++){
-        var newcol = document.createElement("col")
+    for (let i = 0; i < col.length; i++){
+        const newcol = document.createElement("col")
         newcol.id = col[i]
         colgroup.appendChild(newcol)
     }
 
     // CREATE HTML TABLE HEADER ROW USING THE EXTRACTED HEADERS ABOVE.
 
-    var tr = tbody.insertRow(-1);                   // tbody ROW.
+    let tr = tbody.insertRow(-1);                   // tbody ROW.
     tr.className = "tr"
     tr.classList.add("articlerow")                  // add class for css
 
-    for (var i = 0; i < col.length; i++) {
-        var th = document.createElement("th");      // tbody HEADER.
-        var titleprefix = ""                        // prefix for the title arrows
-
-        console.log(currentFilter["sortby"]);
-        console.log(currentFilter["sortorder"]);
+    for (let i = 0; i < col.length; i++) {
+        const th = document.createElement("th");      // tbody HEADER.
+        let titleprefix = ""                        // prefix for the title arrows
 
         // mark which column its sorted by
         if (col[i] == currentFilter["sortby"] & currentFilter["sortorder"] == "asc"){
-            var titleprefix = "\u2193"
+            titleprefix = "\u2193"
         }
         else if (col[i] == currentFilter["sortby"] && currentFilter["sortorder"] == "desc"){
-            var titleprefix = "\u2191"
+            titleprefix = "\u2191"
         }
         
-        var a = document.createElement('a');
-        var linkText = document.createTextNode(titleprefix+colname[col[i]]);
+        const a = document.createElement('a');
+        const linkText = document.createTextNode(titleprefix+colname[col[i]]);
         a.href = "";
         a.id = col[i]
         a.onclick = function(){
@@ -62,22 +59,22 @@ function CreateTableFromJSON(data) {
     }
 
     // ADD JSON DATA TO THE tbody AS ROWS.
-    for (var i = 0; i < data.length; i++) {
+    for (let i = 0; i < data.length; i++) {
 
         tr = tbody.insertRow(-1);
 
-        for (var j = 0; j < col.length; j++) {
-            var tabCell = tr.insertCell(-1);
+        for (let j = 0; j < col.length; j++) {
+            let tabCell = tr.insertCell(-1);
 
             // create a button for the external URL
             if (col[j] == "url"){
                 if (data[i][col[j]] != "NaN"){
-                    var a = document.createElement('a');
+                    const a = document.createElement('a');
                     a.classList.add("externalUrl")
                     a.rel = "noopener noreferrer"
                     a.target = "_blank"
                     a.href = data[i][col[j]];
-                    var linkText = document.createTextNode("Source");
+                    const linkText = document.createTextNode("Source");
                     a.appendChild(linkText);
                     tabCell.appendChild(a);
                 };
@@ -85,16 +82,17 @@ function CreateTableFromJSON(data) {
 
             // create icons
             else if (col[j] == "icon"){
+                let imgpath = "";
                 if (data[i][col[j]] == "book"){
-                    var imgpath = base_url+"/static/img/book.png";
+                    imgpath = base_url+"/static/img/book.png";
                 }
                 else if (data[i][col[j]] == "article"){
-                    var imgpath = base_url+"/static/img/article.png";
+                    imgpath = base_url+"/static/img/article.png";
                 }
                 else {
-                    var imgpath = base_url+"/static/img/other.png";
+                    imgpath = base_url+"/static/img/other.png";
                 }
-                var img = document.createElement('img');
+                const img = document.createElement('img');
                 img.src = imgpath;
                 img.classList.add("typeicon")
                 tabCell.appendChild(img);

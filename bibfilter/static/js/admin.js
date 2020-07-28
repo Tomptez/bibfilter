@@ -1,11 +1,29 @@
+function lastZoteroSync() {
+    const syncTextField = document.getElementById("zoteroSyncText");
+
+    fetch(base_url+"/zotero_sync", {
+        method: 'GET'
+        }).then(function (response) {
+            return response.text();
+        }).then(function (response_text){
+            const update_str = response_text;
+            const [date, time] = update_str.split(" ")
+            const update_note = "<b>Database was last synced with Zotero</b><br><br><b>Date:</b> "+date+"<br><b>Time:</b> "+time
+            syncTextField.innerHTML = update_note;
+        }).catch(function (error){
+            console.error(error);
+            alert("A Network Error occured. Please contact the Website administrator or try again later.")
+        });
+}
+
 function setUpUpload() {
-    // Select your input type file and store it in a variable
+    // Select your input type file and store it in a constiable
     const input = document.getElementById("fileinput");
 
     uploadForm.addEventListener("submit", function (e){
         e.preventDefault();
 
-        var data = new FormData();
+        const data = new FormData();
         data.append('file', input.files[0]);
         const uploadForm = document.getElementById("uploadForm");
         
@@ -78,19 +96,19 @@ function timeDelete() {
     deleteArticlesForm.addEventListener("submit", async function (e){
         e.preventDefault();
 
-        var dateFrom = document.getElementById('dateFrom').value;
-        var dateUntil = document.getElementById('dateUntil').value;
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateUntil = document.getElementById('dateUntil').value;
 
         if (dateFrom.length == 0 || dateUntil.length == 0) {
             alert('Please enter the two adding-dates between which(including those dates) you want to delete all created articles');
             return false;
         }
         
-        var cnt_delete = await deleteTimePeriod(dateFrom, dateUntil, "dry");
+        const cnt_delete = await deleteTimePeriod(dateFrom, dateUntil, "dry");
 
-        var r = confirm("Do you really want to delete all "+ cnt_delete +" Articles that were added \n between (including) "+dateFrom+" and "+dateUntil+"?");
+        const r = confirm("Do you really want to delete all "+ cnt_delete +" Articles that were added \n between (including) "+dateFrom+" and "+dateUntil+"?");
         if (r == true) {
-            var response_text = await deleteTimePeriod(dateFrom, dateUntil, "delete");
+            const response_text = await deleteTimePeriod(dateFrom, dateUntil, "delete");
             alert("Deleted "+response_text+" Articles");
             window.location.href=base_url+"/admin";
         } 
@@ -104,4 +122,5 @@ window.onload = function(){
     timeDelete();
     setUpUpload();
     addArticleSetUp();
+    lastZoteroSync();
 }

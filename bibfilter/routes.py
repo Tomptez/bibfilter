@@ -2,6 +2,7 @@ from flask import request, jsonify, render_template, redirect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from sqlalchemy.sql.expression import asc, desc, or_, and_
+from sqlalchemy.sql import func
 from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
 import bibtexparser
@@ -43,7 +44,7 @@ def get_bibfile():
     bibtex_str = bibtexparser.dumps(dbib)
     return bibtex_str
 
-## API: Return Articles
+## API: Return Articles for main page table
 @app.route("/articles", methods=["POST"])
 @limiter.exempt
 def get_articles():
@@ -56,6 +57,7 @@ def get_articles():
 
 ## API: Return Articles for Admin page
 @app.route("/articles_admin", methods=["POST"])
+@basic_auth.required
 def get_admin():
     req_data = request.get_json()
     entries = selectEntries(req_data)
@@ -63,7 +65,14 @@ def get_admin():
     print(f"JSON returned of length {len(result)}")
     return jsonify(result)
 
-# API: Delete an article
+## API Admin: Get Date of last sync between zotero and database
+@app.route("/zotero_sync", methods=["GET"])
+@basic_auth.required
+def zotero_sync():
+    max_value = db.session.query(func.max(Article.date_last_zotero_sync)).scalar()
+    return max_value
+
+# API Admin: Delete an article
 @app.route("/delete/<key>", methods=["GET"])
 @basic_auth.required
 def delete_article(key):
@@ -75,7 +84,7 @@ def delete_article(key):
 
     return redirect("/admin")
 
-# API: Delete an article
+# API: Delete an article in a time period
 @app.route("/deleteTimePeriod/<dateFrom>/<dateUntil>/<dry>", methods=["GET"])
 @basic_auth.required
 def deleteTimePeriod(dateFrom,dateUntil,dry):
@@ -162,7 +171,7 @@ def selectEntries(request_json):
 
     return requested_articles
 
-# Upload .csv to update db
+# API Upload .csv to update db
 UPLOAD_FOLDER = 'csvupload'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 

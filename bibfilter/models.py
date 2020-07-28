@@ -31,8 +31,6 @@ class Article(db.Model):
     icon = db.Column(db.String)
     notes = db.Column(db.String)
     abstract = db.Column(db.String)
-    date_added = db.Column(db.String)
-    date_modified = db.Column(db.String)
     editor = db.Column(db.String)
     tags_man = db.Column(db.String)
     tags_auto = db.Column(db.String)
@@ -43,10 +41,15 @@ class Article(db.Model):
     publisher = db.Column(db.String)
     language = db.Column(db.String)
     url = db.Column(db.String)
+    searchIndex = db.Column(db.String)
+    date_added = db.Column(db.String)
+    date_modified = db.Column(db.String)
+    date_last_zotero_sync = db.Column(db.String)
+    date_modified_pretty = db.Column(db.String)
+    date_added_pretty = db.Column(db.String)
     _date_created_str = db.Column(db.String)
-    _date_created = db.Column(db.DateTime)
-
-
+    _date_created= db.Column(db.DateTime)
+    
     # needed?
     # def __init__(self, name, description, price, qty):
     #     self.name = name
