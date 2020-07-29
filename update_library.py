@@ -121,15 +121,27 @@ def check_item(item):
     author, authorlast = "", ""
     for dic in data["creators"]:
         try:
-            if len(authorlast) > 0:
-                authorlast += "; " + dic["lastName"]
-            else:
-                authorlast = dic["lastName"]
+            # Entriers without first name use "name", otherwise firstName and lastName
+            if "name" in dic:
+                if len(authorlast) > 0:
+                    authorlast += "; " + dic["name"]
+                else:
+                    authorlast = dic["name"]
+                if len(author) > 0:
+                    author += "; " + dic["name"]
+                else:
+                    author = dic["name"]
 
-            if len(author) > 0:
-                author += "; " + dic + ", " + dic["firstName"]
             else:
-                author = dic["lastName"] + ", " + dic["firstName"]
+                if len(authorlast) > 0:
+                    authorlast += "; " + dic["lastName"]
+                else:
+                    authorlast = dic["lastName"]
+
+                if len(author) > 0:
+                    author += "; " + dic["lastName"] + ", " + dic["firstName"]
+                else:
+                    author = dic["lastName"] + ", " + dic["firstName"]
         except Exception as e:
             pass
     

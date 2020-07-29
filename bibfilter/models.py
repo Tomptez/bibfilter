@@ -70,7 +70,7 @@ class ArticleSchema(ma.Schema):
 class ArticleSchemaAdmin(ma.Schema):
 
     class Meta:
-        fields = ("ID","icon", "authorlast","year", "title", "publication", "url", "_date_created_str")
+        fields = ("icon", "authorlast","year", "title", "publication", "url", "_date_created_str")
         ordered = True
 
 class BibliographySchema(ma.Schema):

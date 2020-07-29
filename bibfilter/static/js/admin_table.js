@@ -6,7 +6,7 @@ function CreateTableFromJSON(data) {
     // EXTRACT VALUE FOR HTML HEADER. 
     // ('Book ID', 'Book Name', 'Category' and 'Price')
     let col = [];
-    colname = {"icon":"", "title": "Title", "authorlast": "Author", "year": "Year", "url": "URL", "publication": "Publication", "ID": "Delete", "_date_created_str": "Added"}
+    colname = {"icon":"", "title": "Title", "authorlast": "Author", "year": "Year", "url": "URL", "publication": "Publication", "_date_created_str": "Added"}
     for (let i = 0; i < data.length; i++) {
         for (let key in data[i]) {
             if (col.indexOf(key) === -1) {
@@ -67,17 +67,9 @@ function CreateTableFromJSON(data) {
             let tabCell = tr.insertCell(-1);
 
             // different than main
-            // create DELETE button 
-            if (col[j] == "ID"){
-                const a = document.createElement('a');
-                a.classList.add("delete")
-                a.href = base_url+"/delete/"+data[i][col[j]];
-                const linkText = document.createTextNode("DELETE");
-                a.appendChild(linkText);
-                tabCell.appendChild(a);  
-            }
+
             // create a button for the external URL
-            else if (col[j] == "url"){
+            if (col[j] == "url"){
                 if (data[i][col[j]] != "NaN"){
                     const a = document.createElement('a');
                     a.rel = "noopener noreferrer"

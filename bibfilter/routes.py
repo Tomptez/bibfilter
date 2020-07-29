@@ -3,17 +3,12 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from sqlalchemy.sql.expression import asc, desc, or_, and_
 from sqlalchemy.sql import func
-from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
 import bibtexparser
 from bibfilter.models import Article, ArticleSchema, ArticleSchemaAdmin, BibliographySchema
 from bibfilter import app, basic_auth, db
-from pprint import pprint
-from bibfilter.DOI_lookup import add_item
-from bibfilter.convert_csv import create_db_from_csv
+from update_library import update_from_zotero
 from datetime import datetime
-from werkzeug.utils import secure_filename
-import urllib.request
 import os
 from sqlalchemy.sql.functions import ReturnTypeFromArgs
 from unidecode import unidecode
@@ -21,6 +16,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Class needed to ignore accents. Not that the unaccent extension needs to be installed in postgreSQL
 class unaccent(ReturnTypeFromArgs):
     pass
 
@@ -78,45 +74,19 @@ def zotero_sync():
     max_value = db.session.query(func.max(Article.date_last_zotero_sync)).scalar()
     return max_value
 
-# API Admin: Delete an article
-@app.route("/delete/<key>", methods=["GET"])
+## Admin API: Reset the database
+@app.route("/resetDB", methods=["GET"])
+@limiter.limit("5/day")
 @basic_auth.required
-def delete_article(key):
-    article = db.session.query(Article).filter(Article.ID == key).first()
-    if article != None:
-        print(f" Deleted Article: {article.title}")
-        db.session.delete(article)
-        db.session.commit()
+def resetDB():
+    articles = db.session.query(Article)
 
+    numberDeleted = len(articles.all())
+    articles.delete(synchronize_session=False)
+    db.session.commit()
+    print("/resetDB, Deleted all articles, now starting to sync")
+    update_from_zotero()
     return redirect("/admin")
-
-# API: Delete an article in a time period
-@app.route("/deleteTimePeriod/<dateFrom>/<dateUntil>/<dry>", methods=["GET"])
-@basic_auth.required
-def deleteTimePeriod(dateFrom,dateUntil,dry):
-    datetimeFrom = datetime.strptime(dateFrom,"%Y-%m-%d")
-    datetimeUntil = datetime.strptime(dateUntil,"%Y-%m-%d")
-    
-    articles = db.session.query(Article).filter(and_(Article._date_created >= datetimeFrom, Article._date_created <= datetimeUntil))
-    if dry == "dry":
-        numberDeleted = len(articles.all())
-        return str(numberDeleted)
-    elif dry == "delete":
-        numberDeleted = len(articles.all())
-        articles.delete(synchronize_session=False)
-        db.session.commit()
-        print(f"Deleted {numberDeleted} Articles")
-        return str(numberDeleted)
-    else:
-        return 0
-
-# API: Add an article
-@app.route("/add/<doi>", methods=["GET"])
-@limiter.limit("40/day")
-def add_article(doi):
-    # Convert the parameter back to the DOI by replacing all instances of '&&sl' with a slash '/'
-    doi = doi.replace("&&sl","/")
-    return add_item(doi)
 
 ## Frontend: Return our frontend
 @app.route("/", methods=["GET"])
@@ -124,15 +94,16 @@ def add_article(doi):
 @limiter.exempt
 def main():
     link = os.environ["SUGGEST_LITERATURE_URL"]
-    print(link)
     return render_template("main.html", suggestLink=link)
 
 ## Frontend: Return admin page
 @app.route("/admin", methods=["GET"])
 @basic_auth.required
 def admin():
-    return render_template("admin.html")
+    link = os.environ["SUGGEST_LITERATURE_URL"]
+    return render_template("admin.html", suggestLink=link)
 
+# Function to Select the correct articles based on the selection done by the user in the frontent
 def selectEntries(request_json):
     """ 
     Example JSON:
@@ -178,47 +149,3 @@ def selectEntries(request_json):
 
 
     return requested_articles
-
-# API Upload .csv to update db
-UPLOAD_FOLDER = 'csvupload'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-app.secret_key = "secret key"
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-
-ALLOWED_EXTENSIONS = set(['csv'])
-
-def allowed_file(filename):
-	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-@app.route('/file-upload', methods=['POST'])
-@limiter.limit("15/day")
-def upload_file():
-    print("Running upload_file()")
-    # check if the post request has the file part
-    if 'file' not in request.files:
-        resp = jsonify({'message' : 'No file part in the request'})
-        print("No file part in the request")
-        resp.status_code = 400
-        return resp
-    file = request.files['file']
-    if file.filename == '':
-        resp = jsonify({'message' : 'No file selected for uploading'})
-        print("No file selected for uploading")
-        resp.status_code = 400
-        return resp
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-        cnt_add, cnt_exist, cnt_err = create_db_from_csv(filepath)
-        print("Updated the database")
-        resp = jsonify({'message' : f"File successfully uploaded. \n\nAdded {cnt_add} new Articles. {cnt_exist} Articles already existed in the database. {cnt_err} Articles couldn't be addded because of an error\n\nMaybe not all of the articles could be added because of a slow internet connection or the serverload. In this case, please upload the file again."})
-        resp.status_code = 201
-        return resp
-    else:
-        resp = jsonify({'message' : 'Allowed file type is .csv'})
-        print("Wrong type")
-        resp.status_code = 400
-        return resp

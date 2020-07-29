@@ -106,6 +106,9 @@ button#add span {
     font-size: 1.6em;
 }
 
+#zoteroSyncNotification {
+    padding: .5em;
+}
 
 #addArticleForm {
     text-align: right;
@@ -119,7 +122,7 @@ button#add span {
     font-size: 1.3em;
 }
 
-#suggestButton {
+.form-row > .linkButton {
     background-color: orange;
     color: black;
     padding: 8 20;
@@ -127,7 +130,7 @@ button#add span {
     display: inline-block;
 }
 
-#suggestButton:hover {
+.form-row > .linkButton:hover {
     background-color: orangered;
 }
 
@@ -265,18 +268,6 @@ a.externalUrl:hover {
     height: 1.2em;
 }
 
-/* Delete buttons for admin page */
-a.delete {
-    background-color: red;
-    border-radius: 3px;
-    color: white;
-    padding: 4px;
-}
-a.delete:hover {
-    background-color: lightyellow;
-    color: red;
-}
-
 /* Admin Header*/
 .header {
     background-color: lightsteelblue;
@@ -297,19 +288,6 @@ a.delete:hover {
     margin: 0 auto;
 }
 
-#deleteArticlesForm button{
-    background-color: red;
-}
-
-#deleteArticlesForm button:hover{
-    background-color: #4d6e80;
-}
-
-.headform-row {
-    padding: 0;
-    /* Align the buttons to the left */
-    justify-content: flex-start;
-}
 
 #fileinput {
     height: 4.5em;

@@ -18,36 +18,20 @@
 <div class="header">
     <div class="left">
         <form id="deleteArticlesForm">
-            <li class="form-row headform-row"><b>Delete Articles</b></li>
-            <li class="form-row headform-row">
-                <label for="from">From</label>
-                <label for="until">Until</label>
-            </li>
-            <li class="form-row headform-row">
-                <input type="date" name="from" id="dateFrom"> 
-                <input type="date" name="until" id="dateUntil"> 
-            </li>
-                <li class="form-row headform-row">
-                <button type="submit">DELETE</button>
-            </li>
-            </ul>
+
         </form>
     </div>
     <div class="center">
-        <p id="zoteroSyncText">
+        <div id="zoteroSyncNotification">
         
-        </p>
+        </div>
 
     </div>
     <div class="right">
-        <form id="uploadForm">
-            <li class="form-row headform-row">
-            <label for="fileupload"><b>Select .csv file to upload</b></label>
-            </li>
-            <li class="form-row headform-row">
-            <input type="file" name="fileupload" id="fileinput">
-            </li><li class="form-row headform-row">
-            <button type="submit">Upload</button>
+        <form id="resetDBForm">
+            <li class="form-row"><b>Reset Database</b></li>
+            <li class="form-row">
+                <a href="/resetDB" class="linkButton button" onclick="alert('As soon as you press OK, the database will reset\n\nResetting the database may take a moment\nIf you want to see the page before the synchronization has finished, refresh the page')">Reset</a>
             </li>
         </form>
     </div>
@@ -103,13 +87,10 @@
         </form>
         <br>
         <form id="addArticleForm">
-            <b>Add a new Article</b>
+            <li class="form-row"><b class="suggestTitle">Suggest a new Article</b></li>
             <li class="form-row">
-            <label for="DOI">DOI</label>
-            <input type="text" name="DOI" id="mydoi"> 
-            <button type="submit" id="add"><span>Add</span></button>
+                <a href={{ suggestLink }} class="button linkButton">Suggest</a>
             </li>
-            </ul>
         </form>
     </div>
     </div>
