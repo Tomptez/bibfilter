@@ -16,22 +16,29 @@ import schedule
 zotero_keylist = []
 
 # Count new and updated articles for finish report
-report = {"new" : 0, "updated" : 0, "existed" : 0}
+report = {"new" : 0, "updated" : 0, "existed" : 0, "deleted": 0}
 
 def update_from_zotero():
     print("Started syncing with zotero collection")
+    # Make variables alterable inside the function
+    global zotero_keylist
+    global report
+
     session = db.session()
-    #Create the database
+    # Create the database
     db.create_all()
     session.close()
 
+    # Retrieve the environment variables
     libraryID = os.environ["LIBRARY_ID"]
     collectionID = os.environ["COLLECTION_ID"]
 
+    # Connect to the database and retrieve the zotero items 50 at a time
     zot = zotero.Zotero(libraryID, "group")
     items = zot.collection_items_top(collectionID, limit=50)
     size = zot.num_collectionitems(collectionID) 
 
+    # Iterate over every single entry
     for num in range(size):
 
         for item in items:
@@ -47,7 +54,7 @@ def update_from_zotero():
             break
 
     # Delete all articles which are not in zotero anymore
-    deleted = delete_old()
+    delete_old()
 
     # Count how many items are in the database in total
     session = db.session()
@@ -56,7 +63,11 @@ def update_from_zotero():
     print("------------------------------------")
     print("Summary of synchronization with Zotero:")
     print(f"Added {report['new']} new entries.\n{report['existed']} entries existed already.")
-    print(f"Updated {report['updated']} entries\nDeleted {deleted} articles.\n\nTotal Articles: {total}")
+    print(f"Updated {report['updated']} entries\nDeleted {report['deleted']} articles.\n\nTotal Articles: {total}")
+
+    # Reset the counters and the keylist
+    report = {"new" : 0, "updated" : 0, "existed" : 0, "deleted": 0}
+    zotero_keylist = []
 
 
 def check_item(item):
@@ -162,6 +173,8 @@ def check_item(item):
     return True
 
 def delete_old():
+    global report
+
     # Convert zotero keys from list to tuple to make iteration faster
     zoteroKeys = tuple(zotero_keylist)
 
@@ -179,10 +192,10 @@ def delete_old():
             session.commit()
             count +=1
 
-
     session.close()
 
-    return count
+    report["deleted"] = count
+    return True
 
 # Sync once with the zotero library, after that sync ever 3 hours
 if __name__ == "__main__":
