@@ -8,8 +8,8 @@ The front-end, which can be found under templates/main.html is being served from
 
 ## How to run the application on your local computer
 
-First make sure you have [git](https://github.com/git-for-windows/git/releases/latest), `bash` (which is comes with git) and Version 3.8.1 of [python](https://www.python.org/downloads/release/python-381/) (and `pip` which will be installed together with python on windows) installed.
-You will also need [PostgreSQL](https://www.postgresql.org/download/) to start the application and create a new Database called bibfilter
+First make sure you have [git](https://github.com/git-for-windows/git/releases/latest), `bash` (which is comes with git) and the version of python that is specified in the runtime.txt [here]https://www.python.org/downloads/) (and `pip` which will be installed together with python on windows) installed.
+You will also need [PostgreSQL](https://www.postgresql.org/download/) to create the database.
 
 Next, clone the repository to your local machine from your (git) bash terminal
 
@@ -30,8 +30,19 @@ This can take a while.
     pipenv install
 
 To use the application, you will also need to create a `PostgreSQL` Database called bibfilter and install an extension called unaccent.
-This is done by typing in you terminal
-    psql
+This is done by typing in you `command line cmd` (this may or may not work in git bash)
+
+    psql -U postgres
+
+Or if that not works the exact filepath of your postgres installation
+
+    "C:\Program Files\PostgreSQL\12\bin\psql.exe" -U postgres
+ 
+ To create the database you type
+
+    CREATE DATABASE bibfilter;
+
+Then you can select the database and install the unaccent extension
     \c bibfilter;
     CREATE EXTENSION unaccent;
 
@@ -43,12 +54,12 @@ To create it type we will use the terminal editor `nano`. In your bash terminal 
 
 and type (or paste) in the following variables
 
-    DATABASE_URL = "postgresql://myusername:mypassword@localhost/bibfilter"
+    DATABASE_URL = "postgresql://postgres:mypassword@localhost/bibfilter"
     APP_USERNAME = "username"
     APP_PASSWORD = "password"
     LIBRARY_ID = "2364338"
     COLLECTION_ID = "VIZDZ4PX"
-    SUGGEST_LITERATURE_URL="duckduckgo.com"
+    SUGGEST_LITERATURE_URL="https://duckduckgo.com"
 
 You can change the values of `APP_USERNAME` and `APP_PASSWORD` to whatever you like. They will be used for the login for the `/admin` page.
 `LIBRARY_ID` and `COLLECTION_ID` should reflect the respective ID of your zotero Library and collection. You can retrieve these IDs from the adress field in your browser if you open the collection at zotero.org in your browser. Note that it has to be a public library, otherwise you also need to use an API-Key which this application does not yet account for.
@@ -64,10 +75,11 @@ Then you can activate the environment via
     pipenv shell
 
 You could now already open the application but it will not show any articles because we have no database yet.
-To create the database you need to export a .csv file from zotero, put it in the folder of the repository (same as the `Pipfile`) with the name `bibliography.csv` and run
+To create the database you need run update_library.py
 
-    python bibfilter/convert_csv.py
+    python update_library.py
 
+If this doesn't print anything you may need to close it forcefully with `Ctrl + C`.
 If there's any errors, there is probably an issue with your postgreql setup.
 If not, you have successfully setup the database and can now start the application with
 
