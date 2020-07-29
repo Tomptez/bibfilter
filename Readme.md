@@ -110,3 +110,6 @@ to start the application, you always need to launch the virtual environment firs
 and then you can run the flask app with
 
     python app.py
+
+
+## Deploy the application
