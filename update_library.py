@@ -83,6 +83,7 @@ def check_item(item):
 
     req = session.query(Article).filter(Article.ID ==   data["key"])
     # If article exists and hasn't been modified, update last sync date and return
+
     if len(list(req)) > 0 and req[0].date_modified == data["dateModified"]:
         req[0].date_last_zotero_sync = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         session.commit()
@@ -213,7 +214,7 @@ def delete_old():
 if __name__ == "__main__":
     update_from_zotero()
     
-    schedule.every(3).hours.do(update_from_zotero)
+    schedule.every(1).hours.do(update_from_zotero)
     
     while True:
         schedule.run_pending()

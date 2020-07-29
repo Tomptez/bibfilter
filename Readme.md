@@ -66,7 +66,7 @@ You can change the values of `APP_USERNAME` and `APP_PASSWORD` to whatever you l
 `LIBRARY_ID` and `COLLECTION_ID` should reflect the respective ID of your zotero Library and collection. You can retrieve these IDs from the adress field in your browser if you open the collection at zotero.org in your browser. Note that it has to be a public library, otherwise you also need to use an API-Key which this application does not yet account for.
 `SUGGEST_LITERATURE_URL` should be the URL to a page where users can suggest articles to add.
 
-You then change `DATABASE_URL` replacing `myusername` and `mypassword` with your actual username/password
+You then change `DATABASE_URL`, so that `postgres` is your PostgreSQL username (postgres is the standard user which you can keep) and `mypassword` with the password that you chose for that user during the install.
 
 You can now close the `nano` editor by hitting Ctr+X and then typing `Y` and then `Enter` to save the file
 
