@@ -43,6 +43,7 @@ Or if that not works the exact filepath of your postgres installation
     CREATE DATABASE bibfilter;
 
 Then you can select the database and install the unaccent extension
+
     \c bibfilter;
     CREATE EXTENSION unaccent;
 
