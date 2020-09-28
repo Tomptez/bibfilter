@@ -25,6 +25,7 @@ body {
     }
 }
 
+
 /* Textbox for number of results */
 #textbox {
     background-color: #f2f2f2;
@@ -36,6 +37,7 @@ body {
 #textbox p {
     margin: 4px;
 }
+
 
 /* Form */
 .listwrapper {
@@ -81,7 +83,7 @@ margin: 3px;
     border-radius: 4px;
     flex: 2;
 }
-.form-row > button, .form-row > .button{
+.form-row > button, .center-top > .button{
     background: #3a4a52;
     font-size: 1.4em;
     padding: 5px 20px;
@@ -90,8 +92,17 @@ margin: 3px;
     margin: 3px;
     border-radius: 3px;
 }
+
 .form-row > button:hover {
     background: #4d6e80;
+}
+
+.form-row > .linkButton, .center-top > .linkButton {
+    background-color: orange;
+    color: black;
+    padding: 8 20;
+    text-decoration: none;
+    display: inline-block;
 }
 
 .fieldset_table td {
@@ -106,9 +117,7 @@ button#add span {
     font-size: 1.6em;
 }
 
-#zoteroSyncNotification {
-    padding: .5em;
-}
+
 
 #addArticleForm {
     text-align: right;
@@ -120,14 +129,6 @@ button#add span {
 
 .suggestTitle {
     font-size: 1.3em;
-}
-
-.form-row > .linkButton {
-    background-color: orange;
-    color: black;
-    padding: 8 20;
-    text-decoration: none;
-    display: inline-block;
 }
 
 .form-row > .linkButton:hover {
@@ -241,7 +242,6 @@ th {
     top: 0px;
 }
 
-
 table a {
     color: white;
     text-decoration: none;
@@ -280,15 +280,14 @@ a.externalUrl:hover {
         display: flex;
         padding: 20px 60px;
     }
+
+    .center-top {
+        text-align: center;
+    }
 }
 
 .left, .right, .center {
     flex: 1;
     max-width: 250px;
     margin: 0 auto;
-}
-
-
-#fileinput {
-    height: 4.5em;
 }

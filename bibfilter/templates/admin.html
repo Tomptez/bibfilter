@@ -18,22 +18,24 @@
 <div class="header">
     <div class="left">
         <form id="deleteArticlesForm">
-
+            <div id="zoteroSyncNotification">
+            </div>
         </form>
     </div>
     <div class="center">
-        <div id="zoteroSyncNotification">
-        
+        <div id="reloadDB" class="center-top">
+            <b>Sync with Zotero</b> <br> <br>
+            <a href="/resyncDB" class="linkButton button" onclick="return confirm('This will sync the database with ther zotero source. \n\n This process may take a while')">Sync now</a> <br>
         </div>
 
     </div>
     <div class="right">
-        <form id="resetDBForm">
-            <li class="form-row"><b>Reset Database</b></li>
-            <li class="form-row">
-                <a href="/resetDB" class="linkButton button" onclick="alert('As soon as you press OK, the database will reset\n\nResetting the database may take a moment\nIf you close the page the syncing will not finish')">Reset</a>
-            </li>
-        </form>
+        <div id="clearDB" class="center-top">
+            <b>Clear Datase</b> <br>
+            (Empties the Database) <br>
+        <!-- You need to return the value of your method, and returning false in an onclick event prevents the default behaviour -->
+            <a href="/clearDB" class="linkButton button" onclick="return confirm('This will clear all articles from the database \nuntil the next sync with zotero occurs\n\n Are you sure you want to proceed?')">Clear</a>
+        </div>
     </div>
 </div>
 

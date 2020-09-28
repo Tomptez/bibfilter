@@ -74,17 +74,29 @@ def zotero_sync():
     max_value = db.session.query(func.max(Article.date_last_zotero_sync)).scalar()
     return max_value
 
-## Admin API: Reset the database
-@app.route("/resetDB", methods=["GET"])
+## Admin API: Clear the database
+@app.route("/clearDB", methods=["GET"])
 @limiter.limit("5/day")
 @basic_auth.required
-def resetDB():
+def clearDB():
     articles = db.session.query(Article)
 
     numberDeleted = len(articles.all())
+
+    # synchronize_session (strategy for the removal of matched objects from the session): 
+    # False = don’t synchronize the session. This option is the most efficient and is reliable once the session is expired, which typically occurs after a commit()
+    # https://docs.sqlalchemy.org/en/13/orm/query.html
     articles.delete(synchronize_session=False)
     db.session.commit()
-    print("/resetDB, Deleted all articles, now starting to sync")
+    print("/clearDB, Deleted all articles from Databse")
+    return redirect("/admin")
+
+## Admin API: Sync the database
+@app.route("/resyncDB", methods=["GET"])
+@limiter.limit("10/day")
+@basic_auth.required
+def resyncDB():
+    print("/resyncDB, Manual API Call to now sync with zotero")
     update_from_zotero()
     return redirect("/admin")
 
