@@ -67,7 +67,7 @@ fieldset td{
 /* make the form stick to the top */
 .stickyside {
     position: sticky;
-    top: 5px;   
+    top: -10em;   
 }
 
 /* Form */
@@ -156,15 +156,9 @@ button#add span {
     font-size: 1.6em;
 }
 
-
-
 #addArticleForm .form-row {
     padding: .1em .5em;
     justify-content: left;
-}
-
-.biggerFont {
-    font-size: 1.1em;
 }
 
 
