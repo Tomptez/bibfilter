@@ -28,16 +28,22 @@ body {
 
 /* Textbox for number of results */
 #textbox {
-    background-color: #f2f2f2;
-    border: 1px solid lightgray;
-    padding: 5px 10px;
-    margin: 10px;
+    margin: .6em;
+    text-align: left;
 }
 
 #textbox p {
-    margin: 4px;
+    margin: 4px 0px;
 }
 
+#bottom-side {
+    margin: .5em 7em .5em -25px;
+    padding-left: 20;
+    padding-top: 7px;
+    padding-bottom: 4px;
+    border-radius: 10px;
+    background-color: lightblue;
+}
 
 /* Form */
 .listwrapper {
@@ -49,61 +55,94 @@ body {
     padding: .5em;
 }
 fieldset {
-    border: 1px solid lightgray;
+    border: 2px solid lavender;
 }
 form fieldset p {
     margin: 1px;
-    
+}
+fieldset td{
+    padding: .3em;
 }
 
 /* make the form stick to the top */
 .stickyside {
     position: sticky;
-    top: 40px;   
+    top: 5px;   
 }
 
 /* Form */
+#advanced-box {
+    padding: .3em 0;
+}
 .form-row {
-display: flex;
-justify-content: flex-end;
-padding: .5em;
+    display: flex;
+    justify-content: flex-end;
+    padding: .5em;
 }
+
+.text-only {
+    justify-content: flex-start;
+    padding: .2em .6em;
+}
+
+.text-only > span {
+    font-size: 1.2em;
+}
+
+.top-search {
+    padding: .2em .6em .6em .6em;
+}
+
 .form-row > label {
-padding: .5em 1em .5em 0;
-flex: 1;
-margin: 3px;
+    padding: .5em 1em .5em 0;
+    flex: 1;
 }
+
 .form-row > input {
     font-size: 0.8em;
-    background-color: white;
+    background-color: lavender;
     height: 3em;
-    border: 1px solid lightgray;
-    margin: 3px;
+    border: 0;
     padding: 9px;
     border-radius: 4px;
     flex: 2;
 }
+
 .form-row > button, .center-top > .button{
     background: #3a4a52;
     font-size: 1.4em;
-    padding: 5px 20px;
+    padding: 3px 20px;
     color: white;
     border: 0;
-    margin: 3px;
+    margin: 3px 5px;
     border-radius: 3px;
 }
 
-.form-row > button:hover {
+.form-row > button:hover, p > .linkButton:hover {
     background: #4d6e80;
 }
 
-.form-row > .linkButton, .center-top > .linkButton {
-    background-color: orange;
-    color: black;
-    padding: 8 20;
-    text-decoration: none;
-    display: inline-block;
+.top-search > button {
+    margin: 0;
 }
+
+.form-row > .reset {
+    background-color:  #804d4d;
+}
+
+.form-row > .linkButton, .center-top > .linkButton, p > .linkButton{
+ 
+    background: #0d7d9f;
+    color: white;
+    text-decoration: none;
+    padding: 8 20;
+    display: inline-block;
+    font-weight: bold;
+    font-size: 1.1em;
+    padding: 0.4em;
+    border-radius: 2px;
+}
+
 
 .fieldset_table td {
     border: none;
@@ -119,21 +158,15 @@ button#add span {
 
 
 
-#addArticleForm {
-    text-align: right;
-}
-
 #addArticleForm .form-row {
     padding: .1em .5em;
+    justify-content: left;
 }
 
-.suggestTitle {
-    font-size: 1.3em;
+.biggerFont {
+    font-size: 1.1em;
 }
 
-.form-row > .linkButton:hover {
-    background-color: orangered;
-}
 
 /* Table */
 table {
