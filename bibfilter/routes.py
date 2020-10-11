@@ -126,37 +126,43 @@ def selectEntries(request_json):
         "until":        "2010", 
         "type":         "all",
         "sortby":       "author",
-        "sortorder":    "asc"
+        "sort_order":    "asc"
     }
     """
+
+    search_term = request_json["search"]
     title =  request_json["title"]
     author = request_json["author"]
     sortby = request_json["sortby"]
-    sortorder = request_json["sortorder"]
-    timestart = request_json["timestart"] if len(request_json["timestart"]) == 4 and request_json["timestart"].isdigit else str(-1111)
-    until = request_json["until"] if len(request_json["until"]) == 4 and request_json["until"].isdigit else str(3333)
-    articletype = "%" if request_json["type"] == "all" else request_json["type"]
-    
-    titlelist = title.split(" ")
+    sort_order = request_json["sortorder"]
+    timestart = request_json["timestart"] if len(request_json["timestart"]) == 4 and request_json["timestart"].isdigit else "None"
+    until = request_json["until"] if len(request_json["until"]) == 4 and request_json["until"].isdigit else "None"
+    article_type = "%" if request_json["type"] == "all" else request_json["type"]
+    direction = desc if sort_order == 'desc' else asc
+
+    title_list = title.split(" ")
+    search_term_list = search_term.split(" ")
+    author_list = author.split(" ")
+
     #ILIKE is similar to LIKE in all aspects except in one thing: it performs a case in-sensitive matching
     #Unidecode removes accent from the search string whereas unaccent removes accents from the database. The unaccent Extension has to be installed for postgresql
-    title_filter = [unaccent(Article.title).ilike(f'%{unidecode(term)}%') for term in titlelist]
-    authorlist = author.split(" ")
-    author_filter = [unaccent(Article.author).ilike(f'%{unidecode(term)}%') for term in authorlist]
-    direction = desc if sortorder == 'desc' else asc
+    title_filter = [unaccent(Article.title).ilike(f'%{unidecode(term)}%') for term in title_list]
+    search_filter = [unaccent(Article.searchIndex).ilike(f'%{unidecode(term)}%') for term in search_term_list]
+    author_filter = [unaccent(Article.author).ilike(f'%{unidecode(term)}%') for term in author_list]
+    
     # Filter by Article.icon because unlike Artikcle.ENTRYTYPE, Article.icon groups books and bookchapters together
-    filter_type = [~Article.icon.like("book"), ~Article.icon.like("article")] if articletype == "other" else [Article.icon.like(articletype)]
+    filter_type = [~Article.icon.like("book"), ~Article.icon.like("article")] if article_type == "other" else [Article.icon.like(article_type)]
 
-    if timestart != "-1111" or until != "3333":
+    if timestart != "None" or until != "None":
         requested_articles = db.session.query(Article).\
             filter(and_(*title_filter), or_(*author_filter),\
                 and_(Article.year >= timestart, Article.year <= until),\
-                and_(*filter_type)).\
+                and_(*filter_type), and_(*search_filter)).\
                 order_by(direction(getattr(Article, sortby)))
     else:
         requested_articles = db.session.query(Article).\
             filter(and_(*title_filter), or_(*author_filter),\
-                and_(*filter_type)).\
+                and_(*filter_type), and_(*search_filter)).\
                 order_by(direction(getattr(Article, sortby)))
 
 
