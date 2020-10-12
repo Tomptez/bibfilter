@@ -33,10 +33,16 @@ def update_from_zotero():
     libraryID = os.environ["LIBRARY_ID"]
     collectionID = os.environ["COLLECTION_ID"]
 
-    # Connect to the database and retrieve the zotero items 50 at a time
+    # Connect to the database
     zot = zotero.Zotero(libraryID, "group")
-    items = zot.collection_items_top(collectionID, limit=50)
-    size = zot.num_collectionitems(collectionID) 
+    
+    # Retrieve the zotero items 50 at a time and get the number of items
+    items = zot.top(limit=50)
+    size = zot.num_items()
+
+    ### If you want to use a specific collection and not the entire library use this instead:
+    # items = zot.collection_items_top(collectionID, limit=50)
+    # size = zot.num_collectionitems(collectionID) 
 
     # Iterate over every single entry
     for num in range(size):
@@ -120,31 +126,35 @@ def check_item(item):
     
     # Get author names
     author, authorlast = "", ""
-    for dic in data["creators"]:
-        try:
-            # Entriers without first name use "name", otherwise firstName and lastName
-            if "name" in dic:
-                if len(authorlast) > 0:
-                    authorlast += "; " + dic["name"]
-                else:
-                    authorlast = dic["name"]
-                if len(author) > 0:
-                    author += "; " + dic["name"]
-                else:
-                    author = dic["name"]
+    try:
+        for dic in data["creators"]:
+            try:
+                # Entriers without first name use "name", otherwise firstName and lastName
+                if "name" in dic:
+                    if len(authorlast) > 0:
+                        authorlast += "; " + dic["name"]
+                    else:
+                        authorlast = dic["name"]
+                    if len(author) > 0:
+                        author += "; " + dic["name"]
+                    else:
+                        author = dic["name"]
 
-            else:
-                if len(authorlast) > 0:
-                    authorlast += "; " + dic["lastName"]
                 else:
-                    authorlast = dic["lastName"]
+                    if len(authorlast) > 0:
+                        authorlast += "; " + dic["lastName"]
+                    else:
+                        authorlast = dic["lastName"]
 
-                if len(author) > 0:
-                    author += "; " + dic["lastName"] + ", " + dic["firstName"]
-                else:
-                    author = dic["lastName"] + ", " + dic["firstName"]
-        except Exception as e:
-            pass
+                    if len(author) > 0:
+                        author += "; " + dic["lastName"] + ", " + dic["firstName"]
+                    else:
+                        author = dic["lastName"] + ", " + dic["firstName"]
+            except Exception as e:
+                pass
+    except Exception as e:
+        print("data has no ḱey 'creator'. Entry may be only file without metadata. Skipping")
+        return False
     
 
     date_str = date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
