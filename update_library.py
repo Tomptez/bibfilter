@@ -226,10 +226,13 @@ def delete_old():
     return True
 
 def manual_sync():
+    print("run manual sync for testing")
     if os.path.exists("syncnow.tmp"):
-        print("Manually initialized sync will start now")
+        print("Manually requested sync will start now")
         update_from_zotero()
         os.remove("syncnow.tmp")
+    else:
+        print(os.listdir())
 
 # Sync once with the zotero library, after that sync ever hour
 if __name__ == "__main__":
@@ -241,3 +244,4 @@ if __name__ == "__main__":
     while True:
         schedule.run_pending()
         time.sleep(7)
+        print("sleep now")
