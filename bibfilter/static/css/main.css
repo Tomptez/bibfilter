@@ -14,7 +14,6 @@ body {
 .sidebar {
     flex: 1;
     margin: 0 20;
-    padding-top: 50;
     /* font-size: 0.9em; */
 }
 
@@ -27,22 +26,59 @@ body {
 
 
 /* Textbox for number of results */
-#textbox {
-    margin: .6em;
-    text-align: left;
-}
 
-#textbox p {
-    margin: 4px 0px;
-}
-
-#bottom-side {
-    margin: .5em 7em .5em -25px;
+#result-box {
+    text-align: center;
+    /* margin: .5em 7em .5em -25px; */
     padding-left: 20;
     padding-top: 7px;
     padding-bottom: 4px;
-    border-radius: 10px;
-    background-color: lightblue;
+    /* border-radius: 10px; */
+    /* background-color: lightblue; */
+    font-size: 0.8em;
+    border-bottom: 3px solid grey;
+}
+
+#result-box p {
+    margin: 4px 0px;
+}
+
+#add-box {
+    font-size: 0.8em;
+    text-align: center;
+    margin: 2em;
+    padding: 4px;
+    border-radius: 4px;
+    border: 1px dotted grey;
+
+}
+button:focus {
+    outline: none;
+}
+@media (min-height: 902px) and (min-width: 902px)  {
+    #add-box {
+        margin-top: 150px;  
+    }
+    .stickyside {
+        margin-top: 70px;  
+    }
+}
+
+    /* Sticky behavior on normal/large screens */
+@media (min-width: 902px) {
+    #add-box {
+        position: sticky;
+        top: 590px; 
+    }
+    #result-box {
+        position: sticky;
+        top: 0px;
+    }
+
+    .stickyside {
+        position: sticky;
+        top: 68px;
+    }
 }
 
 /* Form */
@@ -64,11 +100,8 @@ fieldset td{
     padding: .3em;
 }
 
-/* make the form stick to the top */
-.stickyside {
-    position: sticky;
-    top: -10em;   
-}
+
+
 
 /* Form */
 #advanced-box {
@@ -101,11 +134,16 @@ fieldset td{
 .form-row > input {
     font-size: 0.8em;
     background-color: lavender;
-    height: 3em;
-    border: 0;
-    padding: 9px;
+    height: 3em;            
+    border: 1px solid lightgray;
+    padding: 0px 8px;
     border-radius: 4px;
     flex: 2;
+}
+.form-row > input:focus {
+    background-color: rgb(255, 250, 246);
+    border: 1px solid gray;
+    outline: none;
 }
 
 .form-row > button, .center-top > .button{
@@ -135,10 +173,11 @@ fieldset td{
     background: #0d7d9f;
     color: white;
     text-decoration: none;
+    margin-left: 5px;
     padding: 8 20;
     display: inline-block;
     font-weight: bold;
-    font-size: 1.1em;
+    /* font-size: 1.1em; */
     padding: 0.4em;
     border-radius: 2px;
 }
@@ -189,8 +228,11 @@ th {
     a.externalUrl {
         padding: 5px;
     }
+    
     colgroup #url {
+    /* min-width needed for compatibility with firefox, width for compatibility with chrome */
         width: 55pt;
+        min-width: 55pt;
     }
     colgroup #year {
         min-width: 45pt;
