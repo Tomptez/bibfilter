@@ -31,18 +31,23 @@ def update_from_zotero():
 
     # Retrieve the environment variables
     libraryID = os.environ["LIBRARY_ID"]
-    collectionID = os.environ["COLLECTION_ID"]
+    
+    try:
+        collectionID = os.environ["COLLECTION_ID"]
+    except:
+        collectionID = "None"
 
     # Connect to the database
     zot = zotero.Zotero(libraryID, "group")
     
     # Retrieve the zotero items 50 at a time and get the number of items
-    items = zot.top(limit=50)
-    size = zot.num_items()
-
-    ### If you want to use a specific collection and not the entire library use this instead:
-    # items = zot.collection_items_top(collectionID, limit=50)
-    # size = zot.num_collectionitems(collectionID) 
+    # Uses the COLLECTION_ID if one is provided as environment variable
+    if collectionID == "None":
+        items = zot.top(limit=50)
+        size = zot.num_items()
+    else:
+        items = zot.collection_items_top(collectionID, limit=50)
+        size = zot.num_collectionitems(collectionID)
 
     # Iterate over every single entry
     for num in range(size):
