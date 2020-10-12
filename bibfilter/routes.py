@@ -13,6 +13,7 @@ import os
 from sqlalchemy.sql.functions import ReturnTypeFromArgs
 from unidecode import unidecode
 from dotenv import load_dotenv
+import threading
 
 load_dotenv()
 
@@ -72,6 +73,10 @@ def get_admin():
 @basic_auth.required
 def zotero_sync():
     max_value = db.session.query(func.max(Article.date_last_zotero_sync)).scalar()
+
+    # If the database is empty
+    if max_value == None:
+        max_value = "00-00-00 00:00"    
     return max_value
 
 ## Admin API: Clear the database
@@ -96,13 +101,11 @@ def clearDB():
 @limiter.limit("10/day")
 @basic_auth.required
 def resyncDB():
-    print("/resyncDB, created file syncnow.tmp to trigger automatic synchronization")
-    open('syncnow.tmp', 'a').close()
-    with open("hello.txt", "w") as f: 
-        f.write("Hello World") 
-    print(os.getcwd())
-    print(os.listdir())
-    print(os.listdir(".."))
+    print("/resyncDB, running update_from_zotero in background")
+
+    # Running update_from_zotero using threading
+    thread_update = threading.Thread(target=update_from_zotero)
+    thread_update.start()
     return redirect("/admin")
 
 ## Frontend: Return our frontend

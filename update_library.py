@@ -225,25 +225,14 @@ def delete_old():
     report["deleted"] = count
     return True
 
-def manual_sync():
-    print("run manual sync for testing")
-    if os.path.exists("syncnow.tmp"):
-        print("Manually requested sync will start now")
-        update_from_zotero()
-        os.remove("syncnow.tmp")
-    else:
-        print(os.getcwd())
-        print(os.listdir())
-        print(os.listdir(".."))
 
 # Sync once with the zotero library, after that sync ever hour
 if __name__ == "__main__":
     update_from_zotero()
     
     schedule.every(1).hours.do(update_from_zotero)
-    schedule.every(15).seconds.do(manual_sync)
     
     while True:
         schedule.run_pending()
-        time.sleep(7)
+        time.sleep(60)
         print("sleep now")
