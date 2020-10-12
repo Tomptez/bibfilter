@@ -103,22 +103,5 @@ function setUpFilter() {
         const json = JSON.stringify(filter);
         getFilteredLiterature(json);
     });
-
-    const addArticleForm = document.getElementById("addArticleForm");
-
-    addArticleForm.addEventListener("submit", function (e){
-        e.preventDefault();
-
-        const doicontent = document.getElementById('mydoi').value;
-        const copy = doicontent;
-        const slashcount = copy.replace(/[^\/]/g, "").length;
-        if (slashcount  != 1 && slashcount  != 2 && slashcount != 3) {
-            alert("DOI format is not compatible. Please check if entered correctly.");
-            return false;
-        };
-        // Replace all Slashes '/' with '&&sl' to forward the doi as a single parameter to the API
-        const doi = doicontent.replace(/\//g,"&&sl")
-        addArticle(doi);
-    });
     
 }
