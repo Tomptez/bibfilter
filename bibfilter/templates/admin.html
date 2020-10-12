@@ -41,60 +41,72 @@
 
 <div class="container" >
     <div class="sidebar">
-        <div class="stickyside">
-        <div id="textbox">
-            <p class="alignleft"> Number of Results: <span id="result_count"> </span></p>
-            <p class="alignright"> <a href="javascript:void(0)" id="download" onclick="downloadBib()"> Download found articles as .bib</a></p>
-            <div style="clear: both;"></div>
+        <div id="result-box">
+            <p><b>Number of Results: <span id="result_count"> </span>  </b>
+            <a href="javascript:void(0)" class="button linkButton" id="download" onclick="downloadBib()"> Download as .bib</a></p>
         </div>
-        <form id="filterForm">
-            <ul class="listwrapper">
-                <li class="form-row">
-                    <label for="title">Title</label>
-                    <input type="text" name="title">
-                </li>
-                <li class="form-row">
-                    <label for="author">Author</label>
-                    <input type="text" name="author"> 
-                </li>
-                <li class="form-row">
-                    <label for="title">From (year)</label>
-                    <input type="text" name="timestart" id="timestart">
-                </li>
-                <li class="form-row">
-                    <label for="author">Until (year)</label>
-                    <input type="text" name="until" id="until"> 
-                </li>
-                
-                <li class="fieldsetcontainer">
-                <fieldset class="source">
-                    <legend>Literature Type</legend>
-                    <table style="width:100%" class="fieldset_table">
-                        <tr>
-                            <td><p><label> <input type="radio" name="type" value="article"> Article </label></p></td>
-                            <td><p><label> <input type="radio" name="type" value="book"> Book(chapter) </label></p></td>
-                        </tr>
-                        <tr>
-                            <td><p><label> <input type="radio" name="type" value="other"> Other </label></p></td>
-                            <td><p><label> <input type="radio" name="type" value="all" checked> All </label></p></td>
-                        </tr>
-                    </table>
-                </fieldset>
-                </li>
-                <li class="form-row">
-                <button type="submit">Filter</button>
-                <button onclick="resetPage()">Reset</button>
-                </li>
-            </ul>
-        </form>
-        <br>
-        <form id="addArticleForm">
-            <li class="form-row"><b class="suggestTitle">Suggest a new Article</b></li>
-            <li class="form-row">
-                <a href={{ suggestLink }} class="button linkButton">Suggest</a>
-            </li>
-        </form>
-    </div>
+
+        <div class="stickyside">
+            <form id="filterForm" autocomplete="off">
+                <ul class="listwrapper">
+                    <li class="form-row text-only">
+                        <span><b>Search</b></span>
+                    </li>
+                    <li class="form-row text-only">
+                        <input class="fulltext" type="text" name="search" placeholder="Topic, Keywords, DOI, Authors...">
+                    </li>
+                    <li class="form-row top-search">
+                        <button type="submit">Search</button>
+                    </li>
+                    <div id="advanced-box">
+                    <li class="form-row text-only">
+                        <span><b>Advanced</b></span>
+                    </li>
+                    <li class="form-row">
+                        <label for="title">Title</label>
+                        <input type="text" name="title">
+                    </li>
+                    <li class="form-row">
+                        <label for="author">Author</label>
+                        <input type="text" name="author"> 
+                    </li>
+                    <li class="form-row">
+                        <label for="title">From (year)</label>
+                        <input type="text" name="timestart" id="timestart">
+                    </li>
+                    <li class="form-row">
+                        <label for="author">Until (year)</label>
+                        <input type="text" name="until" id="until"> 
+                    </li>
+                    
+                    <li class="fieldsetcontainer">
+                    <fieldset class="source">
+                        <legend>Literature Type</legend>
+                        <table style="width:100%" class="fieldset_table">
+                            <tr>
+                                <td><p><label> <input type="radio" name="type" value="article"> Article </label></p></td>
+                                <td><p><label> <input type="radio" name="type" value="book"> Book(chapter) </label></p></td>
+                            </tr>
+                            <tr>
+                                <td><p><label> <input type="radio" name="type" value="other"> Other </label></p></td>
+                                <td><p><label> <input type="radio" name="type" value="all" checked> All </label></p></td>
+                            </tr>
+                        </table>
+                    </fieldset>
+                    </li>
+                    <li class="form-row">
+                    <button class="reset" onclick="resetPage()">Reset</button>
+                    <button type="submit">Search</button>
+                    </li>
+                </div>
+                </ul>
+            </form>
+        </div>
+
+        <div id="add-box">
+            <p><b>Suggest a new article </b>
+            <a href={{ suggestLink }} class="button linkButton">Suggest</a></p>
+        </div>
     </div>
 
     <div class="main">

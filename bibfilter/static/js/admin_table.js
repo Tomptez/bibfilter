@@ -1,4 +1,4 @@
-let originalFilter = {"title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"_date_created_str","sortorder":"desc"};
+let originalFilter = {"search":"","title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"_date_created_str","sortorder":"desc"};
 
 function CreateTableFromJSON(data) {
     console.log("Start CreateTableFromJSON()")
