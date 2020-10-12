@@ -96,8 +96,8 @@ def clearDB():
 @limiter.limit("10/day")
 @basic_auth.required
 def resyncDB():
-    print("/resyncDB, Manual API Call to now sync with zotero")
-    update_from_zotero()
+    print("/resyncDB, created file syncnow.tmp to trigger automatic synchronization")
+    open('syncnow.tmp', 'a').close()
     return redirect("/admin")
 
 ## Frontend: Return our frontend
