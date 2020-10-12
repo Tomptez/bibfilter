@@ -232,7 +232,9 @@ def manual_sync():
         update_from_zotero()
         os.remove("syncnow.tmp")
     else:
+        print(os.getcwd())
         print(os.listdir())
+        print(os.listdir(".."))
 
 # Sync once with the zotero library, after that sync ever hour
 if __name__ == "__main__":

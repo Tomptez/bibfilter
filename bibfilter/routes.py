@@ -98,6 +98,11 @@ def clearDB():
 def resyncDB():
     print("/resyncDB, created file syncnow.tmp to trigger automatic synchronization")
     open('syncnow.tmp', 'a').close()
+    with open("hello.txt", "w") as f: 
+        f.write("Hello World") 
+    print(os.getcwd())
+    print(os.listdir())
+    print(os.listdir(".."))
     return redirect("/admin")
 
 ## Frontend: Return our frontend
