@@ -96,8 +96,15 @@ def check_item(item):
     req = session.query(Article).filter(Article.ID ==   data["key"])
     # If article exists and hasn't been modified, update last sync date and return
 
+    # Get date. If timezone environment variable exists, use it
+    try:
+        zone = os.environ["TIMEZONE"]
+        date_str = datetime.datetime.now(timezone(zone)).strftime("%Y-%m-%d %H:%M")
+    except:
+        date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+
     if len(list(req)) > 0 and req[0].date_modified == data["dateModified"]:
-        req[0].date_last_zotero_sync = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        req[0].date_last_zotero_sync = date_str
         session.commit()
         session.close()
         report["existed"] += 1
@@ -162,12 +169,6 @@ def check_item(item):
         print("data has no ḱey 'creator'. Entry may be only file without metadata. Skipping")
         return False
     
-    try:
-        zone = os.environ["TIMEZONE"]
-        date_str = datetime.datetime.now(timezone(zone)).strftime("%Y-%m-%d %H:%M")
-    except:
-        date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    
     # Create a new Database entry with all the attributes
     new_art = Article(title=content["title"], 
                         url=content["url"], 
@@ -191,7 +192,7 @@ def check_item(item):
                         number=content["issue"], 
                         icon="book" if content["itemType"].startswith("book") else csv_bib_pattern[content["itemType"]], 
                         searchIndex = " ".join([content["title"], author, content["publicationTitle"], content["abstractNote"], content["DOI"], content["ISSN"], content["ISBN"]]),
-                        date_last_zotero_sync = datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+                        date_last_zotero_sync = date_str,
                         date_added = content["dateAdded"],
                         date_modified = content["dateModified"],
                         date_modified_pretty = content["dateModified"].split("T")[0] + " " + content["dateModified"].split("T")[1][:-4],
@@ -228,7 +229,6 @@ def delete_old():
 
     report["deleted"] = count
     return True
-
 
 # Sync once with the zotero library, after that sync ever hour
 if __name__ == "__main__":
