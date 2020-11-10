@@ -9,6 +9,7 @@ from bibfilter import db
 from bibfilter.models import Article
 from pyzotero import zotero
 from pprint import pprint
+from pytz import timezone
 import time
 import schedule
 
@@ -161,8 +162,11 @@ def check_item(item):
         print("data has no ḱey 'creator'. Entry may be only file without metadata. Skipping")
         return False
     
-
-    date_str = date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    try:
+        zone = os.environ["TIMEZONE"]
+        date_str = datetime.datetime.now(timezone(zone)).strftime("%Y-%m-%d %H:%M")
+    except:
+        date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     
     # Create a new Database entry with all the attributes
     new_art = Article(title=content["title"], 
