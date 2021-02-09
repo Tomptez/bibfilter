@@ -12,3 +12,4 @@ __pycache__
 *.txt
 *.kate-swp
 *.old.png
+tools/tables
