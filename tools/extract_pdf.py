@@ -3,9 +3,11 @@ from PyPDF2 import PdfFileReader
 from PIL import Image
 from pdf2image import convert_from_path
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 folder = os.environ["PDF_FOLDER"]
-fileName = "engel"
+fileName = "cruces"
 filepath = os.path.join(folder,fileName+".pdf")
 
 os.makedirs(os.path.join(folder,fileName),exist_ok=True)
@@ -26,11 +28,12 @@ for p in range(1,totalPages+1):
     tables = camelot.read_pdf(filepath, pages=str(p), flavor='stream')
 
     for eachTable in tables:
-        if eachTable.shape[1] < 3:
+        # if eachTable.whitespace > 35:
+        #     continue
+
+        if len(eachTable.df[eachTable.df.apply(lambda x: x.str.contains("\([0-9]*\.[0-9]+\)")).any(axis="columns")]) < 3 and len(eachTable.df[eachTable.df.apply(lambda x: x.str.contains("\*{2,}")).any(axis="columns")]) < 3 and len(eachTable.df.T[eachTable.df.apply(lambda x: x.str.contains("\([0-9]*\.[0-9]+\)")).any()]) < 3 and len(eachTable.df.T[eachTable.df.apply(lambda x: x.str.contains("\*{2,}")).any()]) < 3:
             continue
-        if eachTable.whitespace > 35:
-            continue
-        print(f"parsing: {eachTable.parsing_report}")
+        print(f"parsing: {eachTable.parsing_report}, {eachTable.shape}")
         tableCount += 1
         left = eachTable.cols[0][0] * factor - imgWidth / 15
         right = eachTable.cols[-1][1] * factor + imgWidth / 15
@@ -66,6 +69,6 @@ for p in range(1,totalPages+1):
         page.save(os.path.join(folder,fileName,f"{p:02d}_Table_{tableCount:02d}_shp{eachTable.shape[1]}_wht_{eachTable.whitespace}.jpg"), 'jpeg')
 
             
-# TODO: page 29 Table 2: Implied Gini coefficient and income rank
+# TODO: cruces
 # todo change eachTable.rows?
 # Todo: If certain percent of page take the entire page
