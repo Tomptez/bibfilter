@@ -3,13 +3,7 @@ let  currentFilter = originalFilter;
 // set the base url so the app knows which page to call independent whether we're in development or production
 const base_url = window.location.origin;
 
-let articles_url = ""
-if (window.location.pathname == "/admin") {
-    articles_url = "/articles_admin"
-}
-else {
-    articles_url = "/articles"
-}
+articles_url = "/articles"
 
 // Function to get articles as JSON from the flask API
 async function getFilteredLiterature(input_json){

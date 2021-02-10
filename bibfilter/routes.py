@@ -5,7 +5,7 @@ from sqlalchemy.sql.expression import asc, desc, or_, and_
 from sqlalchemy.sql import func
 from bibtexparser.bibdatabase import BibDatabase
 import bibtexparser
-from bibfilter.models import Article, ArticleSchema, ArticleSchemaAdmin, BibliographySchema
+from bibfilter.models import Article, ArticleSchema, BibliographySchema
 from bibfilter import app, basic_auth, db
 from update_library import update_from_zotero
 from datetime import datetime
@@ -32,7 +32,6 @@ limiter = Limiter(
 article_schema = ArticleSchema()
 articles_schema = ArticleSchema(many=True)
 bibliography_schema = BibliographySchema(many=True)
-articles_schema_admin = ArticleSchemaAdmin(many=True)
 
 ## API: return .bib as string
 @app.route("/bibfile", methods=["POST"])
@@ -56,16 +55,6 @@ def get_articles():
     result = articles_schema.dump(entries)
     print(f"JSON returned of length {len(result)}")
 
-    return jsonify(result)
-
-## API: Return Articles for Admin page
-@app.route("/articles_admin", methods=["POST"])
-@basic_auth.required
-def get_admin():
-    req_data = request.get_json()
-    entries = selectEntries(req_data)
-    result = articles_schema_admin.dump(entries)
-    print(f"JSON returned of length {len(result)}")
     return jsonify(result)
 
 ## API Admin: Get Date of last sync between zotero and database
