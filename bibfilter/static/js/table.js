@@ -1,5 +1,12 @@
 let originalFilter = {"search":"","title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"authorlast","sortorder":"asc"};
 
+function showHideRow(row) { 
+ 
+    $('.hidden_row').hide();
+
+    $("#" + row).toggle(); 
+} 
+
 function CreateTableFromJSON(data) {
     console.log("Start CreateTableFromJSON()")
     
@@ -34,6 +41,11 @@ function CreateTableFromJSON(data) {
     tr.classList.add("articlerow")                  // add class for css
 
     for (let i = 0; i < col.length; i++) {
+
+        // skip abstract data
+        if (col[i] == "abstract") {
+            continue;
+        }
         const th = document.createElement("th");      // tbody HEADER.
         let titleprefix = ""                        // prefix for the title arrows
 
@@ -62,6 +74,9 @@ function CreateTableFromJSON(data) {
     for (let i = 0; i < data.length; i++) {
 
         tr = tbody.insertRow(-1);
+        tr.onclick = function() { showHideRow('hidden_row'+i)};
+
+        let hiddenContent = "";
 
         for (let j = 0; j < col.length; j++) {
             let tabCell = tr.insertCell(-1);
@@ -94,8 +109,13 @@ function CreateTableFromJSON(data) {
                 }
                 const img = document.createElement('img');
                 img.src = imgpath;
-                img.classList.add("typeicon")
+                img.classList.add("typeicon");
                 tabCell.appendChild(img);
+            }
+
+            // handle abstract to put it in hidden row
+            else if (col[j] == "abstract"){
+                hiddenContent = data[i][col[j]];
             }
 
             // append json content into cell
@@ -103,6 +123,19 @@ function CreateTableFromJSON(data) {
                 tabCell.innerHTML = data[i][col[j]];
             }
         }
+        
+
+        tr = tbody.insertRow(-1);
+        tr.id = "hidden_row" + i;
+        tr.className = "hidden_row";
+        let tabCell = tr.insertCell(-1);
+
+        var div = document.createElement("div");
+        div.className = "hidden_content"
+        div.innerText = hiddenContent
+        tabCell.appendChild(div)
+        tabCell.colSpan = 6;
+
         
     }
 

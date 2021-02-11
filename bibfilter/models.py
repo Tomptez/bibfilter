@@ -64,7 +64,7 @@ class Article(db.Model):
 class ArticleSchema(ma.Schema):
 
     class Meta:
-        fields = ("icon", "authorlast","year", "title", "publication", "url")
+        fields = ("icon", "authorlast","year", "title", "publication", "url", "abstract")
         ordered = True
 
 class BibliographySchema(ma.Schema):
