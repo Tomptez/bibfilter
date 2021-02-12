@@ -1,4 +1,11 @@
-let originalFilter = {"search":"","title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"_date_created_str","sortorder":"desc"};
+let originalFilter = {"search":"","title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"authorlast","sortorder":"asc"};
+
+function showHideRow(row) { 
+ 
+    $('.hidden_row').hide();
+
+    $("#" + row).toggle(); 
+} 
 
 function CreateTableFromJSON(data) {
     console.log("Start CreateTableFromJSON()")
@@ -6,7 +13,7 @@ function CreateTableFromJSON(data) {
     // EXTRACT VALUE FOR HTML HEADER. 
     // ('Book ID', 'Book Name', 'Category' and 'Price')
     let col = [];
-    colname = {"icon":"", "title": "Title", "authorlast": "Author", "year": "Year", "url": "URL", "publication": "Publication", "_date_created_str": "Added"}
+    colname = {"title": "Title", "authorlast": "Author", "year": "Year", "url": "URL", "publication": "Publication", "ID": "Delete", "icon": ""}
     for (let i = 0; i < data.length; i++) {
         for (let key in data[i]) {
             if (col.indexOf(key) === -1) {
@@ -22,7 +29,7 @@ function CreateTableFromJSON(data) {
 
     // create cols with width
     for (let i = 0; i < col.length; i++){
-        let newcol = document.createElement("col")
+        const newcol = document.createElement("col")
         newcol.id = col[i]
         colgroup.appendChild(newcol)
     }
@@ -34,8 +41,13 @@ function CreateTableFromJSON(data) {
     tr.classList.add("articlerow")                  // add class for css
 
     for (let i = 0; i < col.length; i++) {
+
+        // skip abstract data
+        if (col[i] == "abstract") {
+            continue;
+        }
         const th = document.createElement("th");      // tbody HEADER.
-        let titleprefix = ""                        // prefix for the title
+        let titleprefix = ""                        // prefix for the title arrows
 
         // mark which column its sorted by
         if (col[i] == currentFilter["sortby"] & currentFilter["sortorder"] == "asc"){
@@ -62,19 +74,20 @@ function CreateTableFromJSON(data) {
     for (let i = 0; i < data.length; i++) {
 
         tr = tbody.insertRow(-1);
+        tr.onclick = function() { showHideRow('hidden_row'+i)};
+
+        let hiddenContent = "";
 
         for (let j = 0; j < col.length; j++) {
             let tabCell = tr.insertCell(-1);
-
-            // different than main
 
             // create a button for the external URL
             if (col[j] == "url"){
                 if (data[i][col[j]] != "NaN"){
                     const a = document.createElement('a');
+                    a.classList.add("externalUrl")
                     a.rel = "noopener noreferrer"
                     a.target = "_blank"
-                    a.classList.add("externalUrl")
                     a.href = data[i][col[j]];
                     const linkText = document.createTextNode("Source");
                     a.appendChild(linkText);
@@ -82,7 +95,6 @@ function CreateTableFromJSON(data) {
                 };
             }
 
-            
             // create icons
             else if (col[j] == "icon"){
                 let imgpath = "";
@@ -97,8 +109,13 @@ function CreateTableFromJSON(data) {
                 }
                 const img = document.createElement('img');
                 img.src = imgpath;
-                img.classList.add("typeicon")
+                img.classList.add("typeicon");
                 tabCell.appendChild(img);
+            }
+
+            // handle abstract to put it in hidden row
+            else if (col[j] == "abstract"){
+                hiddenContent = data[i][col[j]];
             }
 
             // append json content into cell
@@ -107,10 +124,23 @@ function CreateTableFromJSON(data) {
             }
         }
         
+
+        tr = tbody.insertRow(-1);
+        tr.id = "hidden_row" + i;
+        tr.className = "hidden_row";
+        let tabCell = tr.insertCell(-1);
+
+        var div = document.createElement("div");
+        div.className = "hidden_content"
+        div.innerText = hiddenContent
+        tabCell.appendChild(div)
+        tabCell.colSpan = 6;
+
+        
     }
 
     // FINALLY ADD THE NEWLY CREATED tbody and table WITH JSON DATA TO A CONTAINER.
-    const divContainer = document.getElementById("showData");
+    var divContainer = document.getElementById("showData");
     if (data.length == 0) {
         divContainer.innerHTML = '<p style="font-style: italic;"> Unfortunately no literature met your criteria</p>';
     }
@@ -121,4 +151,10 @@ function CreateTableFromJSON(data) {
         divContainer.appendChild(table);
     }
     
+}
+
+// load setUpFilter() and get the articles when loading the page after importing all Javascript functions
+window.onload = function(){
+    getFilteredLiterature(JSON.stringify(currentFilter));
+    setUpFilter();
 }

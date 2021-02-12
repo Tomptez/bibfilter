@@ -323,6 +323,11 @@ th:hover {
     background-color: #4d6e80
 }
 
+tr:hover {
+    background-color: #d6e2eb;
+    cursor: pointer;
+}
+
 a.externalUrl {
     color: #fff;
     background-color: #3a4a52;
@@ -335,6 +340,17 @@ a.externalUrl:hover {
 .typeicon {
     width: 1.2em;
     height: 1.2em;
+}
+
+.hidden_row { 
+    display: none; 
+}
+
+.hidden_content {
+    padding: 3px;
+    padding-right: 170px;
+    padding-left: 170px;
+    font-size: 1.1em;
 }
 
 /* Admin Header*/
