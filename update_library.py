@@ -12,12 +12,43 @@ from pprint import pprint
 from pytz import timezone
 import time
 import schedule
+from io import BytesIO
+from pdfminer.high_level import extract_text
 
 # List to store key of all items in zotero to later check if some of the items in the database have been deleted in zotero
 zotero_keylist = []
 
 # Count new and updated articles for finish report
 report = {"new" : 0, "updated" : 0, "existed" : 0, "deleted": 0}
+
+def readAttachedPDF(articleID):
+    try:
+        libraryID = os.environ["LIBRARY_ID"]
+        zot = zotero.Zotero(libraryID, "group")
+        attachments = zot.children(articleID)
+
+        content = ""
+        for each in attachments:
+            try:
+                if each["data"]["contentType"] == 'application/pdf':
+                    pdfID = each["data"]["key"]
+                    # get content of pdf
+                    pdfBytes = zot.file(pdfID)
+                    # convert bytes of bts to python object
+                    pdfFile = BytesIO(pdfBytes)
+                    content = extract_text(pdfFile)
+                    print("Got PDF content")
+                    break
+                except Exception as e:
+                    print("Error when trying to read attachments/PDFs")
+                    print(e)
+                    continue
+
+    except Exception as e:
+        print(e)
+        return
+
+    return content
 
 def update_from_zotero():
     print("Started syncing with zotero collection")
@@ -168,6 +199,9 @@ def check_item(item):
     except Exception as e:
         print("data has no ḱey 'creator'. Entry may be only file without metadata. Skipping")
         return False
+
+    # Get the content of article content from attached PDFs
+    articleContent = readAttachedPDF(data["key"])
     
     # Create a new Database entry with all the attributes
     new_art = Article(title=content["title"], 
@@ -191,6 +225,7 @@ def check_item(item):
                         volume=content["volume"], 
                         number=content["issue"], 
                         icon="book" if content["itemType"].startswith("book") else csv_bib_pattern[content["itemType"]], 
+                        articleFullText = articleContent,
                         searchIndex = " ".join([content["title"], author, content["publicationTitle"], content["abstractNote"], content["DOI"], content["ISSN"], content["ISBN"]]),
                         date_last_zotero_sync = date_str,
                         date_added = content["dateAdded"],

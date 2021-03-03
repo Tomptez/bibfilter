@@ -41,6 +41,7 @@ class Article(db.Model):
     publisher = db.Column(db.String)
     language = db.Column(db.String)
     url = db.Column(db.String)
+    articleFullText = db.Column(db.Text)
     searchIndex = db.Column(db.String)
     date_added = db.Column(db.String)
     date_modified = db.Column(db.String)
