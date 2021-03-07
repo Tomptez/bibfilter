@@ -27,6 +27,7 @@ camelot-py = {extras = ["cv"], version = "*"}
 pillow = "*"
 pdf2image = "*"
 pypdf2 = "*"
+textblob = "*"
 
 [requires]
 python_version = "3.9"

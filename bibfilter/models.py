@@ -42,6 +42,7 @@ class Article(db.Model):
     language = db.Column(db.String)
     url = db.Column(db.String)
     articleFullText = db.Column(db.Text)
+    importantWords = db.Column(db.String)
     searchIndex = db.Column(db.String)
     date_added = db.Column(db.String)
     date_modified = db.Column(db.String)
@@ -63,6 +64,12 @@ class Article(db.Model):
 
 # Article Schema
 class ArticleSchema(ma.Schema):
+
+    # # Change the resulting Schema
+    # @post_dump
+    # def changeTitle(self, data, **kwargs):
+    #     data["title"] = data["title"].upper()
+    #     return data
 
     class Meta:
         fields = ("icon", "authorlast","year", "title", "publication", "url", "abstract")

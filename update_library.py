@@ -37,13 +37,14 @@ def readAttachedPDF(articleID):
                     # convert bytes of bts to python object
                     pdfFile = BytesIO(pdfBytes)
                     content = extract_text(pdfFile)
+                    # Fix: ValueError: A string literal cannot contain NUL (0x00) characters. Caused by a problem with extract_text
+                    content = content.replace("\x00", "")
                     print("Got PDF content")
                     break
-                except Exception as e:
+            except Exception as e:
                     print("Error when trying to read attachments/PDFs")
                     print(e)
                     continue
-
     except Exception as e:
         print(e)
         return
@@ -124,7 +125,7 @@ def check_item(item):
     ## Adding each key the keylist to check them later
     zotero_keylist.append(data["key"])
 
-    req = session.query(Article).filter(Article.ID ==   data["key"])
+    req = session.query(Article).filter(Article.ID == data["key"])
     # If article exists and hasn't been modified, update last sync date and return
 
     # Get date. If timezone environment variable exists, use it
