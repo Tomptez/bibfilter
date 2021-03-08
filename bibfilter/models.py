@@ -43,6 +43,8 @@ class Article(db.Model):
     url = db.Column(db.String)
     articleFullText = db.Column(db.Text)
     importantWords = db.Column(db.String)
+    importantWordsCount = db.Column(db.Text)
+    importantWordsLocation = db.Column(db.String)
     searchIndex = db.Column(db.String)
     date_added = db.Column(db.String)
     date_modified = db.Column(db.String)

@@ -14,6 +14,7 @@ import time
 import schedule
 from io import BytesIO
 from pdfminer.high_level import extract_text
+import re
 
 # List to store key of all items in zotero to later check if some of the items in the database have been deleted in zotero
 zotero_keylist = []
@@ -39,6 +40,17 @@ def readAttachedPDF(articleID):
                     content = extract_text(pdfFile)
                     # Fix: ValueError: A string literal cannot contain NUL (0x00) characters. Caused by a problem with extract_text
                     content = content.replace("\x00", "")
+                    # Remove fulltext if it contains mostly cid specifications instead of actual test as pdfminer cannot handle some types of pdf
+                    if len(re.findall("\(cid:\d+\)", content)) > 15:
+                        content = " "
+                        print("Content contains mostly cid:  ")
+                    # Recognize problems from scraping PDF, TODO -> handle differently
+                    else:
+                        entitysize = content.split()
+                        for entity in entitysize:
+                            if len(entity) > 400:
+                               content = " "
+                               print("Apparent problems when scraping pdf")
                     print("Got PDF content")
                     break
             except Exception as e:
@@ -150,6 +162,7 @@ def check_item(item):
 
     else:
         report["new"] += 1
+        print("Adding ", data["title"], "to database.")
 
     csv_bib_pattern = {"journalArticle": "article", "book": "book", "conferencePaper": "inproceedings", "manuscript": "article", "bookSection": "incollection", "webpage": "inproceedings", "techreport": "article", "letter": "misc", "report": "report", "document": "misc", "thesis": "thesis"}
 
@@ -235,6 +248,7 @@ def check_item(item):
                         date_added_pretty = content["dateAdded"].split("T")[0] + " " + content["dateAdded"].split("T")[1][:-4],
                         _date_created_str = date_str,
                         _date_created = date_str)
+    
     session.add(new_art)
     session.commit()
     session.close()
