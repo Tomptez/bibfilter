@@ -1,8 +1,11 @@
 # Indexes all words of a text to make the text easily searchable and to provide matching text passages.
 # This script is mainly for testing to later implement this feature
+
 import math
 from textblob import TextBlob as tb
+from textblob.download_corpora import download_lite
 import nltk
+download_lite()
 nltk.download('punkt')
 nltk.download('stopwords')
 import sys
@@ -31,9 +34,11 @@ for article in req:
     for last in i:
         continue
     
-    blob = tb(str(article.articleFullText)[:last.start()])
-    bloblist.append(blob)
-    titleList.append(article.title)
+    # Make sure to handle articles where we don't have articleFullText (e.g. no PDF provided)
+    if last is not None:
+        blob = tb(str(article.articleFullText)[:last.start()])
+        bloblist.append(blob)
+        titleList.append(article.title)
 
 def clean_tokens(blob):
     tokens = blob.tokens
@@ -55,26 +60,28 @@ for i, blob in enumerate(bloblist2):
         if blob.word_counts[word] > 1:
             scores[word] = blob.word_counts[word]
 
-    # Get all occurences starting points
-    kl = [m.start() for m in re.finditer('inequality', str(blob.lower()))]
-    # Save dict scores as dic
-    # save dict key in db
-    # save starting points in db
-
-    ## optional: sort and print
-    # sorted_words = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-    # print(f"Top words in {titleList[i]}")
-    # for word, score in sorted_words[:40]:
+    # optional: sort and print
+    sorted_words = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    print(f"Top words in {titleList[i]}")
+    for word, score in sorted_words[:40]:
         
-    #     print(f"Word: {word}, count: {score}")
+        print(f"Word: {word}, count: {score}")
+
+    # For demonstration: get starting position of all occurences of "inequality"
+    kl = [m.start() for m in re.finditer('inequality', str(blob.lower()))]
+    
+    ## Todo: ##
+    # Save dict scores in db as dict
+    # save starting points in db as dict
     
 
 
 # Todo
 # Ignore numbers?
-# save results as string and as dictionary
 # marshmellow functions? -> retrieve only part of column?
 # Ignore PDFs with more than 60 pages
 # Handle search for literal terms "literal"
 # Use OCR for old pdfs
 # Handle different languages
+# Save scores to database
+# Save position of each word in scores to database

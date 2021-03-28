@@ -1,3 +1,7 @@
+# Tool which analyses citation counts of articles in a zotero library via data from crossref
+# Takes an exported zotero library as .csv file as input
+# Saves the result in three .csv files: most_cited.csv, noDOI.csv and noURLupdated.csv
+
 import csv
 import requests
 import os

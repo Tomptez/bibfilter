@@ -1,3 +1,7 @@
+## Tool to open zotero libraries that are exported as .csv and put them into a database 
+# Ugit sing SQLAlchemy 
+# Old version which probably won't work with the current version of bibfilter
+
 from time import time
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker

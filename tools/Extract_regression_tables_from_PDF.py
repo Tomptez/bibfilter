@@ -1,3 +1,6 @@
+## Tool to extract regression tables from PDF files
+# The folder that contains the pdf files has to be specified with the environment variable PDF_FOLDER, for example in .env
+
 import camelot
 from PyPDF2 import PdfFileReader
 from PIL import Image
@@ -44,7 +47,7 @@ for p in range(1,totalPages+1):
         # make sure bottom isn't less than the page height
         bottom = imgHeight if bottom > imgHeight else bottom
 
-        #eachTable.to_html('/home/minze/Programming/Projects/LitFilter_Repo/tools/table.csv')
+        #eachTable.to_csv('/home/minze/Programming/Projects/LitFilter_Repo/tools/table.csv')
 
         
         page = convert_from_path(filepath, first_page=p, last_page=p)[0]

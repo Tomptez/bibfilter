@@ -28,6 +28,8 @@ pillow = "*"
 pdf2image = "*"
 pypdf2 = "*"
 textblob = "*"
+pikepdf = "*"
+ocrmypdf = "*"
 
 [requires]
 python_version = "3.9"

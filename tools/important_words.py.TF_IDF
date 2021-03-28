@@ -1,0 +1,70 @@
+import math
+from textblob import TextBlob as tb
+import nltk
+nltk.download('punkt')
+import sys
+sys.path.append(".")
+from bibfilter import db
+from bibfilter.models import Article
+
+def tf(word, blob):
+    return blob.words.count(word) / len(blob.words)
+
+def n_containing(word, bloblist):
+    return sum(1 for blob in bloblist if word in blob)
+
+def idf(word, bloblist):
+    return math.log(len(bloblist) / (1 + n_containing(word, bloblist)))
+
+def tfidf(word, blob, bloblist):
+    return tf(word, blob) * idf(word, bloblist)
+
+session = db.session()
+req = session.query(Article)
+
+bloblist = []
+titleList = []
+for article in req:
+    blob = tb(article.articleFullText)
+    bloblist.append(blob)
+    titleList.append(article.title)
+
+#bloblist = [document1, document2, document3]
+
+
+import nltk
+nltk.download('wordnet')
+from nltk.corpus import wordnet as wn
+
+def get_lemma(word):
+    lemma = wn.morphy(word)
+    if lemma is None:
+        return word
+    else:
+        return lemma
+
+def prepare_text_for_lda(blob):
+    tokens = blob.tokens
+    #tokens = [token for token in tokens if len(token) > 4]
+    #tokens = [token for token in tokens if token not in en_stop]
+    tokens = [get_lemma(token.lower()) for token in tokens]
+    return tokens
+
+bloblist2 = []
+
+for each in bloblist:
+    newtext = " ".join(prepare_text_for_lda(each))
+    bloblist2.append(tb(newtext))
+
+for i, blob in enumerate(bloblist2):
+    print(f"Top words in document {titleList[0]}")
+    scores = {word: tfidf(word, blob, bloblist) for word in blob.words}
+    sorted_words = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    for word, score in sorted_words[:6]:
+        print("Word: {}, TF-IDF: {}".format(word, round(score, 5)))
+    print()
+
+
+# Todo
+# Ignore numbers
+# 3 times Inequality Perceptions, Preferences Conducive to Redistribution, and the Conditioning Role of Social Position

@@ -43,7 +43,7 @@ def readAttachedPDF(articleID):
                     # Remove fulltext if it contains mostly cid specifications instead of actual test as pdfminer cannot handle some types of pdf
                     if len(re.findall("\(cid:\d+\)", content)) > 15:
                         content = " "
-                        print("Content contains mostly cid:  ")
+                        print("Content contains mostly CID")
                     # Recognize problems from scraping PDF, TODO -> handle differently
                     else:
                         entitysize = content.split()

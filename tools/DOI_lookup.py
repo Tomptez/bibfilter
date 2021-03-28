@@ -1,3 +1,7 @@
+# Tool to lookup a DOI in crossref and add them to the bibfilter.
+# Not in actual use in bibfilter and neither up to date.
+# add_item() takes a DOI as argument, looks it up and adds it to the database
+
 import requests
 import sys
 sys.path.append(".")
