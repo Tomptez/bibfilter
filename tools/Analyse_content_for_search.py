@@ -28,7 +28,7 @@ bloblist2 = []
 titleList = []
 for article in req:
     # Find the position of references to then only index text before the references. \W means any non-word character
-    i = re.finditer('\Wr e f e r e n c e s|\nr e f e r e n c e s|\nreferences|\Wreferences', article.articleFullText.lower())
+    i = re.finditer('(?i)\Wr e f e r e n c e s|\nr e f e r e n c e s|\nreferences|\Wreferences', article.articleFullText.lower())
     # the variable last refers to the last "references" word in the text. It is used to crop off the references at the end of the articles. last.start() is the start of the word "references"
     last = None
     for last in i:
@@ -85,3 +85,4 @@ for i, blob in enumerate(bloblist2):
 # Handle different languages
 # Save scores to database
 # Save position of each word in scores to database
+# Test if CID substitution works
