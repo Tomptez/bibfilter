@@ -22,23 +22,19 @@ def count_words(word, blob):
 
 session = db.session()
 req = session.query(Article)
+session.close()
 
 bloblist = []
 bloblist2 = []
 titleList = []
 for article in req:
-    # Find the position of references to then only index text before the references. \W means any non-word character
-    i = re.finditer('(?i)\Wr e f e r e n c e s|\nr e f e r e n c e s|\nreferences|\Wreferences', article.articleFullText.lower())
-    # the variable last refers to the last "references" word in the text. It is used to crop off the references at the end of the articles. last.start() is the start of the word "references"
-    last = None
-    for last in i:
-        continue
-    
-    # Make sure to handle articles where we don't have articleFullText (e.g. no PDF provided)
-    if last is not None:
-        blob = tb(str(article.articleFullText)[:last.start()])
+    if article.articleFullText is not None:
+        blob = tb(str(article.articleFullText))
         bloblist.append(blob)
         titleList.append(article.title)
+
+    else:
+        print(f"{article.title} doesn't provide content")
 
 def clean_tokens(blob):
     tokens = blob.tokens
@@ -60,20 +56,32 @@ for i, blob in enumerate(bloblist2):
         if blob.word_counts[word] > 1:
             scores[word] = blob.word_counts[word]
 
-    # optional: sort and print
+    # optional: sort
     sorted_words = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+
+    content_words = " ".join(scores.keys())
+
+
+    # optional: print
     print(f"Top words in {titleList[i]}")
     for word, score in sorted_words[:40]:
         
         print(f"Word: {word}, count: {score}")
 
-    # For demonstration: get starting position of all occurences of "inequality"
-    kl = [m.start() for m in re.finditer('inequality', str(blob.lower()))]
+    position_dict = {}
     
-    ## Todo: ##
-    # Save dict scores in db as dict
-    # save starting points in db as dict
+    for word, count in sorted_words:
+        position_dict[word] = [m.start() for m in re.finditer(word, str(blob.lower()))][:4]
     
+    session = db.session()
+    article = session.query(Article).filter(Article.title==titleList[i])[0]
+    
+    article.importantWords = content_words
+    article.importantWordsCount = json.dumps(scores)
+    article.importantWordsLocation = json.dumps(position_dict)
+    
+    session.commit()
+    session.close()
 
 
 # Todo
@@ -83,6 +91,10 @@ for i, blob in enumerate(bloblist2):
 # Handle search for literal terms "literal"
 # Use OCR for old pdfs
 # Handle different languages
-# Save scores to database
-# Save position of each word in scores to database
 # Test if CID substitution works
+
+# Actuall sort dict instead of using list? -> easier saving
+# Don't include URLs or http
+
+# Todo: Stolen Thunder? Huey Long's "Share Our Wealth," Political Mediation, and the Second New Deal
+# doesn't really include any words

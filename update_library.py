@@ -54,58 +54,86 @@ def readAttachedPDF(articleID):
         zot = zotero.Zotero(libraryID, "group")
         attachments = zot.children(articleID)
 
-        content, references = "", ""
+        content = None
+        references = None
 
         # Goes through each attachment if there is any
         for each in attachments:
             try:
-                if each["data"]["contentType"] == 'application/pdf':
-                    print("PDF File available")
-                    pdfID = each["data"]["key"]
-                    # get content of pdf
-                    pdfBytes = zot.file(pdfID)
-                    # convert bytes of bts to python object
-                    pdfFile = BytesIO(pdfBytes)
-                    content = extract_text(pdfFile)
-                    # Fix: ValueError: A string literal cannot contain NUL (0x00) characters. Caused by a problem with extract_text
-                    content = content.replace("\x00", "")
-                    # Find the position of references to then only index text before the references. \W means any non-word character
-                    i = re.finditer('References|REFERENCES|[\W|\n][R|r] [E|e] [F|f] [E|e] [R|r] [E|e] [N|n] [C|c] [E|e] [S|s]|[\W|\n]references', content)
-                    # the variable last refers to the last "references" word in the text. It is used to crop off the references at the end of the articles. last.start() is the start of the word "references"
-                    last = None
-                    for last in i:
-                        continue
-                    if last != None:
-                        references = content[last.end():]
-                        content = content[:last.start()]
-                    else:
-                        with open('/home/minze/Documents/problemfile.txt', 'w') as file: 
-                            file.write(content)
-                    # Check if CID code / character Ratio. If too high don't use it
-                    ratio = (len(re.findall("\(cid:\d+\)", content)) / len(content) * 100)
-                    print(f"CID codes ratio: {ratio:.2f}")
-                    if (len(re.findall("\(cid:\d+\)", content)) / len(content) * 100) > 6:
-                        content = " "
-                        print("Content contains mostly CID")
-                    # Recognize Problem with detecting space in the PDF file
-                    else:
-                        noProblems = True
-                        entitysize = content.split()
-                        if len(content)/20 > len(entitysize):
-                            content = " "
-                            noProblems = False
-                            print("Problem when scraping pdf: Not detecting spaces")
-                        if noProblems:
-                            print("Extracted PDF content without any errors")
+                # Notes are different from attachments and don't have contentType attribute
+                if each["data"]["itemType"] == "attachment":
+                    if each["data"]["contentType"] == 'application/pdf':
+                        print("PDF File available")
+                        pdfID = each["data"]["key"]
+                        # get content of pdf
+                        pdfBytes = zot.file(pdfID)
+                        # convert bytes of bts to python object
+                        pdfFile = BytesIO(pdfBytes)
+                        content = extract_text(pdfFile)
+                        # Fix: ValueError: A string literal cannot contain NUL (0x00) characters. Caused by a problem with extract_text
+                        content = content.replace("\x00", "")
+                        
+                        # Use end variable to look only in the4 second half of the document. Prevents mistakes in the rare cases that References is only mentioned on the first page
+                        end = int(len(content) / 2)
+                        # Find the position of references to then only index text before the references. \W means any non-word character
+                        i = re.finditer('References|REFERENCES|[\W|\n][R|r] [E|e] [F|f] [E|e] [R|r] [E|e] [N|n] [C|c] [E|e] [S|s]|[\W|\n]references', content[end:])
+                        # the variable last refers to the last "references" word in the text. It is used to crop off the references at the end of the articles. last.start() is the start of the word "references"
+                        last = None
+                        for last in i:
+                            continue
+                        if last != None:
+                            references = content[end+last.end():]
+                            content = content[:end+last.start()]
+                            
+                        else:
+                            with open('/home/minze/Documents/problemfile.txt', 'w') as file: 
+                                file.write(content)
+                            print("Problems reading the PDF")
+                            content = None
+                            break
+                        # Check if CID code / character Ratio. If too high don't use it
+                        ratio = (len(re.findall("\(cid:\d+\)", content)) / len(content) * 100)
+                        # Find the position of references to then only index text before the references. \W means any non-word character
+                        i = re.finditer('References|REFERENCES|[\W|\n][R|r] [E|e] [F|f] [E|e] [R|r] [E|e] [N|n] [C|c] [E|e] [S|s]|[\W|\n]references', content)
+                        # the variable last refers to the last "references" word in the text. It is used to crop off the references at the end of the articles. last.start() is the start of the word "references"
+                        last = None
+                        for last in i:
+                            continue
+                        if last != None:
+                            references = content[last.end():]
+                            content = content[:last.start()]
+                        else:
+                            with open('/home/minze/Documents/problemfile.txt', 'w') as file: 
+                                file.write(content)
+                        # Check if CID code / character Ratio. If too high don't use it
+                        ratio = (len(re.findall("\(cid:\d+\)", content)) / len(content) * 100)
+                        print(f"CID codes ratio: {ratio:.2f}")
+                        if (len(re.findall("\(cid:\d+\)", content)) / len(content) * 100) > 6:
+                            content = None
+                            print("Content contains mostly CID")
+                        # Recognize Problem with detecting space in the PDF file
+                        else:
+                            noProblems = True
+                            entitysize = content.split()
+                            if len(content)/20 > len(entitysize):
+                                content = None
+                                noProblems = False
+                                print("Problem when scraping pdf: Not detecting spaces")
+                            if noProblems:
+                                print("Extracted PDF content without any errors")
 
-                    # Remove all CID codes from content if there is any
-                    content = re.sub("\(cid:\d+\)", '', content)
-                    references = re.sub("\(cid:\d+\)", '', content)
+                        # Remove all CID codes from content if there is any
+                        content = re.sub("\(cid:\d+\)", '', content)
+                        # Remove unnecessary whitespace
+                        content = re.sub("\s{3,}", '\n\n', content)
+                        
+                        references = re.sub("\(cid:\d+\)", '', references)
 
-                    break
+                        break
             except Exception as e:
                     print("Error when trying to read attachments/PDFs")
                     print(e)
+                    
                     continue
     except Exception as e:
         print(e)
@@ -124,7 +152,6 @@ def check_item(item):
     session = db.session()
     data = item["data"]
 
-    print(f"{data['title']}")
 
     ## Adding each key the keylist which is needed by delete_old()
     zotero_keylist.append(data["key"])
@@ -207,6 +234,7 @@ def check_item(item):
         return False
 
     # Get the content of article content from attached PDFs
+    print(f"Look for PDF: {data['title']}")
     articleContent, references = readAttachedPDF(data["key"])
     
     # Create a new Database entry with all the attributes
