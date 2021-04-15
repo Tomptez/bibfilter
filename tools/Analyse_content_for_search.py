@@ -28,7 +28,7 @@ bloblist = []
 bloblist2 = []
 titleList = []
 for article in req:
-    if article.articleFullText is not None:
+    if article.articleFullText != "":
         blob = tb(str(article.articleFullText))
         bloblist.append(blob)
         titleList.append(article.title)
@@ -96,5 +96,5 @@ for i, blob in enumerate(bloblist2):
 # Actuall sort dict instead of using list? -> easier saving
 # Don't include URLs or http
 
-# Todo: Stolen Thunder? Huey Long's "Share Our Wealth," Political Mediation, and the Second New Deal
-# doesn't really include any words
+# clean Loading of NLTK stuff
+# Get analyse content ready for heroku and running it in background

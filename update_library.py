@@ -54,9 +54,9 @@ def readAttachedPDF(articleID):
         zot = zotero.Zotero(libraryID, "group")
         attachments = zot.children(articleID)
 
-        content = None
-        references = None
-
+        content = ""
+        references = ""
+        
         # Goes through each attachment if there is any
         for each in attachments:
             try:
@@ -89,13 +89,13 @@ def readAttachedPDF(articleID):
                             with open('/home/minze/Documents/problemfile.txt', 'w') as file: 
                                 file.write(content)
                             print("Problems reading the PDF")
-                            content = None
+                            content = ""
                             break
                         # Check if CID code / character Ratio. If too high don't use it
                         ratio = (len(re.findall("\(cid:\d+\)", content)) / len(content) * 100)
                         print(f"CID codes ratio: {ratio:.2f}")
                         if (len(re.findall("\(cid:\d+\)", content)) / len(content) * 100) > 6:
-                            content = None
+                            content = ""
                             print("Content contains mostly CID")
                         # Recognize Problem with detecting space in the PDF file
                         else:
@@ -246,6 +246,10 @@ def check_item(item):
                         number=content["issue"], 
                         icon="book" if content["itemType"].startswith("book") else csv_bib_pattern[content["itemType"]], 
                         articleFullText = articleContent,
+                        references = references,
+                        importantWords = "",
+                        importantWordsCount = "",
+                        importantWordsLocation = "",
                         searchIndex = " ".join([content["title"], author, content["publicationTitle"], content["abstractNote"], content["DOI"], content["ISSN"], content["ISBN"]]),
                         date_last_zotero_sync = date_str,
                         date_added = content["dateAdded"],

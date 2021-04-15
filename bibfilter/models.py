@@ -45,6 +45,7 @@ class Article(db.Model):
     importantWords = db.Column(db.String)
     importantWordsCount = db.Column(db.Text)
     importantWordsLocation = db.Column(db.String)
+    references = db.Column(db.String)
     searchIndex = db.Column(db.String)
     date_added = db.Column(db.String)
     date_modified = db.Column(db.String)

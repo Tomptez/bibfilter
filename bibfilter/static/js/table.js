@@ -1,4 +1,4 @@
-let originalFilter = {"search":"","title":"","author":"", "timestart": "", "until": "", "type": "all","sortby":"authorlast","sortorder":"asc"};
+let originalFilter = {"search":"","title":"","author":"", "content":"", "timestart": "", "until": "", "type": "all","sortby":"authorlast","sortorder":"asc"};
 
 function showHideRow(row) { 
  
