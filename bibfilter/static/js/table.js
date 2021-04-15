@@ -7,13 +7,19 @@ function showHideRow(row) {
     $("#" + row).toggle(); 
 } 
 
-function CreateTableFromJSON(data) {
+async function CreateTableFromJSON(data) {
     console.log("Start CreateTableFromJSON()")
+
+    // Lemmatize content searchterms which is needed for measuring relevance
     
+    termlist = await lemma(JSON.stringify(currentFilter));
+    
+    console.log(termlist)
+
     // EXTRACT VALUE FOR HTML HEADER. 
     // ('Book ID', 'Book Name', 'Category' and 'Price')
     let col = [];
-    colname = {"title": "Title", "authorlast": "Author", "year": "Year", "url": "URL", "publication": "Publication", "ID": "Delete", "icon": ""}
+    colname = {"title": "Title", "authorlast": "Author", "year": "Year", "url": "URL", "publication": "Publication", "importantWordsCount":"Occur", "ID": "Delete", "icon": ""}
     for (let i = 0; i < data.length; i++) {
         for (let key in data[i]) {
             if (col.indexOf(key) === -1) {
@@ -71,6 +77,7 @@ function CreateTableFromJSON(data) {
     }
 
     // ADD JSON DATA TO THE tbody AS ROWS.
+    // loop through each article / row
     for (let i = 0; i < data.length; i++) {
 
         tr = tbody.insertRow(-1);
@@ -78,6 +85,7 @@ function CreateTableFromJSON(data) {
 
         let hiddenContent = "";
 
+        // Loop through each cell
         for (let j = 0; j < col.length; j++) {
             let tabCell = tr.insertCell(-1);
 
@@ -118,6 +126,20 @@ function CreateTableFromJSON(data) {
                 hiddenContent = data[i][col[j]];
             }
 
+            // How relevant is the result based on the content search
+            else if (col[j] == "importantWordsCount"){
+                relevance = 0
+
+                if (currentFilter["content"] != ""){
+                    // termlist has been lemmatized before
+                    for (let term in termlist) {
+                        relevance = relevance + data[i][col[j]][termlist[term]]
+                    }
+                }    
+                
+                tabCell.innerHTML = relevance;
+            }
+
             // append json content into cell
             else {
                 tabCell.innerHTML = data[i][col[j]];
@@ -128,13 +150,13 @@ function CreateTableFromJSON(data) {
         tr = tbody.insertRow(-1);
         tr.id = "hidden_row" + i;
         tr.className = "hidden_row";
-        let tabCell = tr.insertCell(-1);
+        let hiddenCell = tr.insertCell(-1);
 
         var div = document.createElement("div");
         div.className = "hidden_content"
         div.innerText = hiddenContent
-        tabCell.appendChild(div)
-        tabCell.colSpan = 6;
+        hiddenCell.appendChild(div)
+        hiddenCell.colSpan = 6;
 
         
     }

@@ -3,6 +3,7 @@
 
 from bibfilter import db, ma
 from marshmallow import pre_dump, post_dump, Schema
+import json
 
 ## Define Article Class
 class Article(db.Model):
@@ -68,14 +69,20 @@ class Article(db.Model):
 # Article Schema
 class ArticleSchema(ma.Schema):
 
-    # # Change the resulting Schema
-    # @post_dump
-    # def changeTitle(self, data, **kwargs):
-    #     data["title"] = data["title"].upper()
-    #     return data
+    # Change the resulting Schema
+    @post_dump
+    def changeTitle(self, data, **kwargs):
+        try:
+            if data["importantWordsCount"] != "":
+                data["importantWordsCount"] = json.loads(data["importantWordsCount"])
+            else:
+                data["importantWordsCount"] = {}
+        except Exception:
+            pass
+        return data
 
     class Meta:
-        fields = ("icon", "authorlast","year", "title", "publication", "url", "abstract")
+        fields = ("icon", "authorlast","year", "title", "publication", "url", "importantWordsCount", "abstract")
         ordered = True
 
 class BibliographySchema(ma.Schema):

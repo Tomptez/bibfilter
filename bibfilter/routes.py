@@ -40,7 +40,6 @@ def get_bibfile():
     req_data = request.get_json()
     entries = selectEntries(req_data)
     result = bibliography_schema.dump(entries)
-    print(f"JSON returned of length {len(result)}")
 
     dbib = BibDatabase()
     dbib.entries = result
@@ -57,6 +56,18 @@ def get_articles():
     print(f"JSON returned of length {len(result)}")
 
     return jsonify(result)
+
+@app.route("/lemma", methods=["POST"])
+@limiter.exempt
+def get_lemma():
+    req_data = request.get_json()
+    content = req_data["content"]
+    # Lemmatize words
+    terms = [token.lemmatize() for token in tb(content).tokens]
+    
+    result = {"terms":terms}
+    return jsonify(result)
+
 
 ## API Admin: Get Date of last sync between zotero and database
 @app.route("/zotero_sync", methods=["GET"])
@@ -132,8 +143,9 @@ def selectEntries(request_json):
     title =  request_json["title"]
     author = request_json["author"]
     content = request_json["content"]
+    content_blob = tb(content)
     # Lemmatize words
-    content = " ".join([token.lemmatize() for token in tb(content).tokens])
+    content = " ".join([token.lemmatize() for token in content_blob.tokens])
     
     sortby = request_json["sortby"]
     sort_order = request_json["sortorder"]
@@ -168,6 +180,5 @@ def selectEntries(request_json):
             filter(and_(*title_filter), or_(*author_filter), and_(*content_filter),\
                 and_(*filter_type), and_(*search_filter)).\
                 order_by(direction(getattr(Article, sortby)))
-
 
     return requested_articles

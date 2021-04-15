@@ -3,11 +3,11 @@ let  currentFilter = originalFilter;
 // set the base url so the app knows which page to call independent whether we're in development or production
 const base_url = window.location.origin;
 
-articles_url = "/articles"
+let termlist = []
 
 // Function to get articles as JSON from the flask API
 async function getFilteredLiterature(input_json){
-    fetch(base_url+articles_url, {
+    fetch(base_url+"/articles", {
             method: 'POST',
             body: input_json, // string or object
             headers: {
@@ -17,6 +17,7 @@ async function getFilteredLiterature(input_json){
                 return response.json();
             }).then(function (response_json){
                 document.getElementById("result_count").textContent = Object.keys(response_json).length;
+                
                 CreateTableFromJSON(response_json);
             }).catch(function (error){
                 console.error(error);
@@ -98,4 +99,21 @@ function setUpFilter() {
         getFilteredLiterature(json);
     });
     
+}
+
+
+function lemma(input_json){
+    return fetch(base_url+"/lemma", {
+            method: 'POST',
+            body: input_json, // string or object
+            headers: {
+                'Content-Type': 'application/json'
+            }
+            }).then(function (response) {
+                return response.json();
+            }).then(function (response_json){
+                return response_json;
+            }).catch(function (error){
+                console.error(error);
+            });
 }

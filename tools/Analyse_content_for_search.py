@@ -16,6 +16,7 @@ import json
 import re
 import time
 from nltk.corpus import stopwords  
+from unidecode import unidecode
 
 def count_words(word, blob):
     return blob.words.count(word)
@@ -28,8 +29,11 @@ bloblist = []
 bloblist2 = []
 titleList = []
 for article in req:
+    
     if article.articleFullText != "":
-        blob = tb(str(article.articleFullText))
+        # Need to use unidecode to handle some misread OCR_characters
+        text = unidecode(str(article.articleFullText))
+        blob = tb(text)
         bloblist.append(blob)
         titleList.append(article.title)
 
