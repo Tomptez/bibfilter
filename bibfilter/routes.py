@@ -63,7 +63,7 @@ def get_lemma():
     req_data = request.get_json()
     content = req_data["content"]
     # Lemmatize words
-    terms = [token.lemmatize() for token in tb(content).tokens]
+    terms = [token.lemmatize().lower() for token in tb(content).tokens]
     
     result = {"terms":terms}
     return jsonify(result)
