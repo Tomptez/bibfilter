@@ -5,7 +5,52 @@ function showHideRow(row) {
     $('.hidden_row').hide();
 
     $("#" + row).toggle(); 
-} 
+}
+
+function sortOccurences() {
+    var table, rows, switching, i, x, y, shouldSwitch;
+    table = document.getElementById("LitTable");
+    switching = true;
+    /*Make a loop that will continue until
+    no switching has been done:*/
+    while (switching) {
+        //start by saying: no switching is done:
+        switching = false;
+        rows = table.rows;
+        
+        /*Loop through all table rows (except the
+        first, which contains table headers):*/
+        for (i = 1; i < (rows.length - 1); i+=2) {
+            //start by saying there should be no switching:
+            shouldSwitch = false;
+            /*Get the two elements you want to compare,
+            one from current row and one from the next:*/
+            x = rows[i].getElementsByTagName("TD")[6];
+
+            // +2 instead of +1 due to hiddenrows
+            y = rows[i + 2].getElementsByTagName("TD")[6];
+
+            //check if the two rows should switch place:
+
+            debugger;
+            if (Number(x.innerHTML) < Number(y.innerHTML)) {
+                //if so, mark as a switch and break the loop:
+                shouldSwitch = true;
+                break;
+            }
+        }
+        
+        if (shouldSwitch) {
+            /*If a switch has been marked, make the switch
+            and mark that a switch has been done:*/
+            rows[i].parentNode.insertBefore(rows[i + 2], rows[i]);
+
+            // This line is needed to move the hidden rows as well
+            rows[i+1].parentNode.insertBefore(rows[i + 3], rows[i+1]);
+            switching = true;
+        }
+    }
+}
 
 async function CreateTableFromJSON(data) {
     console.log("Start CreateTableFromJSON()")
@@ -30,6 +75,7 @@ async function CreateTableFromJSON(data) {
 
     // CREATE DYNAMIC TABLE.
     const table = document.createElement("table");
+    table.id = "LitTable"
     const tbody = document.createElement("tbody")
     const colgroup = document.createElement("colgroup")
 
@@ -171,6 +217,10 @@ async function CreateTableFromJSON(data) {
         table.appendChild(colgroup)
         table.appendChild(tbody)
         divContainer.appendChild(table);
+    }
+
+    if (currentFilter["content"] != "") {
+        sortOccurences();
     }
     
 }
