@@ -127,7 +127,6 @@ async function CreateTableFromJSON(data) {
     for (let i = 0; i < data.length; i++) {
 
         tr = tbody.insertRow(-1);
-        tr.onclick = function() { showHideRow('hidden_row'+i)};
 
         let hiddenContent = "";
 
@@ -192,19 +191,28 @@ async function CreateTableFromJSON(data) {
             }
         }
         
+        // Show more information for items if hidden Content is available
+        if (hiddenContent != ""){
+            tr.onclick = function() { showHideRow('hidden_row'+i)};
+            tr.classList.add("clickable");
+        }
 
         tr = tbody.insertRow(-1);
         tr.id = "hidden_row" + i;
         tr.className = "hidden_row";
-        let hiddenCell = tr.insertCell(-1);
+
+        // handle empty 
+        if (hiddenContent == ""){
+            tr.classList.add("hidden_row_empty");
+        }
+        let tabCell = tr.insertCell(-1);
 
         var div = document.createElement("div");
         div.className = "hidden_content"
-        div.innerText = hiddenContent
-        hiddenCell.appendChild(div)
-        hiddenCell.colSpan = 6;
+        div.innerHTML = "<b> Abstract </b><br>" + hiddenContent
+        tabCell.appendChild(div)
+        tabCell.colSpan = 7;
 
-        
     }
 
     // FINALLY ADD THE NEWLY CREATED tbody and table WITH JSON DATA TO A CONTAINER.
