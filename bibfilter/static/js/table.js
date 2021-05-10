@@ -141,11 +141,10 @@ function CreateTableFromJSON(data) {
 
         var div = document.createElement("div");
         div.className = "hidden_content"
-        div.innerText = hiddenContent
+        div.innerHTML = "<b> Abstract </b><br>" + hiddenContent
         tabCell.appendChild(div)
-        tabCell.colSpan = 6;
+        tabCell.colSpan = 7;
 
-        
     }
 
     // FINALLY ADD THE NEWLY CREATED tbody and table WITH JSON DATA TO A CONTAINER.

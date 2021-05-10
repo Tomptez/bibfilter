@@ -205,7 +205,7 @@ button#add span {
 table {
     border-collapse: collapse;
     word-break: break-word;
-}
+}   
 
 /* column size  */
 th {
@@ -344,13 +344,15 @@ a.externalUrl:hover {
 
 .hidden_row { 
     display: none; 
+    background-color: lavender;
 }
 
 .hidden_content {
-    padding: 3px;
-    padding-right: 170px;
-    padding-left: 170px;
+    padding: 5px 0px;
+    padding-right: 70px;
     font-size: 1.1em;
+    text-align: justify;
+    
 }
 
 /* Admin Header*/
