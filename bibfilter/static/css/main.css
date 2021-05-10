@@ -323,7 +323,7 @@ th:hover {
     background-color: #4d6e80
 }
 
-tr:hover {
+.clickable:hover {
     background-color: #d6e2eb;
     cursor: pointer;
 }
