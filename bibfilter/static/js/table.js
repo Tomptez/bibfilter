@@ -10,6 +10,12 @@ function showHideRow(row) {
 function sortOccurences() {
     var table, rows, switching, i, x, y, shouldSwitch;
     table = document.getElementById("LitTable");
+    
+    // If table empty e.g. no search results, return immediately
+    if (table == null){
+        return
+    }
+
     switching = true;
     /*Make a loop that will continue until
     no switching has been done:*/
@@ -26,13 +32,16 @@ function sortOccurences() {
             /*Get the two elements you want to compare,
             one from current row and one from the next:*/
             x = rows[i].getElementsByTagName("TD")[6];
-
-            // +2 instead of +1 due to hiddenrows
-            y = rows[i + 2].getElementsByTagName("TD")[6];
-
+            
+            if (rows.length >= i+2){
+                // +2 instead of +1 due to hiddenrows
+                y = rows[i + 2].getElementsByTagName("TD")[6];
+            }
+            else {
+                debugger;   
+                break;
+            }
             //check if the two rows should switch place:
-
-            debugger;
             if (Number(x.innerHTML) < Number(y.innerHTML)) {
                 //if so, mark as a switch and break the loop:
                 shouldSwitch = true;
@@ -58,7 +67,8 @@ async function CreateTableFromJSON(data) {
     // Lemmatize content searchterms which is needed for measuring relevance
     
     termlist = await lemma(JSON.stringify(currentFilter));
-    
+    termlist = termlist["terms"]
+
     console.log(termlist)
 
     // EXTRACT VALUE FOR HTML HEADER. 
@@ -95,14 +105,14 @@ async function CreateTableFromJSON(data) {
     for (let i = 0; i < col.length; i++) {
 
         // skip abstract data
-        if (col[i] == "abstract") {
+        if (col[i] == "abstract" || col[i] == "importantWordsLocation") {
             continue;
         }
         const th = document.createElement("th");      // tbody HEADER.
         let titleprefix = ""                        // prefix for the title arrows
 
         // mark which column its sorted by
-        if (col[i] == currentFilter["sortby"] & currentFilter["sortorder"] == "asc"){
+        if (col[i] == currentFilter["sortby"] && currentFilter["sortorder"] == "asc"){
             titleprefix = "\u2193"
         }
         else if (col[i] == currentFilter["sortby"] && currentFilter["sortorder"] == "desc"){
@@ -171,6 +181,14 @@ async function CreateTableFromJSON(data) {
                 hiddenContent = data[i][col[j]];
             }
 
+            // Get quotes of the articles where the searchterm is used.
+            else if (col[j] == "importantWordsLocation"){
+                // termlist has been lemmatized before
+                if (currentFilter["content"] != ""){
+                    hiddenContent = hiddenContent + "<br><br><b>Search Results:</b><br>" + data[i][col[j]][termlist[0]];
+                }
+            }
+
             // How relevant is the result based on the content search
             else if (col[j] == "importantWordsCount"){
                 relevance = 0
@@ -181,7 +199,6 @@ async function CreateTableFromJSON(data) {
                         relevance = relevance + data[i][col[j]][termlist[term]]
                     }
                 }    
-                
                 tabCell.innerHTML = relevance;
             }
 

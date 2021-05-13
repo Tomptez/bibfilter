@@ -71,7 +71,7 @@ class ArticleSchema(ma.Schema):
 
     # Change the resulting Schema
     @post_dump
-    def changeTitle(self, data, **kwargs):
+    def CountToDict(self, data, **kwargs):
         try:
             if data["importantWordsCount"] != "":
                 data["importantWordsCount"] = json.loads(data["importantWordsCount"])
@@ -80,9 +80,22 @@ class ArticleSchema(ma.Schema):
         except Exception:
             pass
         return data
+    
+    @post_dump
+    def addSearchParts(self, data, **kwargs):
+        try:
+            if data["importantWordsLocation"] != "":
+                data["importantWordsLocation"] = json.loads(data["importantWordsLocation"])
+            else:
+                data["importantWordsLocation"] = {}
+        except Exception:
+            pass
+        return data
+    
+    
 
     class Meta:
-        fields = ("icon", "authorlast","year", "title", "publication", "url", "importantWordsCount", "abstract")
+        fields = ("icon", "authorlast","year", "title", "publication", "url", "importantWordsCount", "abstract", "importantWordsLocation")
         ordered = True
 
 class BibliographySchema(ma.Schema):

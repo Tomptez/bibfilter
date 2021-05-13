@@ -27,6 +27,8 @@ session.close()
 
 bloblist = []
 bloblist2 = []
+bloblist3 = []
+
 titleList = []
 for article in req:
     
@@ -45,14 +47,20 @@ def clean_tokens(blob):
     stop_words = set(stopwords.words('english'))
     tokens = [token for token in tokens if len(token) > 2]
     tokens = [token for token in tokens if token.lower() not in stop_words]
-    tokens = [token.lemmatize().lower() for token in tokens]
     return tokens
 
+def lemmatize_tokens(blob):
+    tokens = blob.tokens
+    tokens = [token.lemmatize().lower() for token in tokens]
+    return tokens
+    
 for each in bloblist:
-    newtext = " ".join(clean_tokens(each))
-    bloblist2.append(tb(newtext))
+    lemmaText = tb(" ".join(lemmatize_tokens(each)))
+    bloblist2.append(lemmaText)
+    cleanText = tb(" ".join(clean_tokens(lemmaText)))
+    bloblist3.append(cleanText)
 
-for i, blob in enumerate(bloblist2):
+for blobIndex, blob in enumerate(bloblist3):
     print()
     # Count all the words if they appear at least twice
     scores = {}
@@ -67,22 +75,57 @@ for i, blob in enumerate(bloblist2):
 
 
     # optional: print
-    print(f"Top words in {titleList[i]}")
+    print(f"Top words in {titleList[blobIndex]}")
     for word, score in sorted_words[:40]:
         
         print(f"Word: {word}, count: {score}")
 
-    position_dict = {}
+    occurence_dict = {}
     
     for word, count in sorted_words:
-        position_dict[word] = [m.start() for m in re.finditer(word, str(blob.lower()))][:4]
+        articleContent = " ".join(str(bloblist[blobIndex]).split())[200:]
+        occurList = [200+m.start() for m in re.finditer(word, articleContent)]
+        partList = []
+        oldInstance, end = 0, 0
+        for instance in occurList:
+            # Check whether occurence is already included in the last excerpt
+            if instance < end:
+                continue
+            
+            start = max(instance-160,0)
+            end = min(instance+165,len(articleContent)-1)
+            
+            if oldInstance > start:
+                del partList[-1]
+            
+            textPart = " ".join(str(bloblist[blobIndex]).split())[start:end]
+            
+            words = textPart.split(" ")
+            cnt, wordIndex = 0, 0
+            for ix, k in enumerate(words):
+                cnt += len(k)+1
+                if cnt > 162:
+                    wordIndex = ix
+                    break
+            htmlWords = words[1:wordIndex] + [f"<b>{words[wordIndex]}</b>"] + words[wordIndex+1:-1]
+            textFinal = "(...)" + " ".join(htmlWords) + "(...)"
+
+            partList.append(textFinal)
+            
+            if len(partList) > 2:
+                break
+            
+            oldInstance = instance
+        
+        occurence_dict[word] = "<br><br>".join(partList)
+        
     
     session = db.session()
-    article = session.query(Article).filter(Article.title==titleList[i])[0]
+    article = session.query(Article).filter(Article.title==titleList[blobIndex])[0]
     
     article.importantWords = content_words
     article.importantWordsCount = json.dumps(scores)
-    article.importantWordsLocation = json.dumps(position_dict)
+    article.importantWordsLocation = json.dumps(occurence_dict)
     
     session.commit()
     session.close()
@@ -98,7 +141,9 @@ for i, blob in enumerate(bloblist2):
 # Test if CID substitution works
 
 # Actuall sort dict instead of using list? -> easier saving
-# Don't include URLs or http
+# Don't include URLs or http 
+
+# Make partial word searches possible
 
 # clean Loading of NLTK stuff
 # Get analyse content ready for heroku and running it in background
