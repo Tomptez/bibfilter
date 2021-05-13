@@ -142,10 +142,11 @@ async function CreateTableFromJSON(data) {
 
         // Loop through each cell
         for (let j = 0; j < col.length; j++) {
-            let tabCell = tr.insertCell(-1);
+            
 
             // create a button for the external URL
             if (col[j] == "url"){
+                let tabCell = tr.insertCell(-1);
                 if (data[i][col[j]] != "NaN"){
                     const a = document.createElement('a');
                     a.classList.add("externalUrl")
@@ -160,6 +161,7 @@ async function CreateTableFromJSON(data) {
 
             // create icons
             else if (col[j] == "icon"){
+                let tabCell = tr.insertCell(-1);
                 let imgpath = "";
                 if (data[i][col[j]] == "book"){
                     imgpath = base_url+"/static/img/book.png";
@@ -191,6 +193,7 @@ async function CreateTableFromJSON(data) {
 
             // How relevant is the result based on the content search
             else if (col[j] == "importantWordsCount"){
+                let tabCell = tr.insertCell(-1);
                 relevance = 0
 
                 if (currentFilter["content"] != ""){
@@ -204,6 +207,7 @@ async function CreateTableFromJSON(data) {
 
             // append json content into cell
             else {
+                let tabCell = tr.insertCell(-1);
                 tabCell.innerHTML = data[i][col[j]];
             }
         }
