@@ -1,4 +1,6 @@
 let originalFilter = {"search":"","title":"","author":"", "content":"", "timestart": "", "until": "", "type": "all","sortby":"authorlast","sortorder":"asc", "manualsort": false};
+colname = {"title": "Title", "authorlast": "Author", "year": "Year", "url": "URL", "publication": "Publication", "importantWordsCount":"Occur", "icon": ""}
+
 
 function showHideRow(row) { 
  
@@ -14,6 +16,13 @@ function sortOccurences() {
     // If table empty e.g. no search results, return immediately
     if (table == null){
         return
+    }
+    
+    debugger;
+    for (let col in colname){
+        
+        let cell = document.getElementById(col);
+        cell.textContent = colname[col]
     }
 
     switching = true;
@@ -33,12 +42,11 @@ function sortOccurences() {
             one from current row and one from the next:*/
             x = rows[i].getElementsByTagName("TD")[6];
             
-            if (rows.length >= i+2){
+            if (rows.length > i+2){
                 // +2 instead of +1 due to hiddenrows
                 y = rows[i + 2].getElementsByTagName("TD")[6];
             }
             else {
-                debugger;   
                 break;
             }
             //check if the two rows should switch place:
@@ -74,7 +82,6 @@ async function CreateTableFromJSON(data) {
     // EXTRACT VALUE FOR HTML HEADER. 
     // ('Book ID', 'Book Name', 'Category' and 'Price')
     let col = [];
-    colname = {"title": "Title", "authorlast": "Author", "year": "Year", "url": "URL", "publication": "Publication", "importantWordsCount":"Occur", "ID": "Delete", "icon": ""}
     for (let i = 0; i < data.length; i++) {
         for (let key in data[i]) {
             if (col.indexOf(key) === -1) {
@@ -92,7 +99,7 @@ async function CreateTableFromJSON(data) {
     // create cols with width
     for (let i = 0; i < col.length; i++){
         const newcol = document.createElement("col")
-        newcol.id = col[i]
+        newcol.id = "col_" + col[i]
         colgroup.appendChild(newcol)
     }
 
@@ -100,7 +107,7 @@ async function CreateTableFromJSON(data) {
 
     let tr = tbody.insertRow(-1);                   // tbody ROW.
     tr.className = "tr"
-    tr.classList.add("articlerow")                  // add class for css
+    tr.id = "tablehead"                  // add id for css
 
     for (let i = 0; i < col.length; i++) {
 
@@ -249,7 +256,6 @@ async function CreateTableFromJSON(data) {
     }
 
     if (currentFilter["content"] != "" && currentFilter["manualsort"] == false) {
-        console.log("sorting now")
         sortOccurences();
     }
     

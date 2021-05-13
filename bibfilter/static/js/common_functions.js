@@ -45,6 +45,21 @@ async function downloadBib(){
             });
 }
 
+// Creates the button to sort by relevance
+function showButton(){
+    if (document.getElementById("relevanceButton") == null) {
+        var newButton = document.createElement("a");
+        // Version to delete the button afterwards
+        // newButton.setAttribute("onclick", "sortOccurences();this.parentNode.removeChild(this)");
+        newButton.setAttribute("onclick", "sortOccurences()");
+        newButton.setAttribute("id", "relevanceButton");
+        newButton.textContent = "Sort by Relevance";
+        newButton.classList.add("linkbutton");
+        var buttonDiv = document.getElementById("sortrelevance");
+        buttonDiv.appendChild(newButton);
+    }
+}
+
 // Function to sort each column in the table
 function updateSort(filter,column){
     console.log("updateSort()");
@@ -58,6 +73,7 @@ function updateSort(filter,column){
         filter["sortorder"] = "asc";
     }
     filter["manualsort"] = true;
+    showButton();
     return filter
 }
 
@@ -96,6 +112,7 @@ function setUpFilter() {
             filter[key] = value;
         });
         filter["manualsort"] = false;
+        showButton();
         currentFilter = filter;
         console.log(currentFilter)
         const json = JSON.stringify(filter);

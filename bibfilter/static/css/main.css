@@ -146,7 +146,7 @@ fieldset td{
     outline: none;
 }
 
-.form-row > button, .center-top > .button{
+.bigbutton {
     background: #3a4a52;
     font-size: 1.4em;
     padding: 3px 20px;
@@ -156,7 +156,7 @@ fieldset td{
     border-radius: 3px;
 }
 
-.form-row > button:hover, p > .linkButton:hover {
+.bigbutton:hover, .linkButton:hover {
     background: #4d6e80;
 }
 
@@ -164,24 +164,30 @@ fieldset td{
     margin: 0;
 }
 
-.form-row > .reset {
+.resetbutton {
     background-color:  #804d4d;
 }
 
-.form-row > .linkButton, .center-top > .linkButton, p > .linkButton{
- 
+.resetbutton:hover {
+    background-color:  #c48484;
+}
+
+.linkButton{
     background: #0d7d9f;
     color: white;
     text-decoration: none;
     margin-left: 5px;
+    margin-bottom: 2px;
     padding: 8 20;
     display: inline-block;
     font-weight: bold;
-    /* font-size: 1.1em; */
     padding: 0.4em;
     border-radius: 2px;
 }
 
+#sortrelevance {
+    text-align: right;
+}
 
 .fieldset_table td {
     border: none;
@@ -218,7 +224,7 @@ th {
     table {
         font-size: 1em;
     }
-    table colgroup #authorlast {
+    table colgroup #col_authorlast {
         max-width: 13%;
     }
     td {
@@ -229,18 +235,18 @@ th {
         padding: 5px;
     }
     
-    colgroup #url {
+    colgroup #col_url {
     /* min-width needed for compatibility with firefox, width for compatibility with chrome */
         width: 55pt;
         min-width: 55pt;
     }
-    colgroup #year {
+    colgroup #col_year {
         min-width: 45pt;
     } 
-    colgroup #ID {
+    colgroup #col_ID {
         min-width: 55pt;
     }
-    colgroup #_date_created_str{
+    colgroup #col__date_created_str{
         min-width: 62pt;
     }
 }
@@ -262,24 +268,24 @@ th {
     td {
         padding: 10px 1px;
     }
-    colgroup #title {
+    colgroup #col_title {
         width: 200pt;
     }
-    colgroup #url {
+    colgroup #col_url {
         min-width: 40pt;
     }
-    colgroup #year {
+    colgroup #col_year {
         min-width: 30pt;
     }
 }
 
 @media (min-width: 902px) {
-    colgroup #title {
+    colgroup #col_title {
         min-width: 48%;
     }
 }
 @media (max-width: 901px) {
-    colgroup #title {
+    colgroup #col_title {
         min-width: 30%;
     }
 }
@@ -291,12 +297,12 @@ td {
 }
 
 /* add stripes to table */
-.articlerow:nth-child(odd) {
+#tablehead:nth-child(odd) {
     background-color: #f2f2f2;
 }
 
 /* Hover over table rows */
-.articlerow:hover td {
+#tablehead:hover td {
     background: #dbf5fa;
     }
 

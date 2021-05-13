@@ -31,7 +31,7 @@
                         <input class="fulltext" type="text" name="search" placeholder="Topic, Keywords, DOI, Authors...">
                     </li>
                     <li class="form-row top-search">
-                        <button type="submit">Search</button>
+                        <button class="bigbutton" type="submit">Search</button>
                     </li>
                     <div id="advanced-box">
                     <li class="form-row text-only">
@@ -74,8 +74,8 @@
                     </fieldset>
                     </li>
                     <li class="form-row">
-                    <button class="reset" onclick="resetPage()">Reset</button>
-                    <button type="submit">Search</button>
+                        <button class="resetbutton bigbutton" onclick="resetPage()">Reset</button>
+                        <button class="bigbutton" type="submit">Search</button>
                     </li>
                 </div>
                 </ul>
@@ -89,9 +89,10 @@
     </div>
 
     <div class="main">
+        <div id="sortrelevance"></div>
         <div id="showData"></div>
     </div>
-    
 </div>
+
 </body>
 </html>
