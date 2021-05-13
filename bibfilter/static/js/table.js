@@ -1,4 +1,4 @@
-let originalFilter = {"search":"","title":"","author":"", "content":"", "timestart": "", "until": "", "type": "all","sortby":"authorlast","sortorder":"asc"};
+let originalFilter = {"search":"","title":"","author":"", "content":"", "timestart": "", "until": "", "type": "all","sortby":"authorlast","sortorder":"asc", "manualsort": false};
 
 function showHideRow(row) { 
  
@@ -244,7 +244,8 @@ async function CreateTableFromJSON(data) {
         divContainer.appendChild(table);
     }
 
-    if (currentFilter["content"] != "") {
+    if (currentFilter["content"] != "" && currentFilter["manualsort"] == false) {
+        console.log("sorting now")
         sortOccurences();
     }
     

@@ -1,4 +1,5 @@
 let  currentFilter = originalFilter;
+console.log(currentFilter)
 
 // set the base url so the app knows which page to call independent whether we're in development or production
 const base_url = window.location.origin;
@@ -46,16 +47,17 @@ async function downloadBib(){
 
 // Function to sort each column in the table
 function updateSort(filter,column){
-    console.log("updateSort()")
-    oldsortorder = filter["sortorder"]
-    oldcolumn = filter["sortby"]
+    console.log("updateSort()");
+    oldsortorder = filter["sortorder"];
+    oldcolumn = filter["sortby"];
     filter["sortby"] = column
     if (oldcolumn == column && filter["sortorder"] == "asc"){
-        filter["sortorder"] = "desc"
+        filter["sortorder"] = "desc";
     }
     else {
-        filter["sortorder"] = "asc"
+        filter["sortorder"] = "asc";
     }
+    filter["manualsort"] = true;
     return filter
 }
 
@@ -93,7 +95,8 @@ function setUpFilter() {
         formData.forEach(function(value, key){
             filter[key] = value;
         });
-        currentFilter = filter
+        filter["manualsort"] = false;
+        currentFilter = filter;
         console.log(currentFilter)
         const json = JSON.stringify(filter);
         getFilteredLiterature(json);
