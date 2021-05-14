@@ -5,7 +5,7 @@ from sqlalchemy.sql.expression import asc, desc, or_, and_
 from sqlalchemy.sql import func
 from bibtexparser.bibdatabase import BibDatabase
 import bibtexparser
-from bibfilter.models import Article, ArticleSchema, BibliographySchema
+from bibfilter.models import Article, ArticleSchema, BibliographySchema, TableSchema
 from bibfilter import app, basic_auth, db
 from update_library import update_from_zotero
 from datetime import datetime
@@ -15,6 +15,9 @@ from unidecode import unidecode
 from dotenv import load_dotenv
 import threading
 from textblob import TextBlob as tb
+
+
+from flask_table import Table, Col, OptCol
 
 load_dotenv()
 
@@ -32,6 +35,7 @@ limiter = Limiter(
 # Init schemas
 article_schema = ArticleSchema()
 articles_schema = ArticleSchema(many=True)
+table_schema = TableSchema(many=True)
 bibliography_schema = BibliographySchema(many=True)
 
 ## API: return .bib as string
@@ -108,6 +112,36 @@ def resyncDB():
     thread_update = threading.Thread(target=update_from_zotero)
     thread_update.start()
     return redirect("/admin")
+
+## Frontend: Return our frontend table
+@app.route("/table", methods=["GET"])
+@limiter.exempt
+def table():
+    
+    base_url = "http://127.0.0.1:5000"
+    icons = {"book": f'<img src="{base_url}/static/img/book.png" class="typeicon">', "article":f'<img src="{base_url}/static/img/article.png" class="typeicon">', "other":f'<img src="{base_url}/static/img/other.png" class="typeicon">'}
+    
+    class ItemTable(Table):
+        no_items = "No literature was found"
+        
+        icon = OptCol('I', choices=icons, default_key="other")
+        authorlast = Col('Author')
+        year = Col('Year')
+        title = Col('Title')
+        publication = Col('Publication')
+        doi = Col('DOI', column_html_attrs={"class":"hideme"})
+        
+    
+    requested_articles = db.session.query(Article)
+    items = table_schema.dump(requested_articles)
+    # manipulate items
+    # Create new rows for example
+    for item in items:
+        item["authorlast"] = item["authorlast"].upper()
+    
+    table = ItemTable(items)
+
+    return render_template("table.html", table=table)
 
 ## Frontend: Return our frontend
 @app.route("/", methods=["GET"])

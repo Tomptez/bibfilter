@@ -30,6 +30,7 @@ pypdf2 = "*"
 textblob = "*"
 pikepdf = "*"
 ocrmypdf = "*"
+flask-table = "*"
 
 [requires]
 python_version = "3.9"
