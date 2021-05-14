@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 import threading
 from textblob import TextBlob as tb
 
-
+import json
 from flask_table import Table, Col, OptCol
 
 load_dotenv()
@@ -122,14 +122,21 @@ def table():
     icons = {"book": f'<img src="{base_url}/static/img/book.png" class="typeicon">', "article":f'<img src="{base_url}/static/img/article.png" class="typeicon">', "other":f'<img src="{base_url}/static/img/other.png" class="typeicon">'}
     
     class ItemTable(Table):
+        def __init__(self, args, **kwargs):
+            ## First get __init__ from parent class Table, then extend it
+            self.args = args
+            super().__init__(**kwargs)
+        
         no_items = "No literature was found"
+        table_id = "literature"
         
         icon = OptCol(' ', choices=icons, default_key="other")
         authorlast = Col('Author')
         year = Col('Year')
         title = Col('Title')
         publication = Col('Publication')
-        doi = Col('DOI', column_html_attrs={"class":"hideme"})
+        abstract = Col('hidden', column_html_attrs={"class":"hiddenRowContent"})
+        importantWordsCount = Col('Occur', th_html_attrs={"onclick":"alert('hello')"})
         
         allow_sort = True
 
@@ -138,7 +145,13 @@ def table():
                 direction =  'desc'
             else:
                 direction = 'asc'
-            return url_for('table', sort=col_key, direction=direction)
+            return url_for('table', sort=col_key, direction=direction, content=self.args["content"])
+        
+        def get_tr_attrs(self, item):
+            if item["abstract"] != "":
+                return {'class': 'clickable'}
+            else:
+                return {}
 
     
     args = {"title":"", "author":"", "timestart":"1800", "until":"2200", "type":"all", "sort":"author", "direction":"asc", "content":"", "search":""}
@@ -148,12 +161,17 @@ def table():
     items = table_schema.dump(requested_articles)
     # manipulate items
     # Create new rows for example
+    
     for item in items:
-        item["authorlast"] = item["authorlast"].upper()
+        if args["content"] != "":
+            searchword = args["content"].split()[0]
+            item["importantWordsCount"] =  json.loads(item["importantWordsCount"])[searchword]
+        else:
+            item["importantWordsCount"] = ""
     
     sort = args["sort"]
     reverse = True if args["direction"] == "desc" else False
-    table = ItemTable(items, sort_by=sort, sort_reverse=reverse)
+    table = ItemTable(args=args, items=items, sort_by=sort, sort_reverse=reverse)
     
     numResults = len(items)
 

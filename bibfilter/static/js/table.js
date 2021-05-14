@@ -221,7 +221,7 @@ async function CreateTableFromJSON(data) {
         
         // Show more information for items if hidden Content is available
         if (hiddenContent != ""){
-            tr.onclick = function() { showHideRow('hidden_row'+i)};
+            tr.onclick = function() { showHideRow('hidden_row'+i)}; 
             tr.classList.add("clickable");
         }
 
