@@ -1,4 +1,4 @@
-from flask import request, jsonify, render_template, redirect
+from flask import request, jsonify, render_template, redirect, url_for
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from sqlalchemy.sql.expression import asc, desc, or_, and_
@@ -117,7 +117,10 @@ def resyncDB():
 @app.route("/table", methods=["GET"])
 @limiter.exempt
 def table():
+    sortby = request.args.get("sort")
+    direction = request.args.get("direction")
     
+    print("Sort by:",sortby)
     base_url = "http://127.0.0.1:5000"
     icons = {"book": f'<img src="{base_url}/static/img/book.png" class="typeicon">', "article":f'<img src="{base_url}/static/img/article.png" class="typeicon">', "other":f'<img src="{base_url}/static/img/other.png" class="typeicon">'}
     
@@ -131,6 +134,15 @@ def table():
         publication = Col('Publication')
         doi = Col('DOI', column_html_attrs={"class":"hideme"})
         
+        allow_sort = True
+
+        def sort_url(self, col_key, reverse=False):
+            if reverse:
+                direction =  'desc'
+            else:
+                direction = 'asc'
+            return url_for('table', sort=col_key, direction=direction)
+
     
     requested_articles = db.session.query(Article)
     items = table_schema.dump(requested_articles)
