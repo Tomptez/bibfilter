@@ -117,10 +117,9 @@ def resyncDB():
 @app.route("/table", methods=["GET"])
 @limiter.exempt
 def table():
-    sortby = request.args.get("sort")
-    direction = request.args.get("direction")
+    arguments = request.args
     
-    print("Sort by:",sortby)
+    print(arguments)
     base_url = "http://127.0.0.1:5000"
     icons = {"book": f'<img src="{base_url}/static/img/book.png" class="typeicon">', "article":f'<img src="{base_url}/static/img/article.png" class="typeicon">', "other":f'<img src="{base_url}/static/img/other.png" class="typeicon">'}
     
@@ -153,7 +152,7 @@ def table():
     
     table = ItemTable(items)
 
-    return render_template("table.html", table=table)
+    return render_template("table.html", table=table, args=arguments)
 
 ## Frontend: Return our frontend
 @app.route("/", methods=["GET"])
