@@ -118,14 +118,13 @@ def resyncDB():
 @limiter.exempt
 def table():
     arguments = request.args
-    
     base_url = "http://127.0.0.1:5000"
     icons = {"book": f'<img src="{base_url}/static/img/book.png" class="typeicon">', "article":f'<img src="{base_url}/static/img/article.png" class="typeicon">', "other":f'<img src="{base_url}/static/img/other.png" class="typeicon">'}
     
     class ItemTable(Table):
         no_items = "No literature was found"
         
-        icon = OptCol('I', choices=icons, default_key="other")
+        icon = OptCol(' ', choices=icons, default_key="other")
         authorlast = Col('Author')
         year = Col('Year')
         title = Col('Title')
@@ -142,9 +141,8 @@ def table():
             return url_for('table', sort=col_key, direction=direction)
 
     
-    args = {"title":"", "author":"", "timestart":"1800", "until":"2200", "type":"all", "sortby":"author", "direction":"asc", "content":"", "search":""}
+    args = {"title":"", "author":"", "timestart":"1800", "until":"2200", "type":"all", "sort":"author", "direction":"asc", "content":"", "search":""}
     args.update(arguments)
-    print(args)
     
     requested_articles = selectEntries(args)
     items = table_schema.dump(requested_articles)
@@ -153,9 +151,13 @@ def table():
     for item in items:
         item["authorlast"] = item["authorlast"].upper()
     
-    table = ItemTable(items)
+    sort = args["sort"]
+    reverse = True if args["direction"] == "desc" else False
+    table = ItemTable(items, sort_by=sort, sort_reverse=reverse)
+    
+    numResults = len(items)
 
-    return render_template("table.html", table=table, args=arguments)
+    return render_template("table.html", table=table, args=arguments, numResults=numResults)
 
 ## Frontend: Return our frontend
 @app.route("/", methods=["GET"])
@@ -195,14 +197,13 @@ def selectEntries(request_json):
     # Lemmatize words
     content = " ".join([token.lemmatize() for token in content_blob.tokens])
     
-    sortby = request_json["sortby"]
+    sortby = request_json["sort"]
     sort_order = request_json["direction"]
     timestart = request_json["timestart"] if len(request_json["timestart"]) == 4 and request_json["timestart"].isdigit else "0"
     until = request_json["until"] if len(request_json["until"]) == 4 and request_json["until"].isdigit else "3000"
     article_type = "%" if request_json["type"] == "all" else request_json["type"]
     direction = desc if sort_order == 'desc' else asc
 
-    print(timestart)
     title_list = title.split()
     search_term_list = search_term.split()
     author_list = author.split()
