@@ -95,14 +95,14 @@ class ArticleSchema(ma.Schema):
     
 
     class Meta:
-        fields = ("icon", "authorlast","year", "title", "publication", "url", "importantWordsCount", "abstract", "importantWordsLocation")
+        fields = ("icon", "authorlast", "year", "title", "publication", "url", "importantWordsCount", "abstract", "importantWordsLocation")
         ordered = True
 
 # Table Schema
 class TableSchema(ma.Schema):
 
     class Meta:
-        fields = ("icon", "authorlast","year", "title", "publication", "doi")
+        fields = ("icon", "authorlast", "year", "title", "publication", "doi")
         ordered = True
 
 class BibliographySchema(ma.Schema):

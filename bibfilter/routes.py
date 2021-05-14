@@ -119,7 +119,6 @@ def resyncDB():
 def table():
     arguments = request.args
     
-    print(arguments)
     base_url = "http://127.0.0.1:5000"
     icons = {"book": f'<img src="{base_url}/static/img/book.png" class="typeicon">', "article":f'<img src="{base_url}/static/img/article.png" class="typeicon">', "other":f'<img src="{base_url}/static/img/other.png" class="typeicon">'}
     
@@ -143,7 +142,11 @@ def table():
             return url_for('table', sort=col_key, direction=direction)
 
     
-    requested_articles = db.session.query(Article)
+    args = {"title":"", "author":"", "timestart":"1800", "until":"2200", "type":"all", "sortby":"author", "direction":"asc", "content":"", "search":""}
+    args.update(arguments)
+    print(args)
+    
+    requested_articles = selectEntries(args)
     items = table_schema.dump(requested_articles)
     # manipulate items
     # Create new rows for example
@@ -193,12 +196,13 @@ def selectEntries(request_json):
     content = " ".join([token.lemmatize() for token in content_blob.tokens])
     
     sortby = request_json["sortby"]
-    sort_order = request_json["sortorder"]
-    timestart = request_json["timestart"] if len(request_json["timestart"]) == 4 and request_json["timestart"].isdigit else "None"
-    until = request_json["until"] if len(request_json["until"]) == 4 and request_json["until"].isdigit else "None"
+    sort_order = request_json["direction"]
+    timestart = request_json["timestart"] if len(request_json["timestart"]) == 4 and request_json["timestart"].isdigit else "0"
+    until = request_json["until"] if len(request_json["until"]) == 4 and request_json["until"].isdigit else "3000"
     article_type = "%" if request_json["type"] == "all" else request_json["type"]
     direction = desc if sort_order == 'desc' else asc
 
+    print(timestart)
     title_list = title.split()
     search_term_list = search_term.split()
     author_list = author.split()
