@@ -163,6 +163,9 @@ def table():
         
     args.update(arguments)
     
+    # Lemmatize Content search words
+    args["content"] = " ".join([token.lemmatize() for token in tb(args["content"]).tokens])
+    
     # Query items from database
     requested_articles = selectEntries(args)
     items = table_schema.dump(requested_articles)
@@ -171,7 +174,7 @@ def table():
     for item in items:
         if args["content"] != "":
             # Todo take all words into account
-            searchword = args["content"].split()[0]
+            searchword = args["content"].split()[0].lower()
             item["importantWordsCount"] =  json.loads(item["importantWordsCount"])[searchword]
         else:
             item["importantWordsCount"] = ""
@@ -227,9 +230,6 @@ def selectEntries(request_json):
     title =  request_json["title"]
     author = request_json["author"]
     content = request_json["content"]
-    content_blob = tb(content)
-    # Lemmatize words
-    content = " ".join([token.lemmatize() for token in content_blob.tokens])
     
     sortby = request_json["sort"]
     sort_order = request_json["direction"]
