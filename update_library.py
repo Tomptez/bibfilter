@@ -65,6 +65,8 @@ def readAttachedPDF(articleID):
                     if each["data"]["contentType"] == 'application/pdf':
                         print("PDF File available")
                         pdfID = each["data"]["key"]
+                        
+                        extractPdfContent(pdfID)
                         # get content of pdf
                         pdfBytes = zot.file(pdfID)
                         # convert bytes of bts to python object
@@ -73,11 +75,13 @@ def readAttachedPDF(articleID):
                         # Fix: ValueError: A string literal cannot contain NUL (0x00) characters. Caused by a problem with extract_text
                         content = content.replace("\x00", "")
                         
-                        # Use end variable to look only in the4 second half of the document. Prevents mistakes in the rare cases that References is only mentioned on the first page
+                        # Use end variable to look only in the second half of the document. Prevents mistakes in the rare cases that References is only mentioned on the first page
                         end = int(len(content) / 2)
+                        
                         # Find the position of references to then only index text before the references. \W means any non-word character
                         i = re.finditer('References|REFERENCES|[\W|\n][R|r] [E|e] [F|f] [E|e] [R|r] [E|e] [N|n] [C|c] [E|e] [S|s]|[\W|\n]references', content[end:])
                         # the variable last refers to the last "references" word in the text. It is used to crop off the references at the end of the articles. last.start() is the start of the word "references"
+                        
                         last = None
                         for last in i:
                             continue
@@ -91,6 +95,7 @@ def readAttachedPDF(articleID):
                             print("Problems reading the PDF")
                             content = ""
                             break
+                            
                         # Check if CID code / character Ratio. If too high don't use it
                         ratio = (len(re.findall("\(cid:\d+\)", content)) / len(content) * 100)
                         print(f"CID codes ratio: {ratio:.2f}")
@@ -106,7 +111,7 @@ def readAttachedPDF(articleID):
                                 noProblems = False
                                 print("Problem when scraping pdf: Not detecting spaces")
                             if noProblems:
-                                print("Extracted PDF content without any errors")
+                                pass
 
                         # Remove all CID codes from content if there is any
                         content = re.sub("\(cid:\d+\)", '', content)
