@@ -181,14 +181,13 @@ def table():
         if item["url"] != "":
             item["url"] = Markup(f'<a class="externalUrl" target="_blank" href="{item["url"]}">Source</a>')
     
-    sort = args["sort"]
-    reverse = True if args["direction"] == "desc" else False
-    
     # Sort by importantWordsCount if the argument is passed
     if args["sort"] == "importantWordsCount":
-        newlist = sorted(items, reverse=not reverse, key=lambda k: k['importantWordsCount']) 
+        newlist = sorted(items, reverse=True, key=lambda k: k['importantWordsCount']) 
         items = newlist
     
+    sort = args["sort"]
+    reverse = True if args["direction"] == "desc" else False
     # args need to be passed so the filter isn't reset when sorting
     table = ItemTable(args=args, items=items, sort_by=sort, sort_reverse=reverse)
     
