@@ -136,7 +136,7 @@ def table():
         title = Col('Title')
         publication = Col('Publication')
         abstract = Col('hidden', column_html_attrs={"class":"hiddenRowContent"})
-        importantWordsCount = Col('Occur', th_html_attrs={"onclick":"alert('hello')"})
+        importantWordsCount = Col('Occur')
         
         allow_sort = True
 
@@ -145,7 +145,7 @@ def table():
                 direction =  'desc'
             else:
                 direction = 'asc'
-            return url_for('table', sort=col_key, direction=direction, content=self.args["content"])
+            return url_for('table', sort=col_key, direction=direction, search=self.args["search"], title=self.args["title"], content=self.args["content"], author=self.args["author"], timestart=self.args["timestart"], until=self.args["until"], type=self.args["type"])
         
         def get_tr_attrs(self, item):
             if item["abstract"] != "":
@@ -154,16 +154,22 @@ def table():
                 return {}
 
     
-    args = {"title":"", "author":"", "timestart":"1800", "until":"2200", "type":"all", "sort":"author", "direction":"asc", "content":"", "search":""}
+    args = {"title":"", "author":"", "timestart":"", "until":"", "type":"all", "sort":"author", "direction":"asc", "content":"", "search":""}
+    
+    # Prioritize sorting on importantWordsCount if no manual sorting is in place
+    if arguments.get("content") != None:
+        args["sort"] = "importantWordsCount"
+        
     args.update(arguments)
     
+    # Query items from database
     requested_articles = selectEntries(args)
     items = table_schema.dump(requested_articles)
-    # manipulate items
-    # Create new rows for example
     
+    # Select the count of only the words that have been searched for
     for item in items:
         if args["content"] != "":
+            # Todo take all words into account
             searchword = args["content"].split()[0]
             item["importantWordsCount"] =  json.loads(item["importantWordsCount"])[searchword]
         else:
@@ -171,6 +177,13 @@ def table():
     
     sort = args["sort"]
     reverse = True if args["direction"] == "desc" else False
+    
+    # Sort by importantWordsCount if the argument is passed
+    if args["sort"] == "importantWordsCount":
+        newlist = sorted(items, reverse=not reverse, key=lambda k: k['importantWordsCount']) 
+        items = newlist
+    
+    # args need to be passed so the filter isn't reset when sorting
     table = ItemTable(args=args, items=items, sort_by=sort, sort_reverse=reverse)
     
     numResults = len(items)
