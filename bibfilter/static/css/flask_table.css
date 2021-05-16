@@ -1,3 +1,7 @@
 .hiddenRowContent {
     display: none;
 }
+
+.tableUrl {
+    white-space: nowrap;
+}

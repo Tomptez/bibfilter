@@ -1,4 +1,4 @@
-from flask import request, jsonify, render_template, redirect, url_for
+from flask import request, jsonify, render_template, redirect, url_for, Markup
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from sqlalchemy.sql.expression import asc, desc, or_, and_
@@ -136,6 +136,7 @@ def table():
         title = Col('Title')
         publication = Col('Publication')
         abstract = Col('hidden', column_html_attrs={"class":"hiddenRowContent"})
+        url = Col('URL', column_html_attrs={"class":"tableUrl"})
         importantWordsCount = Col('Occur')
         
         allow_sort = True
@@ -174,6 +175,8 @@ def table():
             item["importantWordsCount"] =  json.loads(item["importantWordsCount"])[searchword]
         else:
             item["importantWordsCount"] = ""
+        if item["url"] != "":
+            item["url"] = Markup(f'<a class="externalUrl" target="_blank" href="{item["url"]}">Source</a>')
     
     sort = args["sort"]
     reverse = True if args["direction"] == "desc" else False
