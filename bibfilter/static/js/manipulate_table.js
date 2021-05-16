@@ -30,7 +30,7 @@ function insertHiddenRows() {
             row.className = "hidden_row";
             var cell = row.insertCell(0);
             cell.innerHTML = li[i-1].innerHTML;
-            cell.colSpan = 6;
+            cell.colSpan = 7;
         }
     }
 }

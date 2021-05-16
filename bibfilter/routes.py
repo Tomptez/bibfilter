@@ -135,9 +135,9 @@ def table():
         year = Col('Year')
         title = Col('Title')
         publication = Col('Publication')
-        abstract = Col('hidden', column_html_attrs={"class":"hiddenRowContent"})
         url = Col('URL', column_html_attrs={"class":"tableUrl"})
         importantWordsCount = Col('Occur')
+        abstract = Col('hidden', column_html_attrs={"class":"hiddenRowContent"})
         
         allow_sort = True
 
@@ -172,14 +172,47 @@ def table():
     
     # Select the count of only the words that have been searched for
     for item in items:
+        contentSearchList = args["content"].lower().split()
         if args["content"] != "":
             # Todo take all words into account
-            searchword = args["content"].split()[0].lower()
+            searchword = contentSearchList[0]
             item["importantWordsCount"] =  json.loads(item["importantWordsCount"])[searchword]
         else:
             item["importantWordsCount"] = ""
+            
         if item["url"] != "":
             item["url"] = Markup(f'<a class="externalUrl" target="_blank" href="{item["url"]}">Source</a>')
+        
+        def formatQuotes():
+            finalQuotes = ""
+            quoteList = json.loads(item["importantWordsLocation"])
+            count = 0
+            for i in range(5):
+                for word in contentSearchList:
+                    try:
+                        if finalQuotes == "":
+                            finalQuotes = quoteList[word][i]
+                        else:
+                            finalQuotes += "<p>" + quoteList[word][i] + "</p>"
+                        count += 1
+                    except Exception as e:
+                        pass
+                    if count == 4:
+                        return finalQuotes
+        
+        # Check whether environment variable is set to show search quotes            
+        formattedAbstract = f'<b>Abstract</b><br>{item["abstract"]}<br><br>' if item["abstract"] != "" else ""         
+        if args["content"] != "" and os.environ.get("showSearchQuotes") == "Yes":
+            finalQuotes = formatQuotes()
+            
+            hiddentext = Markup(f'<div class="hidden_content">{formattedAbstract}<b>Search</b><br>{finalQuotes}</div>')
+        else:
+            if item["abstract"] != "":
+                hiddentext = Markup(f'<div class="hidden_content">{formattedAbstract}</div>')
+            else:
+                hiddentext = ""
+        item["abstract"] = hiddentext
+        
     
     # Sort by importantWordsCount if the argument is passed
     if args["sort"] == "importantWordsCount":

@@ -109,12 +109,13 @@ def analyzeContent():
 
                 partList.append(textFinal)
                 
-                if len(partList) > 2:
+                # Only use 4 quotes for each word
+                if len(partList) > 3:
                     break
                 
                 oldInstance = instance
             
-            occurence_dict[word] = "<br><br>".join(partList)
+            occurence_dict[word] = partList
             
         session = db.session()
         article = session.query(Article).filter(Article.title==titleList[blobIndex])[0]
