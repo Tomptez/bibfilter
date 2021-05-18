@@ -34,6 +34,7 @@ def count_words(word, blob):
     return blob.words.count(word)
 
 def analyzeContent():
+    print("start analyzeContent()")
     session = db.session()
     req = session.query(Article).filter(Article.importantWords.like(""))
     session.close()
