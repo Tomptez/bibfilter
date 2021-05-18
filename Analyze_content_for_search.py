@@ -35,38 +35,36 @@ def count_words(word, blob):
 
 def analyzeContent():
     print("start analyzeContent()")
-    session = db.session()
-    req = session.query(Article).filter(Article.importantWords.like(""))
-    session.close()
-
-    origBlobList = []
-    lemmaBlobList = []
-    minimalBlobList = []
-
-    titleList = []
-    for article in req:
+    while True:
+        print("analyze next one")
+        session = db.session()
+        article = session.query(Article).filter(Article.importantWords.like("")).first()
+        if article == None:
+            print("Finished analyzeContent()...")
+            return
         
+            
         # Ignore articles that don't have extracted text
-        if article.articleFullText != "":
-            # Need to use unidecode to handle some misread OCR_characters
-            text = unidecode(str(article.articleFullText))
-            blob = tb(text)
-            origBlobList.append(blob)
-            titleList.append(article.title)
+        if article.articleFullText == "":
+            article.importantWords = " "
+            session.commit()
+            session.close()
+            continue
+        
+        # Need to use unidecode to handle some misread OCR_characters
+        text = unidecode(str(article.articleFullText))
+        blob = tb(text)
+        title = article.title
 
-    for each in origBlobList:
-        lemmaText = tb(" ".join(lemmatize_tokens(each)))
-        lemmaBlobList.append(lemmaText)
+        lemmaText = tb(" ".join(lemmatize_tokens(blob)))
         cleanText = tb(" ".join(clean_tokens(lemmaText)))
-        minimalBlobList.append(cleanText)
 
-    for blobIndex, blob in enumerate(minimalBlobList):
         print()
         # Count all the words if they appear at least twice
         scores = {}
-        for word in blob.words:
-            if blob.word_counts[word] > 1:
-                scores[word] = blob.word_counts[word]
+        for word in cleanText.words:
+            if cleanText.word_counts[word] > 1:
+                scores[word] = cleanText.word_counts[word]
 
         # optional: sort
         sorted_words = sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -74,15 +72,15 @@ def analyzeContent():
         content_words = " ".join(scores.keys())
 
         # optional: print
-        print(f"Top words in {titleList[blobIndex]}")
-        for word, score in sorted_words[:40]:
+        # print(f"Top words in {title}")
+        # for word, score in sorted_words[:40]:
             
-            print(f"Word: {word}, count: {score}")
+        #     print(f"Word: {word}, count: {score}")
 
         occurence_dict = {}
         
         for word, count in sorted_words:
-            articleContent = " ".join(str(origBlobList[blobIndex]).split())[200:]
+            articleContent = " ".join(str(blob).split())[200:]
             occurList = [200+m.start() for m in re.finditer(word, articleContent)]
             partList = []
             oldInstance, end = 0, 0
@@ -97,7 +95,7 @@ def analyzeContent():
                 if oldInstance > start:
                     del partList[-1]
                 
-                textPart = " ".join(str(origBlobList[blobIndex]).split())[start:end]
+                textPart = " ".join(str(blob).split())[start:end]
                 
                 words = textPart.split(" ")
                 cnt, wordIndex = 0, 0
@@ -108,6 +106,7 @@ def analyzeContent():
                         break
                 htmlWords = words[1:wordIndex] + [f"<b>{words[wordIndex]}</b>"] + words[wordIndex+1:-1]
                 textFinal = "(...)" + " ".join(htmlWords) + "(...)"
+                
 
                 partList.append(textFinal)
                 
@@ -117,10 +116,8 @@ def analyzeContent():
                 
                 oldInstance = instance
             
-            occurence_dict[word] = partList
             
-        session = db.session()
-        article = session.query(Article).filter(Article.title==titleList[blobIndex])[0]
+            occurence_dict[word] = partList
         
         article.importantWords = content_words
         article.importantWordsCount = json.dumps(scores)
@@ -128,7 +125,7 @@ def analyzeContent():
         
         session.commit()
         session.close()
-    print("Finished analyzeContent()...")
+    
 
 # Analyze the Content based on articleFullTExt of each Artice
 # Once on start, after that every 1.1 hours (slighty unsynced from update_library.py)
