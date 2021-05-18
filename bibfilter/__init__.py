@@ -23,7 +23,12 @@ app = Flask(__name__)
 # Examples
 # DATABASE_URL = "postgresql://postgres:mypassword@localhost/bibfilter"
 # DATABASE_URL = "sqlite:///new.db"
-app.config['SQLALCHEMY_DATABASE_URI'] = get_env_variable("DATABASE_URL")
+uri = get_env_variable("DATABASE_URL")
+# If using heroku POSTGRES_DATABASE_SCHEME=postgresql should be used, but just in case DATABASE_URL returns postgres:// insead of postgresql://
+# https://help.heroku.com/ZKNTJQSK/why-is-sqlalchemy-1-4-x-not-connecting-to-heroku-postgres
+if uri.startswith("postgres://"):
+    uri = uri.replace("postgres://", "postgresql://", 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = 
 
 # Set Up Username and Password for Basic Auth as environment variables APP_USERNAME annd APP_PASSWORD
 app.config['BASIC_AUTH_USERNAME'] = get_env_variable("APP_USERNAME")
