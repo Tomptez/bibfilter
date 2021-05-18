@@ -28,7 +28,7 @@ uri = get_env_variable("DATABASE_URL")
 # https://help.heroku.com/ZKNTJQSK/why-is-sqlalchemy-1-4-x-not-connecting-to-heroku-postgres
 if uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
-app.config['SQLALCHEMY_DATABASE_URI'] = 
+app.config['SQLALCHEMY_DATABASE_URI'] = uri 
 
 # Set Up Username and Password for Basic Auth as environment variables APP_USERNAME annd APP_PASSWORD
 app.config['BASIC_AUTH_USERNAME'] = get_env_variable("APP_USERNAME")
