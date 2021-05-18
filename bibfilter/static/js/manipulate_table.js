@@ -22,7 +22,7 @@ function insertHiddenRows() {
     }
 
     //  Create hidden rows
-    li = document.getElementsByClassName("hiddenRowContent")
+    li = document.getElementsByClassName("hiddenRowContent");
     // Reverse order to not run into problems when trying to insert at the right place
     for (let i=li.length; i > 1; i--){
         if (li[i-1].innerHTML != ""){
@@ -32,13 +32,13 @@ function insertHiddenRows() {
             var cell = row.insertCell(0);
             var cell = row.insertCell(1);
             cell.innerHTML = li[i-1].innerHTML;
-            cell.colSpan = 6;
+            cell.colSpan = 5;
         }
     }
 }
 
 window.onload = function(){
-    insertHiddenRows();
+    insertHiddenRows()
 }
 
 // Creates the button to sort by relevance

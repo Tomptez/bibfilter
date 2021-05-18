@@ -224,7 +224,7 @@ th {
     table {
         font-size: 1em;
     }
-    table colgroup #col_authorlast {
+    table .colAuthor {
         max-width: 13%;
     }
     td {
@@ -235,20 +235,14 @@ th {
         padding: 5px;
     }
     
-    colgroup #col_url {
+    .colUrl {
     /* min-width needed for compatibility with firefox, width for compatibility with chrome */
-        width: 55pt;
-        min-width: 55pt;
+        width: 30pt;
+        min-width: 30pt;
     }
-    colgroup #col_year {
+    .colYear {
         min-width: 45pt;
     } 
-    colgroup #col_ID {
-        min-width: 55pt;
-    }
-    colgroup #col__date_created_str{
-        min-width: 62pt;
-    }
 }
 
 /* For very small screens */
@@ -268,24 +262,24 @@ th {
     td {
         padding: 10px 1px;
     }
-    colgroup #col_title {
+    .colTitle {
         width: 200pt;
     }
-    colgroup #col_url {
+    .colUrl {
         min-width: 40pt;
     }
-    colgroup #col_year {
+    .colYear {
         min-width: 30pt;
     }
 }
 
 @media (min-width: 902px) {
-    colgroup #col_title {
+    .colTitle {
         min-width: 48%;
     }
 }
 @media (max-width: 901px) {
-    colgroup #col_title {
+    .colTitle {
         min-width: 30%;
     }
 }

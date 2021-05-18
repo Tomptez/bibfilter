@@ -106,12 +106,12 @@ def main():
         no_items = "No literature was found"
         table_id = "literature"
         
-        icon = OptCol(' ', choices=icons, default_key="other")
-        authorlast = Col('Author')
-        year = Col('Year')
-        title = Col('Title')
-        publication = Col('Publication')
-        url = Col('URL', column_html_attrs={"class":"tableUrl"})
+        icon = OptCol(' ', choices=icons, default_key="other", column_html_attrs={"class":"colIcon"})
+        authorlast = Col('Author', column_html_attrs={"class":"colAuthor"})
+        year = Col('Year', column_html_attrs={"class":"colYear"})
+        title = Col('Title', column_html_attrs={"class":"colTitle"})
+        publication = Col('Publication', column_html_attrs={"class":"colPublication"})
+        url = Col('URL', column_html_attrs={"class":"tableUrl colUrl"})
         importantWordsCount = Col('Occur', show=False)
         abstract = Col('hidden', column_html_attrs={"class":"hiddenRowContent"})
         
