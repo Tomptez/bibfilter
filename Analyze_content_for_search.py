@@ -6,6 +6,7 @@ import nltk
 download_lite()
 nltk.download('punkt')
 nltk.download('stopwords')
+nltk.download('wordnet')
 import sys
 sys.path.append(".")
 from bibfilter import db
