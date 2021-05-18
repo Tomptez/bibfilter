@@ -48,7 +48,13 @@ def delete_old():
     report["deleted"] = count
     return True
 
-def readAttachedPDF(articleID):
+def readAttachedPDF(articleID, title):
+    
+    def faceProblem(message):
+        print(title)
+        print(message+"\n")
+        return ""
+    
     try:
         libraryID = os.environ["LIBRARY_ID"]
         zot = zotero.Zotero(libraryID, "group")
@@ -63,55 +69,56 @@ def readAttachedPDF(articleID):
                 # Notes are different from attachments and don't have contentType attribute
                 if each["data"]["itemType"] == "attachment":
                     if each["data"]["contentType"] == 'application/pdf':
-                        print("PDF File available")
                         pdfID = each["data"]["key"]
                         
-                        extractPdfContent(pdfID)
                         # get content of pdf
                         pdfBytes = zot.file(pdfID)
                         # convert bytes of bts to python object
                         pdfFile = BytesIO(pdfBytes)
                         content = extract_text(pdfFile)
+                        
+                        # Check length of content
+                        if len(content) < 4000:
+                            content = faceProblem("Problem: extracted content shorter than expected, aborted extraction")
+                            break
+                        
                         # Fix: ValueError: A string literal cannot contain NUL (0x00) characters. Caused by a problem with extract_text
                         content = content.replace("\x00", "")
                         
-                        # Use end variable to look only in the second half of the document. Prevents mistakes in the rare cases that References is only mentioned on the first page
-                        end = int(len(content) / 2)
+                        # Use end variable to look only after the dirst third of the document. Prevents mistakes in the rare cases that References is only mentioned on the first page
+                        end = int(len(content) / 3.5)
                         
                         # Find the position of references to then only index text before the references. \W means any non-word character
-                        i = re.finditer('References|REFERENCES|[\W|\n][R|r] [E|e] [F|f] [E|e] [R|r] [E|e] [N|n] [C|c] [E|e] [S|s]|[\W|\n]references', content[end:])
-                        # the variable last refers to the last "references" word in the text. It is used to crop off the references at the end of the articles. last.start() is the start of the word "references"
+                        iterString = 'REFERENCES|References|[\W|\n][R|r][E|e][F|f][E|e][R|r][E|e][N|n][C|c][E|e][S|s]|[\W|\n][R|r] [E|e] [F|f] [E|e] [R|r] [E|e] [N|n] [C|c] [E|e] [S|s]|[B|b][I|i][B|b][L|l][I|i][O|o][G|g][R|r][A|a][P|p][H|h][Y|y]'
                         
+                        # Cover cases where there is tons of \n newlines in the scanned code:
+                        if len(content) / content.count("\n") < 4:
+                            content = content.replace("\n", "")
+                            iterString = 'REFERENCES|References|[R|r][E|e][F|f][E|e][R|r][E|e][N|n][C|c][E|e][S|s]|[R|r] [E|e] [F|f] [E|e] [R|r] [E|e] [N|n] [C|c] [E|e] [S|s]|[B|b][I|i][B|b][L|l][I|i][O|o][G|g][R|r][A|a][P|p][H|h][Y|y]'
+                            
+                        i = re.finditer(iterString, content[end:])
+                        # the variable last refers to the last "references" word in the text. It is used to crop off the references at the end of the articles. last.start() is the start of the word "references"
                         last = None
                         for last in i:
                             continue
+                        
                         if last != None:
                             references = content[end+last.end():]
                             content = content[:end+last.start()]
-                            
                         else:
-                            with open('/home/minze/Documents/problemfile.txt', 'w') as file: 
-                                file.write(content)
-                            print("Problems reading the PDF")
-                            content = ""
-                            break
+                            pass
                             
                         # Check if CID code / character Ratio. If too high don't use it
                         ratio = (len(re.findall("\(cid:\d+\)", content)) / len(content) * 100)
-                        print(f"CID codes ratio: {ratio:.2f}")
                         if (len(re.findall("\(cid:\d+\)", content)) / len(content) * 100) > 6:
-                            content = ""
-                            print("Content contains mostly CID")
+                            content = faceProblem("Content contains mostly CID")
+                            break
+                        
                         # Recognize Problem with detecting space in the PDF file
-                        else:
-                            noProblems = True
-                            entitysize = content.split()
-                            if len(content)/20 > len(entitysize):
-                                content = None
-                                noProblems = False
-                                print("Problem when scraping pdf: Not detecting spaces")
-                            if noProblems:
-                                pass
+                        entitysize = content.split()
+                        if len(content)/20 > len(entitysize):
+                            content = faceProblem("Problem when scraping pdf: Not detecting spaces")
+                            break
 
                         # Remove all CID codes from content if there is any
                         content = re.sub("\(cid:\d+\)", '', content)
@@ -122,11 +129,13 @@ def readAttachedPDF(articleID):
 
                         break
             except Exception as e:
+                    print(title)
                     print("Error when trying to read attachments/PDFs")
                     print(e)
                     
                     continue
     except Exception as e:
+        print(title)
         print(e)
         return
 
@@ -137,7 +146,6 @@ def check_item(item):
     global zotero_keylist
     global report
 
-    
 
     # Create the session
     session = db.session()
@@ -225,8 +233,7 @@ def check_item(item):
         return False
 
     # Get the content of article content from attached PDFs
-    print(f"Look for PDF: {data['title']}")
-    articleContent, references = readAttachedPDF(data["key"])
+    articleContent, references = readAttachedPDF(data["key"], data['title'])
     
     # Create a new Database entry with all the attributes
     new_art = Article(title=content["title"], 
