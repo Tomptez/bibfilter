@@ -12,15 +12,16 @@ function insertHiddenRows() {
     var table = document.getElementById("literature");
     rows = table.rows;
     
+    //  Make rows clickable to toggle hidden rows for abstract etc.
     // let is needed otherswise the onclick function doesn't work properly
     for (let i = 1; i < rows.length; i++) {
         if (rows[i].className == "clickable"){
-            console.log(i-1)
             rows[i].onclick = function() { showHideRow('hidden_row'+i)};
             // rows[i].onclick = function(j) { return function() {showHideRow('hidden_row'+j); }; }(i);
         }
     }
 
+    //  Create hidden rows
     li = document.getElementsByClassName("hiddenRowContent")
     // Reverse order to not run into problems when trying to insert at the right place
     for (let i=li.length; i > 1; i--){
@@ -29,8 +30,9 @@ function insertHiddenRows() {
             row.id = "hidden_row" + String((i-1));
             row.className = "hidden_row";
             var cell = row.insertCell(0);
+            var cell = row.insertCell(1);
             cell.innerHTML = li[i-1].innerHTML;
-            cell.colSpan = 7;
+            cell.colSpan = 6;
         }
     }
 }
@@ -38,3 +40,19 @@ function insertHiddenRows() {
 window.onload = function(){
     insertHiddenRows();
 }
+
+// Creates the button to sort by relevance
+// Old code, only here for reference
+// function showButton(){
+//     if (document.getElementById("relevanceButton") == null) {
+//         var newButton = document.createElement("a");
+//         // Version to delete the button afterwards
+//         // newButton.setAttribute("onclick", "sortOccurences();this.parentNode.removeChild(this)");
+//         newButton.setAttribute("onclick", "sortOccurences()");
+//         newButton.setAttribute("id", "relevanceButton");
+//         newButton.textContent = "Sort by Relevance";
+//         newButton.classList.add("linkbutton");
+//         var buttonDiv = document.getElementById("sortrelevance");
+//         buttonDiv.appendChild(newButton);
+//     }
+// }

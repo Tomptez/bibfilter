@@ -66,38 +66,6 @@ class Article(db.Model):
 # Create DB / already done previously
 # db.create_all()
 
-# Article Schema
-class ArticleSchema(ma.Schema):
-
-    # Change the resulting Schema
-    @post_dump
-    def CountToDict(self, data, **kwargs):
-        try:
-            if data["importantWordsCount"] != "":
-                data["importantWordsCount"] = json.loads(data["importantWordsCount"])
-            else:
-                data["importantWordsCount"] = {}
-        except Exception:
-            pass
-        return data
-    
-    @post_dump
-    def addSearchParts(self, data, **kwargs):
-        try:
-            if data["importantWordsLocation"] != "":
-                data["importantWordsLocation"] = json.loads(data["importantWordsLocation"])
-            else:
-                data["importantWordsLocation"] = {}
-        except Exception:
-            pass
-        return data
-    
-    
-
-    class Meta:
-        fields = ("icon", "authorlast", "year", "title", "publication", "url", "importantWordsCount", "abstract", "importantWordsLocation")
-        ordered = True
-
 # Table Schema
 class TableSchema(ma.Schema):
 

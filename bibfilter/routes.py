@@ -5,7 +5,7 @@ from sqlalchemy.sql.expression import asc, desc, or_, and_
 from sqlalchemy.sql import func
 from bibtexparser.bibdatabase import BibDatabase
 import bibtexparser
-from bibfilter.models import Article, ArticleSchema, BibliographySchema, TableSchema
+from bibfilter.models import Article, BibliographySchema, TableSchema
 from bibfilter import app, basic_auth, db
 from update_library import update_from_zotero
 from datetime import datetime
@@ -33,8 +33,6 @@ limiter = Limiter(
 )
 
 # Init schemas
-article_schema = ArticleSchema()
-articles_schema = ArticleSchema(many=True)
 table_schema = TableSchema(many=True)
 bibliography_schema = BibliographySchema(many=True)
 
@@ -49,29 +47,6 @@ def get_bibfile():
     dbib.entries = result
     bibtex_str = bibtexparser.dumps(dbib)
     return bibtex_str
-
-## API: Return Articles for main page table
-@app.route("/articles", methods=["POST"])
-@limiter.exempt
-def get_articles():
-    req_data = request.get_json()
-    entries = selectEntries(req_data)
-    result = articles_schema.dump(entries)
-    print(f"JSON returned of length {len(result)}")
-
-    return jsonify(result)
-
-@app.route("/lemma", methods=["POST"])
-@limiter.exempt
-def get_lemma():
-    req_data = request.get_json()
-    content = req_data["content"]
-    # Lemmatize words
-    terms = [token.lemmatize().lower() for token in tb(content).tokens]
-    
-    result = {"terms":terms}
-    return jsonify(result)
-
 
 ## API Admin: Get Date of last sync between zotero and database
 @app.route("/zotero_sync", methods=["GET"])
@@ -113,10 +88,11 @@ def resyncDB():
     thread_update.start()
     return redirect("/admin")
 
-## Frontend: Return our frontend table
-@app.route("/table", methods=["GET"])
+## Frontend: Return our frontend
+@app.route("/", methods=["GET"])
+@app.route("/index", methods=["GET"])
 @limiter.exempt
-def table():
+def main():
     arguments = request.args
     base_url = "http://127.0.0.1:5000"
     icons = {"book": f'<img src="{base_url}/static/img/book.png" class="typeicon">', "article":f'<img src="{base_url}/static/img/article.png" class="typeicon">', "other":f'<img src="{base_url}/static/img/other.png" class="typeicon">'}
@@ -136,7 +112,7 @@ def table():
         title = Col('Title')
         publication = Col('Publication')
         url = Col('URL', column_html_attrs={"class":"tableUrl"})
-        importantWordsCount = Col('Occur')
+        importantWordsCount = Col('Occur', show=False)
         abstract = Col('hidden', column_html_attrs={"class":"hiddenRowContent"})
         
         allow_sort = True
@@ -146,7 +122,7 @@ def table():
                 direction =  'desc'
             else:
                 direction = 'asc'
-            return url_for('table', sort=col_key, direction=direction, search=self.args["search"], title=self.args["title"], content=self.args["content"], author=self.args["author"], timestart=self.args["timestart"], until=self.args["until"], type=self.args["type"])
+            return url_for('main', sort=col_key, direction=direction, search=self.args["search"], title=self.args["title"], content=self.args["content"], author=self.args["author"], timestart=self.args["timestart"], until=self.args["until"], type=self.args["type"])
         
         def get_tr_attrs(self, item):
             if item["abstract"] != "":
@@ -201,11 +177,11 @@ def table():
                         return finalQuotes
         
         # Check whether environment variable is set to show search quotes            
-        formattedAbstract = f'<b>Abstract</b><br>{item["abstract"]}<br><br>' if item["abstract"] != "" else ""         
+        formattedAbstract = f'<b>Abstract</b><br>{item["abstract"]}</b><br>' if item["abstract"] != "" else ""         
         if args["content"] != "" and os.environ.get("showSearchQuotes") == "Yes":
             finalQuotes = formatQuotes()
             
-            hiddentext = Markup(f'<div class="hidden_content">{formattedAbstract}<b>Search</b><br>{finalQuotes}</div>')
+            hiddentext = Markup(f'<div class="hidden_content">{formattedAbstract}<b>Search Results</b><br>{finalQuotes}</div>')
         else:
             if item["abstract"] != "":
                 hiddentext = Markup(f'<div class="hidden_content">{formattedAbstract}</div>')
@@ -225,16 +201,9 @@ def table():
     table = ItemTable(args=args, items=items, sort_by=sort, sort_reverse=reverse)
     
     numResults = len(items)
-
-    return render_template("table.html", table=table, args=arguments, numResults=numResults)
-
-## Frontend: Return our frontend
-@app.route("/", methods=["GET"])
-@app.route("/index", methods=["GET"])
-@limiter.exempt
-def main():
-    link = os.environ["SUGGEST_LITERATURE_URL"]
-    return render_template("main.html", suggestLink=link)
+    
+    suggestLink = os.environ["SUGGEST_LITERATURE_URL"]
+    return render_template("main.html", table=table, args=arguments, numResults=numResults, suggestLink=suggestLink)
 
 ## Frontend: Return admin page
 @app.route("/admin", methods=["GET"])
