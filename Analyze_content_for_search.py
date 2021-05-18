@@ -36,7 +36,8 @@ def count_words(word, blob):
 def analyzeContent():
     print("start analyzeContent()")
     while True:
-        print("analyze next one")
+        time.sleep(2)
+        print("Analyze next one")
         session = db.session()
         article = session.query(Article).filter(Article.importantWords.like("")).first()
         if article == None:
