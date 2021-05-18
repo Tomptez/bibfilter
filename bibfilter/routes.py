@@ -17,6 +17,7 @@ import threading
 import nltk
 nltk.download('punkt')
 from textblob import TextBlob as tb
+from textblob.download_corpora import download_lite
 
 import json
 from flask_table import Table, Col, OptCol
