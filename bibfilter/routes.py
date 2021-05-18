@@ -91,9 +91,13 @@ def resyncDB():
     thread_update.start()
     return redirect("/admin")
 
+# Redirect to main page if you land at index
+@app.route("/index", methods=["GET"])
+def index():
+    return redirect("/")
+
 ## Frontend: Return our frontend
 @app.route("/", methods=["GET"])
-@app.route("/index", methods=["GET"])
 @limiter.exempt
 def main():
     arguments = request.args
