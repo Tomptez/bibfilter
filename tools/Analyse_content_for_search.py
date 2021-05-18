@@ -138,21 +138,3 @@ if __name__ == "__main__":
     while True:
         schedule.run_pending()
         time.sleep(60)
-
-# Todo
-# Ignore PDFs with more than 60 pages
-# Handle search for literal terms "literal"
-# Use OCR for old pdfs
-# Handle different languages
-# Test if CID substitution works
-# Clean up this file
-
-# Actuall sort dict instead of using list? -> easier saving
-# Don't include URLs or http 
-
-# Make partial word searches possible
-
-# clean Loading of NLTK stuff
-# Get analyse content ready for heroku and running it in background
-
-# What to do if References are not found in the document
