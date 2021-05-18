@@ -14,6 +14,8 @@ from sqlalchemy.sql.functions import ReturnTypeFromArgs
 from unidecode import unidecode
 from dotenv import load_dotenv
 import threading
+import nltk
+nltk.download('punkt')
 from textblob import TextBlob as tb
 
 import json
