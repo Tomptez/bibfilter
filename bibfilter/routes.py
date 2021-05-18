@@ -96,7 +96,7 @@ def resyncDB():
 @limiter.exempt
 def main():
     arguments = request.args
-    base_url = "http://127.0.0.1:5000"
+    base_url = request.base_url
     icons = {"book": f'<img src="{base_url}/static/img/book.png" class="typeicon">', "article":f'<img src="{base_url}/static/img/article.png" class="typeicon">', "other":f'<img src="{base_url}/static/img/other.png" class="typeicon">'}
     
     class ItemTable(Table):
