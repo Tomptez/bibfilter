@@ -18,6 +18,7 @@ import nltk
 from textblob import TextBlob as tb
 import json
 from flask_table import Table, Col, OptCol
+import time
 
 load_dotenv()
 
@@ -151,6 +152,7 @@ def main():
     items = table_schema.dump(requested_articles)
     
     # Select the count of only the words that have been searched for
+    begin = time.time()
     for item in items:
         contentSearchList = args["content"].lower().split()
         if args["content"] != "":
@@ -192,12 +194,17 @@ def main():
             else:
                 hiddentext = ""
         item["abstract"] = hiddentext
-        
+    
+    end = time.time()
+    print(f"This took {end - begin} seconds")
     
     # Sort by importantWordsCount if the argument is passed
     if args["sort"] == "importantWordsCount":
         newlist = sorted(items, reverse=True, key=lambda k: k['importantWordsCount']) 
         items = newlist
+        
+    end = time.time()
+    print(f"This took {end - begin} seconds")
     
     sort = args["sort"]
     reverse = True if args["direction"] == "desc" else False

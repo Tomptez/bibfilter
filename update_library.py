@@ -50,7 +50,7 @@ def delete_old():
     return True
 
 def readAttachedPDF(articleID, title):
-    
+    print("readattached()")
     def faceProblem(message):
         print(title)
         print(message+"\n")
