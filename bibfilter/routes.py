@@ -185,7 +185,7 @@ def main():
         if args["content"] != "" and os.environ.get("SHOW_SEARCH_QUOTES") == "Yes":
             finalQuotes = formatQuotes()
             
-            hiddentext = Markup(f'<div class="hidden_content">{formattedAbstract}<b>Search Results</b><br>{finalQuotes}</div>')
+            hiddentext = Markup(f'<div class="hidden_content">{formattedAbstract}<br><b>Search Results</b><br>{finalQuotes}</div>')
         else:
             if item["abstract"] != "":
                 hiddentext = Markup(f'<div class="hidden_content">{formattedAbstract}</div>')
