@@ -31,13 +31,15 @@ def count_words(word, blob):
 
 def analyzeContent():
     print("start analyzeContent()")
-    while True:
+    i = 0
+    while i < 10:
         time.sleep(2)
+        i += 1
         print("Analyze next one")
         session = db.session()
         article = session.query(Article).filter(Article.importantWords.like("")).first()
         if article == None:
-            print("Finished analyzeContent()...")
+            print("Finished analyzeContent()")
             return
         
             

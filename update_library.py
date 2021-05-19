@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from bibfilter import db
 from bibfilter.models import Article
+from Analyze_content_for_search import analyzeContent
 from pyzotero import zotero
 from pprint import pprint
 from pytz import timezone
@@ -338,12 +339,16 @@ def update_from_zotero():
     # Reset the counters and the keylist
     report = {"new" : 0, "updated" : 0, "existed" : 0, "deleted": 0}
     zotero_keylist = []
+    
+    
 
 # Sync once with the zotero library, after that sync ever hour
 if __name__ == "__main__":
     update_from_zotero()
+    analyzeContent()
     
     schedule.every(1).hours.do(update_from_zotero)
+    schedule.every(4).minutes.do(analyzeContent)
     
     while True:
         schedule.run_pending()
