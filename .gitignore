@@ -9,7 +9,6 @@ __pycache__
 .env
 *.todo
 *.sqlite
-*.txt
 *.kate-swp
 *.old.png
 tools/tables

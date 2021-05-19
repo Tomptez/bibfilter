@@ -1,12 +1,8 @@
 # Indexes all words of a text to make the text easily searchable and to provide matching text passages.
 
 from textblob import TextBlob as tb
-from textblob.download_corpora import download_lite
 import nltk
-download_lite()
-nltk.download('punkt')
-nltk.download('stopwords')
-nltk.download('wordnet')
+# need NLTK data punkt, stopwords, wordnet, brown, averaged_perceptron_tagger
 import sys
 sys.path.append(".")
 from bibfilter import db
