@@ -20,6 +20,25 @@ import json
 from flask_table import Table, Col, OptCol
 import time
 
+
+import cProfile
+import io
+import pstats
+import contextlib
+
+@contextlib.contextmanager
+def profiledd():
+    pr = cProfile.Profile()
+    pr.enable()
+    yield
+    pr.disable()
+    s = io.StringIO()
+    ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
+    ps.print_stats()
+    # uncomment this to see who's calling what
+    # ps.print_callers()
+    print(s.getvalue())
+    
 load_dotenv()
 
 # Class needed to ignore accents. Not that the unaccent extension needs to be installed in postgreSQL
@@ -148,12 +167,24 @@ def main():
     args["content"] = " ".join([token.lemmatize() for token in tb(args["content"]).tokens])
     
     # Query items from database
-    requested_articles = selectEntries(args)
-    items = table_schema.dump(requested_articles)
-    
-    # Select the count of only the words that have been searched for
     begin = time.time()
-    for item in items:
+    requested_articles = selectEntries(args)
+    
+    end = time.time()
+    print(f"Query took {end - begin} seconds")
+    
+    # with profiled():
+    #     requested_articles = requested_articles.all()
+    
+    requested_articles = requested_articles.all()
+    
+    end = time.time()
+    print(f"converting took {end - begin} seconds")
+    
+    items = []
+    
+    for item in requested_articles:
+        item = dict(item)
         contentSearchList = args["content"].lower().split()
         if args["content"] != "":
             # Todo take all words into account
@@ -194,6 +225,7 @@ def main():
             else:
                 hiddentext = ""
         item["abstract"] = hiddentext
+        items.append(item)
     
     end = time.time()
     print(f"This took {end - begin} seconds")
@@ -216,12 +248,16 @@ def main():
     suggestLink = os.environ["SUGGEST_LITERATURE_URL"]
     return render_template("main.html", table=table, args=arguments, numResults=numResults, suggestLink=suggestLink)
 
+    
+  
 ## Frontend: Return admin page
 @app.route("/admin", methods=["GET"])
 @basic_auth.required
 def admin():
     link = os.environ["SUGGEST_LITERATURE_URL"]
     return render_template("admin.html", suggestLink=link)
+
+
 
 # Function to Select the correct articles based on the selection done by the user in the frontent
 def selectEntries(request_json):
@@ -237,7 +273,7 @@ def selectEntries(request_json):
         "sort_order":    "asc"
     }
     """
-
+    
     search_term = request_json["search"]
     title =  request_json["title"]
     author = request_json["author"]
@@ -264,17 +300,13 @@ def selectEntries(request_json):
     
     # Filter by Article.icon because unlike Artikcle.ENTRYTYPE, Article.icon groups books and bookchapters together
     filter_type = [~Article.icon.like("book"), ~Article.icon.like("article")] if article_type == "other" else [Article.icon.like(article_type)]
-
-    if timestart != "None" or until != "None":
-        requested_articles = db.session.query(Article).\
-            filter(and_(*title_filter), or_(*author_filter), and_(*content_filter),\
-                and_(Article.year >= timestart, Article.year <= until),\
-                and_(*filter_type), and_(*search_filter)).\
-                order_by(direction(getattr(Article, sortby)))
-    else:
-        requested_articles = db.session.query(Article).\
-            filter(and_(*title_filter), or_(*author_filter), and_(*content_filter),\
-                and_(*filter_type), and_(*search_filter)).\
-                order_by(direction(getattr(Article, sortby)))
-
+   
+    # Todo articles without year!
+   
+    requested_articles = db.session.query(Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract).\
+        filter(and_(*title_filter), or_(*author_filter), and_(*content_filter),\
+            and_(Article.year >= timestart, Article.year <= until),\
+            and_(*filter_type), and_(*search_filter)).\
+            order_by(direction(getattr(Article, sortby)))
+    
     return requested_articles
