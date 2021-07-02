@@ -129,7 +129,8 @@ def count_words(word, blob):
 def analyzeContent():
     print("AnalyzeContent()")
     session = db.session()
-    article = session.query(Article).filter(Article.contentChecked == False).first()
+    article = session.query(Article).filter(Article.title.like("Economic crisis and support for progressive taxation in Europe")).first()
+    # article = session.query(Article).filter(Article.contentChecked == False).first()
     articleID, articleTitle, articleSQLID = article.ID, article.title, article.dbid
     session.close()
     
@@ -216,9 +217,11 @@ def analyzeContent():
             
             oldInstance = instance
         
-        newWord = Wordstat(word=word, count=scores[word], quote=json.dumps(partList), article_ref_id=articleSQLID)
-        session.add(newWord)
-        session.commit()
+        # Make sure the word hasn't been added before e.g. the process was killed while adding words from this article
+        if session.query(Wordstat).filter(Wordstat.word == word, Wordstat.article_ref_id == articleSQLID).first() == None:
+            newWord = Wordstat(word=word, count=scores[word], quote=json.dumps(partList), article_ref_id=articleSQLID)
+            session.add(newWord)
+            session.commit()
     
     article = session.query(Article).filter(Article.ID == articleID).first()
     article.importantWords = content_words

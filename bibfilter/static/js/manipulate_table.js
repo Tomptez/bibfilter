@@ -29,7 +29,9 @@ function insertHiddenRows() {
             var row = table.insertRow(i);
             row.id = "hidden_row" + String((i-1));
             row.className = "hidden_row";
+            // Optional, first empty column width of the icon colum
             var cell = row.insertCell(0);
+            cell.className = "hidden_left"
             var cell = row.insertCell(1);
             cell.innerHTML = li[i-1].innerHTML;
             cell.colSpan = 5;

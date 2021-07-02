@@ -69,7 +69,7 @@ class Wordstat(db.Model):
     word = db.Column(db.String)
     count = db.Column(db.Integer)
     quote = db.Column(db.String)
-    article_ref_id = db.Column(db.Integer, db.ForeignKey("Article.dbid"), nullable=False)
+    article_ref_id = db.Column(db.Integer, db.ForeignKey("Article.dbid"))
 
 # Table Schema
 class TableSchema(ma.Schema):

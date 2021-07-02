@@ -348,10 +348,14 @@ a.externalUrl:hover {
 }
 
 .hidden_content {
-    padding: 5px 0px;
+    padding: 5px 10px;
     font-size: 1.1em;
     text-align: justify;
     width: 90%;
+}
+
+.hidden_left {
+    background-color: #7796a8;
 }
 
 /* Admin Header*/

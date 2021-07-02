@@ -6,7 +6,7 @@ import traceback
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from bibfilter import db
-from bibfilter.models import Article
+from bibfilter.models import Article, Wordstat
 from Analyze_content_for_search import analyzeContent, analyzeSomeArticles
 from pyzotero import zotero
 from pprint import pprint
@@ -47,6 +47,11 @@ def delete_old():
     report["deleted"] = count
     return True
 
+def delete_old_words():
+    session = db.session()
+    session.query(Wordstat).filter(Wordstat.article_ref_id == None).delete(synchronize_session=False)
+    session.commit()
+    session.close()
 
 def check_item(item):
     global zotero_keylist
@@ -80,13 +85,13 @@ def check_item(item):
 
     # If the item existed but has been modified delete it now and continue to add it again
     elif len(list(req)) > 0 and req[0].date_modified != data["dateModified"]:
+        dbid = req[0].dbid
         session.delete(req[0])
         session.commit()
         report["updated"] += 1
 
     else:
         report["new"] += 1
-        #print("Adding ", data["title"], "to database.")
 
     csv_bib_pattern = {"journalArticle": "article", "book": "book", "conferencePaper": "inproceedings", "manuscript": "article", "bookSection": "incollection", "webpage": "inproceedings", "techreport": "article", "letter": "misc", "report": "report", "document": "misc", "thesis": "thesis"}
 
@@ -227,6 +232,9 @@ def update_from_zotero():
 
     # Delete all articles which are not in zotero anymore
     delete_old()
+    
+    # Delete all words that belonged to deleted or modified entries
+    delete_old_words()
 
     # Count how many items are in the database in total
     session = db.session()
