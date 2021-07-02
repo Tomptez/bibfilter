@@ -30,9 +30,12 @@ pikepdf = "*"
 ocrmypdf = "*"
 flask-table = "*"
 marshmallow = "*"
+flask-marshmallow = "*"
 
 [requires]
 python_version = "3.9"
 
 [dev-packages]
 requests = "*"
+matplotlib = "*"
+memory-profiler = "*"

@@ -5,7 +5,7 @@ from sqlalchemy.sql.expression import asc, desc, or_, and_
 from sqlalchemy.sql import func
 from bibtexparser.bibdatabase import BibDatabase
 import bibtexparser
-from bibfilter.models import Article, BibliographySchema, TableSchema
+from bibfilter.models import Article, Wordstat, BibliographySchema, TableSchema
 from bibfilter import app, basic_auth, db
 from update_library import update_from_zotero
 from datetime import datetime
@@ -15,7 +15,6 @@ from unidecode import unidecode
 from dotenv import load_dotenv
 import threading
 import nltk
-from textblob import TextBlob as tb
 import json
 from flask_table import Table, Col, OptCol
 import time
@@ -136,7 +135,8 @@ def main():
         title = Col('Title', column_html_attrs={"class":"colTitle"})
         publication = Col('Publication', column_html_attrs={"class":"colPublication"})
         url = Col('URL', column_html_attrs={"class":"tableUrl colUrl"})
-        importantWordsCount = Col('Occur', show=False)
+        count = Col('Occur', show=True)
+        word = Col('Word', show=True)
         abstract = Col('hidden', column_html_attrs={"class":"hiddenRowContent"})
         
         allow_sort = True
@@ -157,14 +157,15 @@ def main():
     
     args = {"title":"", "author":"", "timestart":"", "until":"", "type":"all", "sort":"author", "direction":"asc", "content":"", "search":""}
     
-    # Prioritize sorting on importantWordsCount if no manual sorting is in place
-    if arguments.get("content") != None:
-        args["sort"] = "importantWordsCount"
+    # Prioritize sorting on count if no manual sorting is in place
+    if arguments.get("content") != None and arguments.get("content") != "":
+        args["sort"] = "count"
         
     args.update(arguments)
     
     # Lemmatize Content search words
-    args["content"] = " ".join([token.lemmatize() for token in tb(args["content"]).tokens])
+    stemmer = nltk.stem.snowball.SnowballStemmer("english")
+    args["content"] = " ".join([stemmer.stem(word) for word in args["content"].split()])
     
     # Query items from database
     begin = time.time()
@@ -186,27 +187,21 @@ def main():
     for item in requested_articles:
         item = dict(item)
         contentSearchList = args["content"].lower().split()
-        if args["content"] != "":
-            # Todo take all words into account
-            searchword = contentSearchList[0]
-            item["importantWordsCount"] =  json.loads(item["importantWordsCount"])[searchword]
-        else:
-            item["importantWordsCount"] = ""
             
         if item["url"] != "":
             item["url"] = Markup(f'<a class="externalUrl" target="_blank" href="{item["url"]}">Source</a>')
         
         def formatQuotes():
             finalQuotes = ""
-            quoteList = json.loads(item["importantWordsLocation"])
+            quoteList = json.loads(item["quote"])
             count = 0
             for i in range(5):
                 for word in contentSearchList:
                     try:
                         if finalQuotes == "":
-                            finalQuotes = quoteList[word][i]
+                            finalQuotes = quoteList[i]
                         else:
-                            finalQuotes += "<p>" + quoteList[word][i] + "</p>"
+                            finalQuotes += "<p>" + quoteList[i] + "</p>"
                         count += 1
                     except Exception as e:
                         pass
@@ -225,16 +220,16 @@ def main():
             else:
                 hiddentext = ""
         item["abstract"] = hiddentext
+        
+        if "count" not in item:
+            item["count"] = 0
+        if "word" not in item:
+            item["word"] = "none"
         items.append(item)
     
     end = time.time()
     print(f"This took {end - begin} seconds")
     
-    # Sort by importantWordsCount if the argument is passed
-    if args["sort"] == "importantWordsCount":
-        newlist = sorted(items, reverse=True, key=lambda k: k['importantWordsCount']) 
-        items = newlist
-        
     end = time.time()
     print(f"This took {end - begin} seconds")
     
@@ -296,17 +291,32 @@ def selectEntries(request_json):
     title_filter = [unaccent(Article.title).ilike(f'%{unidecode(term)}%') for term in title_list]
     search_filter = [unaccent(Article.searchIndex).ilike(f'%{unidecode(term)}%') for term in search_term_list]
     author_filter = [unaccent(Article.author).ilike(f'%{unidecode(term)}%') for term in author_list]
-    content_filter = [unaccent(Article.importantWords).ilike(f'% {unidecode(term)} %') for term in content_list]
+    content_filter = [unaccent(Wordstat.word) == term for term in content_list]
     
+    if sortby == "count":
+        orderby = desc(getattr(Wordstat, sortby))
+    else:
+        orderby = direction(getattr(Article, sortby))
+        
     # Filter by Article.icon because unlike Artikcle.ENTRYTYPE, Article.icon groups books and bookchapters together
     filter_type = [~Article.icon.like("book"), ~Article.icon.like("article")] if article_type == "other" else [Article.icon.like(article_type)]
    
     # Todo articles without year!
    
-    requested_articles = db.session.query(Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract).\
-        filter(and_(*title_filter), or_(*author_filter), and_(*content_filter),\
-            and_(Article.year >= timestart, Article.year <= until),\
-            and_(*filter_type), and_(*search_filter)).\
-            order_by(direction(getattr(Article, sortby)))
+    if len(content_list) == 0:
+        requested_articles = db.session.query(Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract).\
+            filter(and_(*title_filter), or_(*author_filter),\
+                and_(Article.year >= timestart, Article.year <= until),\
+                and_(*filter_type), and_(*search_filter)).\
+                order_by(orderby)
+            
+    # db.session.query(Article.title, Wordstat.count, Wordstat.quote).join(Wordstat).filter(Article.title.like("%social%"), Wordstat.word.like(searchword)).all()
+    # reqq = db.session.query(Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract).all()
+    else:
+        requested_articles = db.session.query(Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract, Wordstat.word, Wordstat.count, Wordstat.quote).join(Wordstat).\
+            filter(and_(*title_filter), or_(*author_filter), and_(*content_filter),\
+                and_(Article.year >= timestart, Article.year <= until),\
+                and_(*filter_type), and_(*search_filter)).\
+                order_by(orderby)
     
     return requested_articles

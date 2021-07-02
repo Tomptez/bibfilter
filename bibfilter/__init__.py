@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow
 from flask_cors import CORS
+from flask_marshmallow import Marshmallow
 from flask_basicauth import BasicAuth
 from dotenv import load_dotenv
 import os
@@ -24,10 +24,12 @@ app = Flask(__name__)
 # DATABASE_URL = "postgresql://postgres:mypassword@localhost/bibfilter"
 # DATABASE_URL = "sqlite:///new.db"
 uri = get_env_variable("DATABASE_URL")
-# If using heroku POSTGRES_DATABASE_SCHEME=postgresql should be used, but just in case DATABASE_URL returns postgres:// insead of postgresql://
+
+# If using heroku, POSTGRES_DATABASE_SCHEME=postgresql should be used, but just in case DATABASE_URL returns postgres:// insead of postgresql://
 # https://help.heroku.com/ZKNTJQSK/why-is-sqlalchemy-1-4-x-not-connecting-to-heroku-postgres
 if uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
+    
 app.config['SQLALCHEMY_DATABASE_URI'] = uri 
 
 # Set Up Username and Password for Basic Auth as environment variables APP_USERNAME annd APP_PASSWORD
@@ -37,8 +39,8 @@ app.config['BASIC_AUTH_PASSWORD'] = get_env_variable("APP_PASSWORD")
 # silence the deprecation warning
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
 
-
-app.config['SQLALCHEMY_ECHO'] = True
+## Uncomment to activate SQLALCHEMY logging
+# app.config['SQLALCHEMY_ECHO'] = True
 
 # Don't sort json elements alphabetically 
 app.config['JSON_SORT_KEYS'] = False

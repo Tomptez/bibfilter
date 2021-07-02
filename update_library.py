@@ -7,14 +7,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from bibfilter import db
 from bibfilter.models import Article
-from Analyze_content_for_search import analyzeContent
+from Analyze_content_for_search import analyzeContent, analyzeSomeArticles
 from pyzotero import zotero
 from pprint import pprint
 from pytz import timezone
 import time
 import schedule
-from io import BytesIO
-from pdfminer.high_level import extract_text
 import re
 
 # List to store key of all items in zotero to later check if some of the items in the database have been deleted in zotero
@@ -49,99 +47,6 @@ def delete_old():
     report["deleted"] = count
     return True
 
-def readAttachedPDF(articleID, title):
-    print("readattached()")
-    def faceProblem(message):
-        print(title)
-        print(message+"\n")
-        return ""
-    
-    try:
-        libraryID = os.environ["LIBRARY_ID"]
-        zot = zotero.Zotero(libraryID, "group")
-        attachments = zot.children(articleID)
-
-        content = ""
-        references = ""
-        
-        # Goes through each attachment if there is any
-        for each in attachments:
-            try:
-                # Notes are different from attachments and don't have contentType attribute
-                if each["data"]["itemType"] == "attachment":
-                    if each["data"]["contentType"] == 'application/pdf':
-                        pdfID = each["data"]["key"]
-                        
-                        # get content of pdf
-                        pdfBytes = zot.file(pdfID)
-                        # convert bytes of bts to python object
-                        pdfFile = BytesIO(pdfBytes)
-                        content = extract_text(pdfFile)
-                        
-                        # Check length of content
-                        if len(content) < 4000:
-                            content = faceProblem("Problem: extracted content shorter than expected, aborted extraction")
-                            break
-                        
-                        # Fix: ValueError: A string literal cannot contain NUL (0x00) characters. Caused by a problem with extract_text
-                        content = content.replace("\x00", "")
-                        
-                        # Use end variable to look only after the dirst third of the document. Prevents mistakes in the rare cases that References is only mentioned on the first page
-                        end = int(len(content) / 3.5)
-                        
-                        # Find the position of references to then only index text before the references. \W means any non-word character
-                        iterString = 'REFERENCES|References|[\W|\n][R|r][E|e][F|f][E|e][R|r][E|e][N|n][C|c][E|e][S|s]|[\W|\n][R|r] [E|e] [F|f] [E|e] [R|r] [E|e] [N|n] [C|c] [E|e] [S|s]|[B|b][I|i][B|b][L|l][I|i][O|o][G|g][R|r][A|a][P|p][H|h][Y|y]'
-                        
-                        # Cover cases where there is tons of \n newlines in the scanned code:
-                        if len(content) / content.count("\n") < 4:
-                            content = content.replace("\n", "")
-                            iterString = 'REFERENCES|References|[R|r][E|e][F|f][E|e][R|r][E|e][N|n][C|c][E|e][S|s]|[R|r] [E|e] [F|f] [E|e] [R|r] [E|e] [N|n] [C|c] [E|e] [S|s]|[B|b][I|i][B|b][L|l][I|i][O|o][G|g][R|r][A|a][P|p][H|h][Y|y]'
-                            
-                        i = re.finditer(iterString, content[end:])
-                        # the variable last refers to the last "references" word in the text. It is used to crop off the references at the end of the articles. last.start() is the start of the word "references"
-                        last = None
-                        for last in i:
-                            continue
-                        
-                        if last != None:
-                            references = content[end+last.end():]
-                            content = content[:end+last.start()]
-                        else:
-                            pass
-                            
-                        # Check if CID code / character Ratio. If too high don't use it
-                        ratio = (len(re.findall("\(cid:\d+\)", content)) / len(content) * 100)
-                        if (len(re.findall("\(cid:\d+\)", content)) / len(content) * 100) > 6:
-                            content = faceProblem("Content contains mostly CID")
-                            break
-                        
-                        # Recognize Problem with detecting space in the PDF file
-                        entitysize = content.split()
-                        if len(content)/20 > len(entitysize):
-                            content = faceProblem("Problem when scraping pdf: Not detecting spaces")
-                            break
-
-                        # Remove all CID codes from content if there is any
-                        content = re.sub("\(cid:\d+\)", '', content)
-                        # Remove unnecessary whitespace
-                        content = re.sub("\s{3,}", '\n\n', content)
-                        
-                        references = re.sub("\(cid:\d+\)", '', references)
-
-                        break
-            except Exception as e:
-                    print(title)
-                    print("Error when trying to read attachments/PDFs")
-                    print(e)
-                    
-                    continue
-    except Exception as e:
-        print(title)
-        print(e)
-        return
-
-    # Returns "" if there is no PDF attached, " " if theres a problem with the PDF, otherwise the full content of the PDF
-    return content, references
 
 def check_item(item):
     global zotero_keylist
@@ -233,9 +138,6 @@ def check_item(item):
         print("data has no ḱey 'creator'. Entry may be only file without metadata. Skipping")
         return False
 
-    # Get the content of article content from attached PDFs
-    articleContent, references = readAttachedPDF(data["key"], data['title'])
-    
     # Create a new Database entry with all the attributes
     new_art = Article(title=content["title"], 
                         url=content["url"], 
@@ -258,15 +160,14 @@ def check_item(item):
                         volume=content["volume"], 
                         number=content["issue"], 
                         icon="book" if content["itemType"].startswith("book") else csv_bib_pattern[content["itemType"]], 
-                        articleFullText = articleContent,
-                        references = references,
+                        articleFullText = "",
+                        references = "",
                         importantWords = "",
-                        importantWordsCount = "",
-                        importantWordsLocation = "",
                         searchIndex = " ".join([content["title"], author, content["publicationTitle"], content["abstractNote"], content["DOI"], content["ISSN"], content["ISBN"]]),
                         date_last_zotero_sync = date_str,
                         date_added = content["dateAdded"],
                         date_modified = content["dateModified"],
+                        contentChecked = False,
                         date_modified_pretty = content["dateModified"].split("T")[0] + " " + content["dateModified"].split("T")[1][:-4],
                         date_added_pretty = content["dateAdded"].split("T")[0] + " " + content["dateAdded"].split("T")[1][:-4],
                         _date_created_str = date_str,
@@ -345,10 +246,11 @@ def update_from_zotero():
 # Sync once with the zotero library, after that sync ever hour
 if __name__ == "__main__":
     update_from_zotero()
-    analyzeContent()
+    time.sleep(5)
+    analyzeSomeArticles()
     
     schedule.every(1).hours.do(update_from_zotero)
-    schedule.every(4).minutes.do(analyzeContent)
+    schedule.every(10).minutes.do(analyzeSomeArticles)
     
     while True:
         schedule.run_pending()
