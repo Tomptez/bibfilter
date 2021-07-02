@@ -195,18 +195,15 @@ def main():
             finalQuotes = ""
             quoteList = json.loads(item["quote"])
             count = 0
-            for i in range(5):
-                for word in contentSearchList:
-                    try:
-                        if finalQuotes == "":
-                            finalQuotes = quoteList[i]
-                        else:
-                            finalQuotes += "<p>" + quoteList[i] + "</p>"
-                        count += 1
-                    except Exception as e:
-                        pass
-                    if count == 4:
-                        return finalQuotes
+            for i in range(len(quoteList)):
+                try:
+                    if finalQuotes == "":
+                        finalQuotes = quoteList[i]
+                    else:
+                        finalQuotes += "<p>" + quoteList[i] + "</p>"
+                except Exception as e:
+                    pass
+            return finalQuotes
         
         # Check whether environment variable is set to show search quotes            
         formattedAbstract = f'<b>Abstract</b><br>{item["abstract"]}</b><br>' if item["abstract"] != "" else ""         

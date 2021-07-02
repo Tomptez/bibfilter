@@ -129,8 +129,7 @@ def count_words(word, blob):
 def analyzeContent():
     print("AnalyzeContent()")
     session = db.session()
-    article = session.query(Article).filter(Article.title.like("Economic crisis and support for progressive taxation in Europe")).first()
-    # article = session.query(Article).filter(Article.contentChecked == False).first()
+    article = session.query(Article).filter(Article.contentChecked == False).first()
     articleID, articleTitle, articleSQLID = article.ID, article.title, article.dbid
     session.close()
     
