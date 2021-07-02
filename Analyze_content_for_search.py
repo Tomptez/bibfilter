@@ -201,13 +201,13 @@ def analyzeContent():
             cnt, wordIndex = 0, 0
             for ix, k in enumerate(words):
                 cnt += len(k)+1
-                if cnt > 162:
+                # instance-start+2 is usually 162, the exact center, except when the word is at the start of the article
+                if cnt > instance-start+2:
                     wordIndex = ix
                     break
             htmlWords = words[1:wordIndex] + [f"<b>{words[wordIndex]}</b>"] + words[wordIndex+1:-1]
             textFinal = "(...)" + " ".join(htmlWords) + "(...)"
             
-
             partList.append(textFinal)
             
             # Only use 3 quotes for each word
