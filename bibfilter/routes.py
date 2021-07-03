@@ -169,7 +169,7 @@ def main():
     
     # Query items from database
     begin = time.time()
-    requested_articles, words = selectEntries(args)
+    requested_articles = selectEntries(args)
     
     end = time.time()
     print(f"Query took {end - begin} seconds")
@@ -178,7 +178,6 @@ def main():
     #     requested_articles = requested_articles.all()
     
     requested_articles= requested_articles.all()
-    words = words.all()
     
     end = time.time()
     print(f"converting took {end - begin} seconds")
@@ -193,8 +192,8 @@ def main():
             item["url"] = Markup(f'<a class="externalUrl" target="_blank" href="{item["url"]}">Source</a>')
         
         if args["content"] != "":
-            item["quote"] = json.loads(words[ki].quotes[0])
-            item["count"] = words[ki].wordcount
+            item["quote"] = json.loads(item["quotes"][0])
+            item["count"] = item["wordcount"]
             # item["quote"] = json.loads(item["quote"])
         
         
@@ -380,7 +379,6 @@ def selectEntries(request_json):
         
                 
     # db.session.query(Article).filter(and_(Article.wordnet.any(Wordstat.word=="social"), Article.wordnet.any(Wordstat.word=="vote"))).all()
-    words = ""
     if len(content_list) == 0:
         requested_articles = db.session.query(Article.dbid, Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract).\
             filter(and_(*title_filter), or_(*author_filter), and_(*content_filter),\
@@ -392,15 +390,17 @@ def selectEntries(request_json):
         #     filter(and_(*title_filter), or_(*author_filter), and_(*content_filter),\
         #         and_(Article.year >= timestart, Article.year <= until),\
         #         and_(*filter_type), and_(*search_filter)).order_by(orderby)
+        
         content_filter = [unaccent(Wordstat.word) == term for term in content_list]
-        st = db.session.query(Wordstat.article_ref_id, func.count('*').label("wrd_count")).filter(or_(*content_filter)).group_by(Wordstat.article_ref_id).subquery()
-        requested_articles = db.session.query(Article.dbid, Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract, ).\
-            join(st, Article.dbid == st.c.article_ref_id).\
-                filter(and_(st.c.wrd_count == len(content_list)),\
+        stmt = db.session.query(Wordstat.article_ref_id, func.count('*').label("wrd_count"), func.sum(Wordstat.count).label("wordcount"), func.array_agg(Wordstat.quote).label("quotes")).filter(or_(*content_filter)).group_by(Wordstat.article_ref_id).subquery()
+        
+        requested_articles = db.session.query(Article.dbid, Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract, stmt.c.wordcount, stmt.c.quotes).\
+            join(stmt, Article.dbid == stmt.c.article_ref_id).\
+                filter(and_(stmt.c.wrd_count == len(content_list)),\
                     and_(*title_filter), or_(*author_filter),\
                     and_(Article.year >= timestart, Article.year <= until),\
                     and_(*filter_type), and_(*search_filter)).order_by(asc(getattr(Article, "dbid")))
-        words = db.session.query(Wordstat.article_ref_id, func.sum(Wordstat.count).label("wordcount"), func.array_agg(Wordstat.quote).label("quotes")).filter(or_(*content_filter)).group_by(Wordstat.article_ref_id)
+        
                 
         # print(requested_articles.first())
-    return requested_articles, words
+    return requested_articles

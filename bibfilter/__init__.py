@@ -40,7 +40,7 @@ app.config['BASIC_AUTH_PASSWORD'] = get_env_variable("APP_PASSWORD")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
 
 ## Uncomment to activate SQLALCHEMY logging
-# app.config['SQLALCHEMY_ECHO'] = True
+app.config['SQLALCHEMY_ECHO'] = True
 
 # Don't sort json elements alphabetically 
 app.config['JSON_SORT_KEYS'] = False
