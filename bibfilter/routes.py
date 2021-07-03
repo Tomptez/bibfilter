@@ -136,7 +136,6 @@ def main():
         publication = Col('Publication', column_html_attrs={"class":"colPublication"})
         url = Col('URL', column_html_attrs={"class":"tableUrl colUrl"})
         count = Col('Occur', show=True)
-        word = Col('Word', show=True)
         abstract = Col('hidden', column_html_attrs={"class":"hiddenRowContent"})
         
         allow_sort = True
@@ -157,10 +156,11 @@ def main():
     
     args = {"title":"", "author":"", "timestart":"", "until":"", "type":"all", "sort":"author", "direction":"asc", "content":"", "search":""}
     
+    countsorting = False
     # Prioritize sorting on count if no manual sorting is in place
-    if arguments.get("content") != None and arguments.get("content") != "":
-        args["sort"] = "count"
-        
+    if arguments.get("content") != None and arguments.get("content") != "" and arguments.get("sort") == None:
+        countsorting = True
+    
     args.update(arguments)
     
     # Lemmatize Content search words
@@ -186,23 +186,39 @@ def main():
     
     for item in requested_articles:
         item = dict(item)
-        contentSearchList = args["content"].lower().split()
+        contentSearchList = args["content"].split()
             
         if item["url"] != "":
             item["url"] = Markup(f'<a class="externalUrl" target="_blank" href="{item["url"]}">Source</a>')
         
+        if args["content"] != "":
+            item["quote"] = {}
+            item["count"] = 0
+            for searchterm in contentSearchList:
+                searchwordstat = db.session.query(Wordstat).filter(Wordstat.word == searchterm, Wordstat.article_ref_id == item["dbid"]).first()
+                item["quote"][searchterm] = json.loads(searchwordstat.quote)
+                item["count"] += int(searchwordstat.count)
+        
+        
         def formatQuotes():
             finalQuotes = ""
-            quoteList = json.loads(item["quote"])
             count = 0
-            for i in range(len(quoteList)):
-                try:
-                    if finalQuotes == "":
-                        finalQuotes = quoteList[i]
-                    else:
-                        finalQuotes += "<p>" + quoteList[i] + "</p>"
-                except Exception as e:
-                    pass
+            # Take all 4 quotes available
+            for i in range(4):
+                for searchterm in contentSearchList:
+                    count += 1
+                    try:
+                        if finalQuotes == "":
+                            finalQuotes = item["quote"][searchterm][i]
+                        else:
+                            finalQuotes += "<p>" + item["quote"][searchterm][i] + "</p>"
+                    except Exception as e:
+                        # list index out of range (When there is less than 4 items available)
+                        return finalQuotes
+                    
+                    # Use six quotes at most (when using multiple searchterms)
+                    if count == 6:
+                        return finalQuotes
             return finalQuotes
         
         # Check whether environment variable is set to show search quotes            
@@ -220,15 +236,52 @@ def main():
         
         if "count" not in item:
             item["count"] = 0
-        if "word" not in item:
-            item["word"] = "none"
         items.append(item)
     
     end = time.time()
-    print(f"This took {end - begin} seconds")
+    print(f"Modifying results took {end - begin} seconds")
+                
+        # def formatQuotes():
+        #     finalQuotes = ""
+        #     quoteList = json.loads(item["quote"])
+        #     count = 0
+        #     for i in range(len(quoteList)):
+        #         try:
+        #             if finalQuotes == "":
+        #                 finalQuotes = quoteList[i]
+        #             else:
+        #                 finalQuotes += "<p>" + quoteList[i] + "</p>"
+        #         except Exception as e:
+        #             pass
+        #     return finalQuotes
+        
+        # # Check whether environment variable is set to show search quotes            
+        # formattedAbstract = f'<b>Abstract</b><br>{item["abstract"]}</b><br>' if item["abstract"] != "" else ""         
+        # if args["content"] != "" and os.environ.get("SHOW_SEARCH_QUOTES") == "Yes":
+        #     finalQuotes = formatQuotes()
+            
+        #     hiddentext = Markup(f'<div class="hidden_content">{formattedAbstract}<br><b>Search Results</b><br>{finalQuotes}</div>')
+        # else:
+        #     if item["abstract"] != "":
+        #         hiddentext = Markup(f'<div class="hidden_content">{formattedAbstract}</div>')
+        #     else:
+        #         hiddentext = ""
+        # item["abstract"] = hiddentext
+        
+        # if "count" not in item:
+        #     item["count"] = 0
+        # if "word" not in item:
+        #     item["word"] = "none"
+        # items.append(item)
     
+    
+    # Sort by importantWordsCount if the argument is passed
+    if countsorting:
+        newlist = sorted(items, reverse=True, key=lambda k: k['count']) 
+        items = newlist
+        
     end = time.time()
-    print(f"This took {end - begin} seconds")
+    print(f"Sorting took {end - begin} seconds")
     
     sort = args["sort"]
     reverse = True if args["direction"] == "desc" else False
@@ -288,32 +341,35 @@ def selectEntries(request_json):
     title_filter = [unaccent(Article.title).ilike(f'%{unidecode(term)}%') for term in title_list]
     search_filter = [unaccent(Article.searchIndex).ilike(f'%{unidecode(term)}%') for term in search_term_list]
     author_filter = [unaccent(Article.author).ilike(f'%{unidecode(term)}%') for term in author_list]
-    content_filter = [unaccent(Wordstat.word) == term for term in content_list]
+    # content_filter = [unaccent(Wordstat.word) == term for term in content_list]
+    content_filter = [unaccent(Article.importantWords).ilike(f'%{unidecode(" "+term+" ")}%') for term in content_list]
     
-    if sortby == "count":
-        orderby = desc(getattr(Wordstat, sortby))
-    else:
-        orderby = direction(getattr(Article, sortby))
+        # orderby = desc(getattr(Wordstat, sortby))
+    orderby = direction(getattr(Article, sortby))
         
     # Filter by Article.icon because unlike Artikcle.ENTRYTYPE, Article.icon groups books and bookchapters together
     filter_type = [~Article.icon.like("book"), ~Article.icon.like("article")] if article_type == "other" else [Article.icon.like(article_type)]
    
     # Todo articles without year!
    
-    if len(content_list) == 0:
-        requested_articles = db.session.query(Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract).\
-            filter(and_(*title_filter), or_(*author_filter),\
-                and_(Article.year >= timestart, Article.year <= until),\
-                and_(*filter_type), and_(*search_filter)).\
-                order_by(orderby)
+    # if len(content_list) == 0:
+    #     requested_articles = db.session.query(Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract).\
+    #         filter(and_(*title_filter), or_(*author_filter),\
+    #             and_(Article.year >= timestart, Article.year <= until),\
+    #             and_(*filter_type), and_(*search_filter)).\
+    #             order_by(orderby)
             
     # db.session.query(Article.title, Wordstat.count, Wordstat.quote).join(Wordstat).filter(Article.title.like("%social%"), Wordstat.word.like(searchword)).all()
     # reqq = db.session.query(Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract).all()
-    else:
-        requested_articles = db.session.query(Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract, Wordstat.word, Wordstat.count, Wordstat.quote).join(Wordstat).\
-            filter(and_(*title_filter), or_(*author_filter), and_(*content_filter),\
-                and_(Article.year >= timestart, Article.year <= until),\
-                and_(*filter_type), and_(*search_filter)).\
-                order_by(orderby)
+    # else:
+        # requested_articles = db.session.query(Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract, Wordstat.word, Wordstat.count, Wordstat.quote).join(Wordstat).\
+        #     filter(and_(*title_filter), or_(*author_filter), and_(*content_filter),\
+        #         and_(Article.year >= timestart, Article.year <= until),\
+        #         and_(*filter_type), and_(*search_filter)).\
+        #         order_by(orderby)
+    requested_articles = db.session.query(Article.dbid, Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract).\
+        filter(and_(*title_filter), or_(*author_filter), and_(*content_filter),\
+            and_(Article.year >= timestart, Article.year <= until),\
+            and_(*filter_type), and_(*search_filter)).order_by(orderby)
     
     return requested_articles

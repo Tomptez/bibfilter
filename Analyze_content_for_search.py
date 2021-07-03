@@ -130,6 +130,7 @@ def analyzeContent():
     print("AnalyzeContent()")
     session = db.session()
     article = session.query(Article).filter(Article.contentChecked == False).first()
+    # article = session.query(Article).filter(Article.dbid == 2).first()
     articleID, articleTitle, articleSQLID = article.ID, article.title, article.dbid
     session.close()
     
@@ -171,8 +172,6 @@ def analyzeContent():
     # optional: sort
     sorted_words = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
-    content_words = " ".join(scores.keys())
-    
     # optional: print
     # print(f"Top words in {title}")
     # for word, score in sorted_words[:40]:
@@ -210,7 +209,7 @@ def analyzeContent():
             
             partList.append(textFinal)
             
-            # Only use 3 quotes for each word
+            # Only use 4 quotes for each word
             if len(partList) > 3:
                 break
             
@@ -221,6 +220,8 @@ def analyzeContent():
             newWord = Wordstat(word=word, count=scores[word], quote=json.dumps(partList), article_ref_id=articleSQLID)
             session.add(newWord)
             session.commit()
+    
+    content_words = " ".join(scores.keys())
     
     article = session.query(Article).filter(Article.ID == articleID).first()
     article.importantWords = content_words
@@ -247,7 +248,7 @@ def analyzeSomeArticles():
 # Analyze the Content based on articleFullTExt of each Artice
 # Once on start, after that every 1.1 hours (slighty unsynced from update_library.py)
 if __name__ == "__main__":
-    for i in range(5):
+    for i in range(30):
         finished = analyzeContent()
         if finished:
             exit()
