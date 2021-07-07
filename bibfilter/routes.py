@@ -15,11 +15,8 @@ from unidecode import unidecode
 from dotenv import load_dotenv
 import threading
 import nltk
-import json
 from flask_table import Table, Col, OptCol
 import time
-
-
 import cProfile
 import io
 import pstats
@@ -135,7 +132,7 @@ def main():
         title = Col('Title', column_html_attrs={"class":"colTitle"})
         publication = Col('Publication', column_html_attrs={"class":"colPublication"})
         url = Col('URL', column_html_attrs={"class":"tableUrl colUrl"})
-        count = Col('Occur', show=True)
+        wordcount = Col('Occur', show=True)
         abstract = Col('hidden', column_html_attrs={"class":"hiddenRowContent"})
         
         allow_sort = True
@@ -191,8 +188,7 @@ def main():
         if args["content"] != "":
             # item["quote"] = json.loads(item["quotes"][0])
             for ji, li in enumerate(item["quotes"]):
-                item["quotes"][ji] = json.loads(li)
-            item["count"] = item["wordcount"]
+                    item["quotes"][ji] = li.split(';SEP;')
             # item["quote"] = json.loads(item["quote"])
         
         
@@ -241,8 +237,8 @@ def main():
             
         item["abstract"] = hiddentext
         
-        if "count" not in item:
-            item["count"] = 0
+        if "wordcount" not in item:
+            item["wordcount"] = 0
         items.append(item)
     
     end = time.time()
@@ -284,7 +280,7 @@ def main():
     
     # Sort by importantWordsCount if the argument is passed
     if countsorting:
-        newlist = sorted(items, reverse=True, key=lambda k: k['count']) 
+        newlist = sorted(items, reverse=True, key=lambda k: k["wordcount"]) 
         items = newlist
         
     end = time.time()

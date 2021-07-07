@@ -7,7 +7,6 @@ import sys
 sys.path.append(".")
 from bibfilter import db
 from bibfilter.models import Article, Wordstat
-import json
 import re
 import time
 from nltk.corpus import stopwords  
@@ -219,7 +218,8 @@ def analyzeContent():
         
         # Make sure the word hasn't been added before e.g. the process was killed while adding words from this article
         if session.query(Wordstat).filter(Wordstat.word == word, Wordstat.article_ref_id == articleSQLID).first() == None:
-            newWord = Wordstat(word=word, count=scores[word], quote=json.dumps(partList), article_ref_id=articleSQLID)
+            quote = ";SEP;".join(partList)
+            newWord = Wordstat(word=word, count=scores[word], quote=quote, article_ref_id=articleSQLID)
             session.add(newWord)
             session.commit()
     
