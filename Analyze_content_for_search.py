@@ -18,7 +18,6 @@ from io import BytesIO
 from pdfminer.high_level import extract_text
 
 def readAttachedPDF(articleID, title):
-    print("readattachedPDF()")
     def faceProblem(message):
         print(title)
         print(message+"\n")
@@ -136,11 +135,11 @@ def analyzeContent():
     articleID, articleTitle, articleSQLID = article.ID, article.title, article.dbid
     session.close()
     
-    print(articleTitle)
-    
     if article == None:
         print("No articles left to analyze")
         return True
+    
+    print("Analyze:", articleTitle)
     
     # Get the content of article content from attached PDFs
     articleContent, references = readAttachedPDF(articleID, articleTitle)
@@ -241,7 +240,7 @@ def analyzeContent():
     
 
 def analyzeSomeArticles():
-    for i in range(40):
+    for i in range(120):
         finished = analyzeContent()
         if finished:
             exit()
