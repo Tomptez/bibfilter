@@ -258,7 +258,7 @@ if __name__ == "__main__":
     analyzeSomeArticles()
     
     schedule.every(1).hours.do(update_from_zotero)
-    schedule.every(10).minutes.do(analyzeSomeArticles)
+    schedule.every(30).minutes.do(analyzeSomeArticles)
     
     while True:
         schedule.run_pending()

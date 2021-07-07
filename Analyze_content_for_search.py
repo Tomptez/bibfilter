@@ -127,8 +127,11 @@ def count_words(word, blob):
     return blob.words.count(word)
 
 def analyzeContent():
-    print("AnalyzeContent()")
+    print()
     session = db.session()
+    checked = len(list(session.query(Article).filter(Article.contentChecked == True)))
+    notChecked = len(list(session.query(Article)))
+    print(f"Checked {checked} of {notChecked} articles")
     article = session.query(Article).filter(Article.contentChecked == False).first()
     # article = session.query(Article).filter(Article.dbid == 2).first()
     articleID, articleTitle, articleSQLID = article.ID, article.title, article.dbid
@@ -137,7 +140,7 @@ def analyzeContent():
     print(articleTitle)
     
     if article == None:
-        print("No articles to analyze")
+        print("No articles left to analyze")
         return True
     
     # Get the content of article content from attached PDFs
@@ -162,7 +165,6 @@ def analyzeContent():
     blob = tb(articleContent)
     blob = tb(" ".join(clean_tokens(blob)))
 
-    print()
     # Count all the words if they appear at least twice
     scores = {}
     for word in blob.words:
@@ -239,7 +241,7 @@ def analyzeContent():
     
 
 def analyzeSomeArticles():
-    for i in range(20):
+    for i in range(40):
         finished = analyzeContent()
         if finished:
             exit()
@@ -248,11 +250,11 @@ def analyzeSomeArticles():
 # Analyze the Content based on articleFullTExt of each Artice
 # Once on start, after that every 1.1 hours (slighty unsynced from update_library.py)
 if __name__ == "__main__":
-    for i in range(30):
+    while True:
         finished = analyzeContent()
         if finished:
             exit()
-        time.sleep(3)
+        time.sleep(2)
 
     schedule.every(1.1).hours.do(analyzeContent)
 

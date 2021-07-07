@@ -39,8 +39,9 @@ app.config['BASIC_AUTH_PASSWORD'] = get_env_variable("APP_PASSWORD")
 # silence the deprecation warning
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
 
-## Uncomment to activate SQLALCHEMY logging
-app.config['SQLALCHEMY_ECHO'] = True
+## Optionally SQLALCHEMY logging
+if os.environ.get("SQL_DEBUG") == "Yes":
+    app.config['SQLALCHEMY_ECHO'] = True
 
 # Don't sort json elements alphabetically 
 app.config['JSON_SORT_KEYS'] = False

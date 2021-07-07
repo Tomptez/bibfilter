@@ -171,16 +171,13 @@ def main():
     begin = time.time()
     requested_articles = selectEntries(args)
     
-    end = time.time()
-    print(f"Query took {end - begin} seconds")
-    
     # with profiled():
     #     requested_articles = requested_articles.all()
     
     requested_articles= requested_articles.all()
     
     end = time.time()
-    print(f"converting took {end - begin} seconds")
+    print(f"Executing query took {end - begin:.4f} seconds")
     
     items = []
     
@@ -192,7 +189,9 @@ def main():
             item["url"] = Markup(f'<a class="externalUrl" target="_blank" href="{item["url"]}">Source</a>')
         
         if args["content"] != "":
-            item["quote"] = json.loads(item["quotes"][0])
+            # item["quote"] = json.loads(item["quotes"][0])
+            for ji, li in enumerate(item["quotes"]):
+                item["quotes"][ji] = json.loads(li)
             item["count"] = item["wordcount"]
             # item["quote"] = json.loads(item["quote"])
         
@@ -210,14 +209,14 @@ def main():
             count = 0
             # Take all 4 quotes available
             for i in range(4):
-                for searchterm in contentSearchList:
+                for j, searchterm in enumerate(contentSearchList):
                     count += 1
                     try:
                         if finalQuotes == "":
-                            finalQuotes = item["quote"][i]
+                            finalQuotes = item["quotes"][j][i]
                             # finalQuotes = item["quote"][searchterm][i]
                         else:
-                            finalQuotes += "<p>" + item["quote"][i] + "</p>"
+                            finalQuotes += "<p>" + item["quotes"][j][i] + "</p>"
                             # finalQuotes += "<p>" + item["quote"][searchterm][i] + "</p>"
                     except Exception as e:
                         # list index out of range (When there is less than 4 items available)
@@ -247,7 +246,7 @@ def main():
         items.append(item)
     
     end = time.time()
-    print(f"Modifying results took {end - begin} seconds")
+    print(f"Modifying results took {end - begin:.4f} seconds")
                 
         # def formatQuotes():
         #     finalQuotes = ""
@@ -289,7 +288,7 @@ def main():
         items = newlist
         
     end = time.time()
-    print(f"Sorting took {end - begin} seconds")
+    print(f"Sorting took {end - begin:.4f} seconds")
     
     sort = args["sort"]
     reverse = True if args["direction"] == "desc" else False
@@ -381,7 +380,7 @@ def selectEntries(request_json):
     # db.session.query(Article).filter(and_(Article.wordnet.any(Wordstat.word=="social"), Article.wordnet.any(Wordstat.word=="vote"))).all()
     if len(content_list) == 0:
         requested_articles = db.session.query(Article.dbid, Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract).\
-            filter(and_(*title_filter), or_(*author_filter), and_(*content_filter),\
+            filter(and_(*title_filter), or_(*author_filter),\
                 and_(Article.year >= timestart, Article.year <= until),\
                 and_(*filter_type), and_(*search_filter)).order_by(orderby)
     else:
@@ -391,13 +390,13 @@ def selectEntries(request_json):
         #         and_(Article.year >= timestart, Article.year <= until),\
         #         and_(*filter_type), and_(*search_filter)).order_by(orderby)
         
-        content_filter = [unaccent(Wordstat.word) == term for term in content_list]
-        stmt = db.session.query(Wordstat.article_ref_id, func.count('*').label("wrd_count"), func.sum(Wordstat.count).label("wordcount"), func.array_agg(Wordstat.quote).label("quotes")).filter(or_(*content_filter)).group_by(Wordstat.article_ref_id).subquery()
+        content_filter = [Wordstat.word == term for term in content_list]
+        stmt = db.session.query(Wordstat.article_ref_id, func.count('*').label("wrd_count"), func.sum(Wordstat.count).label("wordcount"), func.array_agg(Wordstat.quote).label("quotes")).\
+            filter(or_(*content_filter)).group_by(Wordstat.article_ref_id).having(func.count('*') == len(content_list)).subquery()
         
         requested_articles = db.session.query(Article.dbid, Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract, stmt.c.wordcount, stmt.c.quotes).\
             join(stmt, Article.dbid == stmt.c.article_ref_id).\
-                filter(and_(stmt.c.wrd_count == len(content_list)),\
-                    and_(*title_filter), or_(*author_filter),\
+                filter(and_(*title_filter), or_(*author_filter),\
                     and_(Article.year >= timestart, Article.year <= until),\
                     and_(*filter_type), and_(*search_filter)).order_by(asc(getattr(Article, "dbid")))
         

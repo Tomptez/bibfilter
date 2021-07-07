@@ -12,7 +12,7 @@ class Article(db.Model):
     
     # Define the name of columns and their attributes using SQLAlchemy:   
     # The naming of the collumns tries to follow the bibtex naming scheme https://www.bibtex.com/e/entry-types/
-    dbid = db.Column(db.Integer, primary_key=True, nullable=False) 
+    dbid = db.Column(db.Integer, primary_key=True, nullable=False, index=True) 
     ID = db.Column(db.String)
     ENTRYTYPE = db.Column(db.String)
     title = db.Column(db.String)
@@ -66,10 +66,10 @@ class Article(db.Model):
 
 class Wordstat(db.Model):
     id = db.Column(db.Integer, primary_key=True, nullable=False)
-    word = db.Column(db.String)
+    word = db.Column(db.String, index=True, nullable=False)
     count = db.Column(db.Integer)
     quote = db.Column(db.String)
-    article_ref_id = db.Column(db.Integer, db.ForeignKey("Article.dbid"))
+    article_ref_id = db.Column(db.Integer, db.ForeignKey("Article.dbid"), index=True)
 
 # Table Schema
 class TableSchema(ma.Schema):
