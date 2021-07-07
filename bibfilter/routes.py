@@ -15,12 +15,15 @@ from unidecode import unidecode
 from dotenv import load_dotenv
 import threading
 import nltk
+from nltk.corpus import stopwords 
 from flask_table import Table, Col, OptCol
 import time
 import cProfile
 import io
 import pstats
 import contextlib
+
+ENGLISH_STOPWORDS = set(stopwords.words('english'))
 
 @contextlib.contextmanager
 def profiledd():
@@ -162,7 +165,13 @@ def main():
     
     # Lemmatize Content search words
     stemmer = nltk.stem.snowball.SnowballStemmer("english")
-    args["content"] = " ".join([stemmer.stem(word) for word in args["content"].split()])
+    # Split content searchstring into a list and remove special characters
+    args["content"] = [''.join(e for e in word if e.isalnum()) for word in args["content"].split()]
+    # Use only the root of the word
+    args["content"] = [stemmer.stem(word) for word in args["content"]]
+    # Ignore english stopwords
+    args["content"] = [word for word in args["content"] if word not in ENGLISH_STOPWORDS]
+    
     
     # Query items from database
     begin = time.time()
@@ -180,32 +189,20 @@ def main():
     
     for ki, item in enumerate(requested_articles):
         item = dict(item)
-        contentSearchList = args["content"].split()
             
         if item["url"] != "":
             item["url"] = Markup(f'<a class="externalUrl" target="_blank" href="{item["url"]}">Source</a>')
         
-        if args["content"] != "":
-            # item["quote"] = json.loads(item["quotes"][0])
+        if args["content"] != []:
             for ji, li in enumerate(item["quotes"]):
                     item["quotes"][ji] = li.split(';SEP;')
-            # item["quote"] = json.loads(item["quote"])
-        
-        
-            # item["quote"] = {}
-            # item["count"] = 0
-            # for searchterm in contentSearchList:
-            #     searchwordstat = db.session.query(Wordstat).filter(Wordstat.word == searchterm, Wordstat.article_ref_id == item["dbid"]).first()
-            #     item["quote"][searchterm] = json.loads(searchwordstat.quote)
-            #     item["count"] += int(searchwordstat.count)
-        
         
         def formatQuotes():
             finalQuotes = ""
             count = 0
             # Take all 4 quotes available
             for i in range(4):
-                for j, searchterm in enumerate(contentSearchList):
+                for j, searchterm in enumerate(args["content"]):
                     count += 1
                     try:
                         if finalQuotes == "":
@@ -243,40 +240,6 @@ def main():
     
     end = time.time()
     print(f"Modifying results took {end - begin:.4f} seconds")
-                
-        # def formatQuotes():
-        #     finalQuotes = ""
-        #     quoteList = json.loads(item["quote"])
-        #     count = 0
-        #     for i in range(len(quoteList)):
-        #         try:
-        #             if finalQuotes == "":
-        #                 finalQuotes = quoteList[i]
-        #             else:
-        #                 finalQuotes += "<p>" + quoteList[i] + "</p>"
-        #         except Exception as e:
-        #             pass
-        #     return finalQuotes
-        
-        # # Check whether environment variable is set to show search quotes            
-        # formattedAbstract = f'<b>Abstract</b><br>{item["abstract"]}</b><br>' if item["abstract"] != "" else ""         
-        # if args["content"] != "" and os.environ.get("SHOW_SEARCH_QUOTES") == "Yes":
-        #     finalQuotes = formatQuotes()
-            
-        #     hiddentext = Markup(f'<div class="hidden_content">{formattedAbstract}<br><b>Search Results</b><br>{finalQuotes}</div>')
-        # else:
-        #     if item["abstract"] != "":
-        #         hiddentext = Markup(f'<div class="hidden_content">{formattedAbstract}</div>')
-        #     else:
-        #         hiddentext = ""
-        # item["abstract"] = hiddentext
-        
-        # if "count" not in item:
-        #     item["count"] = 0
-        # if "word" not in item:
-        #     item["word"] = "none"
-        # items.append(item)
-    
     
     # Sort by importantWordsCount if the argument is passed
     if countsorting:
@@ -296,7 +259,6 @@ def main():
     suggestLink = os.environ["SUGGEST_LITERATURE_URL"]
     return render_template("main.html", table=table, args=arguments, numResults=numResults, suggestLink=suggestLink)
 
-    
   
 ## Frontend: Return admin page
 @app.route("/admin", methods=["GET"])
@@ -304,7 +266,6 @@ def main():
 def admin():
     link = os.environ["SUGGEST_LITERATURE_URL"]
     return render_template("admin.html", suggestLink=link)
-
 
 
 # Function to Select the correct articles based on the selection done by the user in the frontent
@@ -325,11 +286,10 @@ def selectEntries(request_json):
     search_term = request_json["search"]
     title =  request_json["title"]
     author = request_json["author"]
-    content = request_json["content"]
     
     sortby = request_json["sort"]
     sort_order = request_json["direction"]
-    timestart = request_json["timestart"] if len(request_json["timestart"]) == 4 and request_json["timestart"].isdigit else "0"
+    timestart = request_json["timestart"] if len(request_json["timestart"]) == 4 and request_json["timestart"].isdigit else None
     until = request_json["until"] if len(request_json["until"]) == 4 and request_json["until"].isdigit else "3000"
     article_type = "%" if request_json["type"] == "all" else request_json["type"]
     direction = desc if sort_order == 'desc' else asc
@@ -337,16 +297,16 @@ def selectEntries(request_json):
     title_list = title.split()
     search_term_list = search_term.split()
     author_list = author.split()
-    content_list = content.split()
+    content_list = request_json["content"]
+    print(content_list)
 
     #ILIKE is similar to LIKE in all aspects except in one thing: it performs a case in-sensitive matching
     #Unidecode removes accent from the search string whereas unaccent removes accents from the database. The unaccent Extension has to be installed for postgresql
     title_filter = [unaccent(Article.title).ilike(f'%{unidecode(term)}%') for term in title_list]
     search_filter = [unaccent(Article.searchIndex).ilike(f'%{unidecode(term)}%') for term in search_term_list]
     author_filter = [unaccent(Article.author).ilike(f'%{unidecode(term)}%') for term in author_list]
-    # content_filter = [unaccent(Wordstat.word) == term for term in content_list]
-    # content_filter = [unaccent(Article.importantWords).ilike(f'%{unidecode(" "+term+" ")}%') for term in content_list]
-    content_filter = [Article.wordnet.any(Wordstat.word == term) for term in content_list]
+    # time start is used as a filter, otherwise articles without a year are not selected, even if no year is specified
+    timestart_filter = [Article.year >= timestart] if timestart != None else []
     
         # orderby = desc(getattr(Wordstat, sortby))
     orderby = direction(getattr(Article, sortby))
@@ -355,45 +315,22 @@ def selectEntries(request_json):
     filter_type = [~Article.icon.like("book"), ~Article.icon.like("article")] if article_type == "other" else [Article.icon.like(article_type)]
    
     # Todo articles without year!
-   
-    # if len(content_list) == 0:
-    #     requested_articles = db.session.query(Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract).\
-    #         filter(and_(*title_filter), or_(*author_filter),\
-    #             and_(Article.year >= timestart, Article.year <= until),\
-    #             and_(*filter_type), and_(*search_filter)).\
-    #             order_by(orderby)
-            
-    # db.session.query(Article.title, Wordstat.count, Wordstat.quote).join(Wordstat).filter(Article.title.like("%social%"), Wordstat.word.like(searchword)).all()
-    # reqq = db.session.query(Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract).all()
-    # else:
-        # requested_articles = db.session.query(Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract, Wordstat.word, Wordstat.count, Wordstat.quote).join(Wordstat).\
-        #     filter(and_(*title_filter), or_(*author_filter), and_(*content_filter),\
-        #         and_(Article.year >= timestart, Article.year <= until),\
-        #         and_(*filter_type), and_(*search_filter)).\
-        #         order_by(orderby)
-        
                 
     # db.session.query(Article).filter(and_(Article.wordnet.any(Wordstat.word=="social"), Article.wordnet.any(Wordstat.word=="vote"))).all()
     if len(content_list) == 0:
         requested_articles = db.session.query(Article.dbid, Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract).\
             filter(and_(*title_filter), or_(*author_filter),\
-                and_(Article.year >= timestart, Article.year <= until),\
+                and_(*timestart_filter, Article.year <= until),\
                 and_(*filter_type), and_(*search_filter)).order_by(orderby)
     else:
-        # requested_articles = db.session.query(Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract, Wordstat.count, Wordstat.quote).\
-        #     join(Article.wordnet.and_(Wordstat.word==content_list[0])).\
-        #     filter(and_(*title_filter), or_(*author_filter), and_(*content_filter),\
-        #         and_(Article.year >= timestart, Article.year <= until),\
-        #         and_(*filter_type), and_(*search_filter)).order_by(orderby)
-        
-        content_filter = [Wordstat.word == term for term in content_list]
+        content_filter = [Wordstat.word == f"{unidecode(term)}" for term in content_list]
         stmt = db.session.query(Wordstat.article_ref_id, func.count('*').label("wrd_count"), func.sum(Wordstat.count).label("wordcount"), func.array_agg(Wordstat.quote).label("quotes")).\
             filter(or_(*content_filter)).group_by(Wordstat.article_ref_id).having(func.count('*') == len(content_list)).subquery()
         
         requested_articles = db.session.query(Article.dbid, Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract, stmt.c.wordcount, stmt.c.quotes).\
             join(stmt, Article.dbid == stmt.c.article_ref_id).\
                 filter(and_(*title_filter), or_(*author_filter),\
-                    and_(Article.year >= timestart, Article.year <= until),\
+                    and_(*timestart_filter, Article.year <= until),\
                     and_(*filter_type), and_(*search_filter)).order_by(asc(getattr(Article, "dbid")))
         
                 
