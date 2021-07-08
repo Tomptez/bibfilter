@@ -15,9 +15,8 @@ import schedule
 from pyzotero import zotero
 import os
 from io import BytesIO
-from pdfminer.high_level import extract_text, extract_text_to_fp
-from io import StringIO
-
+from pdfminer.high_level import extract_text
+from pdfminer.layout import LAParams
 
 def readAttachedPDF(articleID, title):
     def faceProblem(message):
@@ -43,12 +42,11 @@ def readAttachedPDF(articleID, title):
                         # Save attachment as pdf
                         zot.dump(pdfID, 'zot_article.pdf')
                         
-                        output_string = StringIO()
-                        with open('zot_article.pdf', 'rb') as file:
-                            extract_text_to_fp(file, output_string)
-                        
-                        content = output_string.getvalue()
-                        # content = extract_text('zot_article.pdf')
+                        # normal extract
+                        check()
+                        laparam = LAParams(detect_vertical=True)
+                        # get content of pdf
+                        content = extract_text('zot_article.pdf', laparams=laparam)
                         
                         # Check length of content
                         if len(content) < 4000:
@@ -132,6 +130,7 @@ def analyzeContent():
     notChecked = session.query(Article).count()
     print(f"Checked {checked} of {notChecked} articles")
     article = session.query(Article).filter(Article.contentChecked == False).first()
+    # article = session.query(Article).filter(Article.ID == "DUMD4NTK").first()
     articleID, articleTitle, articleSQLID = article.ID, article.title, article.dbid
     session.close()
     
