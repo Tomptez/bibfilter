@@ -43,7 +43,6 @@ def readAttachedPDF(articleID, title):
                         zot.dump(pdfID, 'zot_article.pdf')
                         
                         # normal extract
-                        check()
                         laparam = LAParams(detect_vertical=True)
                         # get content of pdf
                         content = extract_text('zot_article.pdf', laparams=laparam)
