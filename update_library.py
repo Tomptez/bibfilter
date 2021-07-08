@@ -49,6 +49,8 @@ def delete_old():
 
 def delete_old_words():
     session = db.session()
+    countwords = session.query(Wordstat).filter(Wordstat.article_ref_id == None).count()
+    print(f"Delete {countwords} content_words for filtering that belonged to old or updated articles")
     session.query(Wordstat).filter(Wordstat.article_ref_id == None).delete(synchronize_session=False)
     session.commit()
     session.close()
@@ -57,11 +59,9 @@ def check_item(item):
     global zotero_keylist
     global report
 
-
     # Create the session
     session = db.session()
     data = item["data"]
-
 
     ## Adding each key the keylist which is needed by delete_old()
     zotero_keylist.append(data["key"])
@@ -117,7 +117,7 @@ def check_item(item):
     try:
         for dic in data["creators"]:
             try:
-                # Entriers without first name use "name", otherwise firstName and lastName
+                # Entriers without firstName use "name", otherwise firstName and lastName
                 if "name" in dic:
                     if len(authorlast) > 0:
                         authorlast += "; " + dic["name"]
@@ -202,14 +202,14 @@ def update_from_zotero():
     try:
         collectionID = os.environ["COLLECTION_ID"]
     except:
-        collectionID = "None"
+        collectionID = None
 
     # Connect to the database
     zot = zotero.Zotero(libraryID, "group")
     
     # Retrieve the zotero items 50 at a time and get the number of items
     # Uses the COLLECTION_ID if one is provided as environment variable
-    if collectionID == "None":
+    if collectionID == None:
         items = zot.top(limit=50)
         size = zot.num_items()
     else:
@@ -254,12 +254,11 @@ def update_from_zotero():
 
 # Sync once with the zotero library, after that sync ever hour
 if __name__ == "__main__":
-    update_from_zotero()
-    time.sleep(5)
-    analyzeSomeArticles()
-    
     schedule.every(1).hours.do(update_from_zotero)
-    schedule.every(30).minutes.do(analyzeSomeArticles)
+    schedule.every(2).hours.do(analyzeSomeArticles)
+    
+    update_from_zotero()
+    analyzeSomeArticles()
     
     while True:
         schedule.run_pending()

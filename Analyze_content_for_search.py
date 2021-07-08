@@ -234,11 +234,12 @@ def analyzeContent():
     
 
 def analyzeSomeArticles():
-    for i in range(120):
+    total_articles = db.session.query(Article).count()
+    for i in range(total_articles):
         finished = analyzeContent()
         if finished:
             exit()
-        time.sleep(3)
+        time.sleep(2)
 
 # Analyze the Content based on articleFullTExt of each Artice
 # Once on start, after that every 1.1 hours (slighty unsynced from update_library.py)

@@ -222,7 +222,7 @@ def main():
         
         # Check whether environment variable is set to show search quotes            
         formattedAbstract = f'<b>Abstract</b><br>{item["abstract"]}</b><br>' if item["abstract"] != "" else ""         
-        if args["content"] != "" and os.environ.get("SHOW_SEARCH_QUOTES") == "Yes":
+        if args["content"] != [] and os.environ.get("SHOW_SEARCH_QUOTES") == "Yes":
             finalQuotes = formatQuotes()
             
             hiddentext = Markup(f'<div class="hidden_content">{formattedAbstract}<br><b>Search Results</b><br>{finalQuotes}</div>')
@@ -298,7 +298,6 @@ def selectEntries(request_json):
     search_term_list = search_term.split()
     author_list = author.split()
     content_list = request_json["content"]
-    print(content_list)
 
     #ILIKE is similar to LIKE in all aspects except in one thing: it performs a case in-sensitive matching
     #Unidecode removes accent from the search string whereas unaccent removes accents from the database. The unaccent Extension has to be installed for postgresql
