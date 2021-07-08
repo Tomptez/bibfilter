@@ -15,7 +15,9 @@ import schedule
 from pyzotero import zotero
 import os
 from io import BytesIO
-from pdfminer.high_level import extract_text
+from pdfminer.high_level import extract_text, extract_text_to_fp
+from io import StringIO
+
 
 def readAttachedPDF(articleID, title):
     def faceProblem(message):
@@ -38,12 +40,15 @@ def readAttachedPDF(articleID, title):
                 if each["data"]["itemType"] == "attachment":
                     if each["data"]["contentType"] == 'application/pdf':
                         pdfID = each["data"]["key"]
+                        # Save attachment as pdf
+                        zot.dump(pdfID, 'zot_article.pdf')
                         
-                        # get content of pdf
-                        pdfBytes = zot.file(pdfID)
-                        # convert bytes of bts to python object
-                        pdfFile = BytesIO(pdfBytes)
-                        content = extract_text(pdfFile)
+                        output_string = StringIO()
+                        with open('zot_article.pdf', 'rb') as file:
+                            extract_text_to_fp(file, output_string)
+                        
+                        content = output_string.getvalue()
+                        # content = extract_text('zot_article.pdf')
                         
                         # Check length of content
                         if len(content) < 4000:
@@ -52,7 +57,6 @@ def readAttachedPDF(articleID, title):
                         
                         # Fix: ValueError: A string literal cannot contain NUL (0x00) characters. Caused by a problem with extract_text
                         content = content.replace("\x00", "")
-                        
                         # Use end variable to look only after the dirst third of the document. Prevents mistakes in the rare cases that References is only mentioned on the first page
                         end = int(len(content) / 3.5)
                         
@@ -60,10 +64,11 @@ def readAttachedPDF(articleID, title):
                         iterString = 'REFERENCES|References|[\W|\n][R|r][E|e][F|f][E|e][R|r][E|e][N|n][C|c][E|e][S|s]|[\W|\n][R|r] [E|e] [F|f] [E|e] [R|r] [E|e] [N|n] [C|c] [E|e] [S|s]|[B|b][I|i][B|b][L|l][I|i][O|o][G|g][R|r][A|a][P|p][H|h][Y|y]'
                         
                         # Cover cases where there is tons of \n newlines in the scanned code:
-                        if len(content) / content.count("\n") < 4:
-                            content = content.replace("\n", "")
-                            iterString = 'REFERENCES|References|[R|r][E|e][F|f][E|e][R|r][E|e][N|n][C|c][E|e][S|s]|[R|r] [E|e] [F|f] [E|e] [R|r] [E|e] [N|n] [C|c] [E|e] [S|s]|[B|b][I|i][B|b][L|l][I|i][O|o][G|g][R|r][A|a][P|p][H|h][Y|y]'
-                            
+                        if content.count("\n") > 0:
+                            if len(content) / content.count("\n") < 4:
+                                content = content.replace("\n", "")
+                                iterString = 'REFERENCES|References|[R|r][E|e][F|f][E|e][R|r][E|e][N|n][C|c][E|e][S|s]|[R|r] [E|e] [F|f] [E|e] [R|r] [E|e] [N|n] [C|c] [E|e] [S|s]|[B|b][I|i][B|b][L|l][I|i][O|o][G|g][R|r][A|a][P|p][H|h][Y|y]'
+                        
                         i = re.finditer(iterString, content[end:])
                         # the variable last refers to the last "references" word in the text. It is used to crop off the references at the end of the articles. last.start() is the start of the word "references"
                         last = None
@@ -108,7 +113,6 @@ def readAttachedPDF(articleID, title):
         print(e)
         return
 
-    # Returns "" if there is no PDF attached, " " if theres a problem with the PDF, otherwise the full content of the PDF
     return content, references
 
 def clean_tokens(blob):
@@ -121,17 +125,13 @@ def clean_tokens(blob):
     tokens = [token for token in tokens if token not in stop_words]
     return tokens
 
-def count_words(word, blob):
-    return blob.words.count(word)
-
 def analyzeContent():
     print()
     session = db.session()
-    checked = len(list(session.query(Article).filter(Article.contentChecked == True)))
-    notChecked = len(list(session.query(Article)))
+    checked = session.query(Article).filter(Article.contentChecked == True).count()
+    notChecked = session.query(Article).count()
     print(f"Checked {checked} of {notChecked} articles")
     article = session.query(Article).filter(Article.contentChecked == False).first()
-    # article = session.query(Article).filter(Article.dbid == 2).first()
     articleID, articleTitle, articleSQLID = article.ID, article.title, article.dbid
     session.close()
     
@@ -172,8 +172,8 @@ def analyzeContent():
     # optional: sort
     sorted_words = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
-    # optional: print
-    # print(f"Top words in {title}")
+    # # optional: print
+    # print(f"Top words in Article:")
     # for word, score in sorted_words[:40]:
     #     print(f"Word: {word}, count: {score}")
 
@@ -231,10 +231,6 @@ def analyzeContent():
     article.contentChecked = True
     session.commit()
     session.close()
-    
-    # local_vars = list(locals().items())
-    # for var, obj in local_vars:
-    #     print(var, sys.getsizeof(obj))
     
     return False
     

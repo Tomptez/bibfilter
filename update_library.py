@@ -67,6 +67,7 @@ def check_item(item):
     zotero_keylist.append(data["key"])
 
     req = session.query(Article).filter(Article.ID == data["key"])
+    reqlen = req.count()
     # If article exists and hasn't been modified, update last sync date and return
 
     # Get date. If timezone environment variable exists, use it
@@ -76,7 +77,7 @@ def check_item(item):
     except:
         date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    if len(list(req)) > 0 and req[0].date_modified == data["dateModified"]:
+    if reqlen > 0 and req[0].date_modified == data["dateModified"]:
         req[0].date_last_zotero_sync = date_str
         session.commit()
         session.close()
@@ -84,7 +85,7 @@ def check_item(item):
         return False
 
     # If the item existed but has been modified delete it now and continue to add it again
-    elif len(list(req)) > 0 and req[0].date_modified != data["dateModified"]:
+    elif reqlen > 0 and req[0].date_modified != data["dateModified"]:
         dbid = req[0].dbid
         session.delete(req[0])
         session.commit()
@@ -238,7 +239,7 @@ def update_from_zotero():
 
     # Count how many items are in the database in total
     session = db.session()
-    total = len(list(session.query(Article)))
+    total = session.query(Article).count()
     session.close()
     print("------------------------------------")
     print("Summary of synchronization with Zotero:")
