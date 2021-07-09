@@ -159,6 +159,8 @@ def analyzeContent():
         articleContent, references = Q.get(timeout=360)
     except:
         print("Analyzing article didn't finish in expected time. Maybe the process was killed because of memory issue?")
+        session = db.session()
+        article = session.query(Article).filter(Article.ID == articleID).first()
         article.contentChecked = True
         session.commit()
         session.close()
