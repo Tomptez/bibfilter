@@ -204,7 +204,8 @@ def analyzeContent():
     articleContent = " ".join(articleContent.split())[200:]
     session = db.session()
     for word, count in sorted_words:
-        occurList = [m.start() for m in re.finditer(r" {word}", articleContent, re.IGNORECASE)]
+        regexp = f" {word.encode('unicode_escape').decode()}"
+        occurList = [m.start() for m in re.finditer(regexp, articleContent, re.IGNORECASE)]
         partList = []
         oldInstance, end = 0, 0
         for instance in occurList:
