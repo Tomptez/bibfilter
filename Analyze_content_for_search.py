@@ -143,16 +143,15 @@ def analyzeContent():
     print(f"Checked {checked} of {notChecked} articles")
     article = session.query(Article).filter(Article.contentChecked == False).first()
     # article = session.query(Article).filter(Article.ID == "DUMD4NTK").first()
-    articleID, articleTitle, articleSQLID = article.ID, article.title, article.dbid
-    session.close()
     
     if article == None:
         print("No articles left to analyze")
         return True
-    
-    print("Analyze:", articleTitle)
+    articleID, articleTitle, articleSQLID = article.ID, article.title, article.dbid
+    session.close()
     
     # Get the content of article content from attached PDFs
+    print("Analyze:", articleTitle)
     Q = Queue()
     p1 = Process(target=readAttachedPDF, args=(articleID, articleTitle, Q))
     p1.start()
