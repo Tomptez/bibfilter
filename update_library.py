@@ -2,18 +2,17 @@ import sys
 sys.path.append(".")
 import os
 import datetime
-import traceback
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from bibfilter import db
-from bibfilter.models import Article, Wordstat
-from Analyze_content_for_search import analyzeContent, analyzeSomeArticles
-from pyzotero import zotero
-from pprint import pprint
-from pytz import timezone
 import time
 import schedule
 import re
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from pprint import pprint
+from pytz import timezone
+from pyzotero import zotero
+from bibfilter import db
+from bibfilter.models import Article, Wordstat
+from Analyze_content_for_search import analyzeSomeArticles
 
 # List to store key of all items in zotero to later check if some of the items in the database have been deleted in zotero
 zotero_keylist = []
@@ -254,11 +253,11 @@ def update_from_zotero():
 
 # Sync once with the zotero library, after that sync ever hour
 if __name__ == "__main__":
-    schedule.every(1).hours.do(update_from_zotero)
-    schedule.every(2).hours.do(analyzeSomeArticles)
-    
     update_from_zotero()
     analyzeSomeArticles()
+    
+    schedule.every(1).hours.do(update_from_zotero)
+    schedule.every(2).hours.do(analyzeSomeArticles)
     
     while True:
         schedule.run_pending()

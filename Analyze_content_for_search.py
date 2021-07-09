@@ -11,14 +11,15 @@ import re
 import time
 from nltk.corpus import stopwords  
 from unidecode import unidecode
-import schedule
 from pyzotero import zotero
 import os
 from io import BytesIO
 from pdfminer.high_level import extract_text
 from pdfminer.layout import LAParams
+from PyPDF2 import PdfFileReader
+from multiprocessing import Process, Queue
 
-def readAttachedPDF(articleID, title):
+def readAttachedPDF(articleID, title, Q):
     def faceProblem(message):
         print(title)
         print(message+"\n")
@@ -42,10 +43,21 @@ def readAttachedPDF(articleID, title):
                         # Save attachment as pdf
                         zot.dump(pdfID, 'zot_article.pdf')
                         
+                        with open('zot_article.pdf', 'rb') as file:
+                            pdfFile = PdfFileReader(file)
+                            totalPages = pdfFile.getNumPages()
+                        
+                        # Parse only first 60 pages at maximum
+                        totalPages = min(60, totalPages)
+                        
                         # normal extract
                         laparam = LAParams(detect_vertical=True)
                         # get content of pdf
-                        content = extract_text('zot_article.pdf', laparams=laparam)
+                        content = ""
+                        # Parsing over few pages seperately may take longer but uses less memory
+                        step = 3
+                        for pg in range(0, totalPages, step):
+                            content += extract_text('zot_article.pdf', page_numbers=list(range(pg+step)), laparams=laparam)
                         
                         # Check length of content
                         if len(content) < 4000:
@@ -110,7 +122,8 @@ def readAttachedPDF(articleID, title):
         print(e)
         return
 
-    return content, references
+    Q.put((content, references))
+    return
 
 def clean_tokens(blob):
     tokens = blob.tokens
@@ -140,7 +153,21 @@ def analyzeContent():
     print("Analyze:", articleTitle)
     
     # Get the content of article content from attached PDFs
-    articleContent, references = readAttachedPDF(articleID, articleTitle)
+    Q = Queue()
+    p1 = Process(target=readAttachedPDF, args=(articleID, articleTitle, Q))
+    p1.start()
+    try:
+        articleContent, references = Q.get(timeout=360)
+    except:
+        print("Analyzing article didn't finish in expected time. Maybe the process was killed because of memory issue?")
+        article.contentChecked = True
+        session.commit()
+        session.close()
+        return False
+    finally:
+        p1.kill()
+        p1.join()
+        p1.close()
     
     # Need to use unidecode to handle some misread OCR_characters
     articleContent = unidecode(articleContent)
@@ -244,14 +271,4 @@ def analyzeSomeArticles():
 # Analyze the Content based on articleFullTExt of each Artice
 # Once on start, after that every 1.1 hours (slighty unsynced from update_library.py)
 if __name__ == "__main__":
-    while True:
-        finished = analyzeContent()
-        if finished:
-            exit()
-        time.sleep(2)
-
-    schedule.every(1.1).hours.do(analyzeContent)
-
-    while True:
-        schedule.run_pending()
-        time.sleep(60)
+    analyzeSomeArticles()
