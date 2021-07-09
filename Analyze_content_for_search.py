@@ -54,10 +54,10 @@ def readAttachedPDF(articleID, title, Q):
                         laparam = LAParams(detect_vertical=True)
                         # get content of pdf
                         content = ""
-                        # Parsing over few pages seperately may take longer but uses less memory
+                        # Parsing over only a few pages seperately may take longer but uses less memory
                         step = 3
                         for pg in range(0, totalPages, step):
-                            content += extract_text('zot_article.pdf', page_numbers=list(range(pg+step)), laparams=laparam)
+                            content += extract_text('zot_article.pdf', page_numbers=list(range(pg, pg+step)), laparams=laparam)
                         
                         # Check length of content
                         if len(content) < 4000:
