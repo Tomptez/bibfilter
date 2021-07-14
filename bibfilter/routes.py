@@ -1,4 +1,4 @@
-from flask import request, jsonify, render_template, redirect, url_for, Markup
+from flask import request, jsonify, render_template, redirect, url_for, Markup, send_file
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from sqlalchemy.sql.expression import asc, desc, or_, and_
@@ -25,19 +25,6 @@ import contextlib
 
 ENGLISH_STOPWORDS = set(stopwords.words('english'))
 
-@contextlib.contextmanager
-def profiledd():
-    pr = cProfile.Profile()
-    pr.enable()
-    yield
-    pr.disable()
-    s = io.StringIO()
-    ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
-    ps.print_stats()
-    # uncomment this to see who's calling what
-    # ps.print_callers()
-    print(s.getvalue())
-    
 load_dotenv()
 
 # Class needed to ignore accents. Not that the unaccent extension needs to be installed in postgreSQL
@@ -56,16 +43,19 @@ table_schema = TableSchema(many=True)
 bibliography_schema = BibliographySchema(many=True)
 
 ## API: return .bib as string
-@app.route("/bibfile", methods=["POST"])
+@app.route("/bibfile", methods=["GET"])
+@limiter.limit("4/minute")
 def get_bibfile():
-    req_data = request.get_json()
-    entries = selectEntries(req_data)
-    result = bibliography_schema.dump(entries)
+    arguments = request.args
+    args = cleanArguments(arguments);
+    articles = selectEntries(args, bibfile=True)
+    result = bibliography_schema.dump(articles)
 
     dbib = BibDatabase()
     dbib.entries = result
     bibtex_str = bibtexparser.dumps(dbib)
-    return bibtex_str
+    string_out = io.BytesIO(bytes(bibtex_str, 'utf-8'))
+    return send_file(string_out, mimetype="text/plain", download_name="results.bib", as_attachment=True)
 
 ## API Admin: Get Date of last sync between zotero and database
 @app.route("/zotero_sync", methods=["GET"])
@@ -153,38 +143,64 @@ def main():
             else:
                 return {}
 
-    
-    args = {"title":"", "author":"", "timestart":"", "until":"", "type":"all", "sort":"author", "direction":"asc", "content":"", "search":""}
-    
-    countsorting = False
-    # Prioritize sorting on count if no manual sorting is in place
-    if arguments.get("content") != None and arguments.get("content") != "" and arguments.get("sort") == None:
-        countsorting = True
-    
-    args.update(arguments)
-    
-    # Lemmatize Content search words
-    stemmer = nltk.stem.snowball.SnowballStemmer("english")
-    # Split content searchstring into a list and remove special characters
-    args["content"] = [''.join(e for e in word if e.isalnum()) for word in args["content"].split()]
-    # Use only the root of the word
-    args["content"] = [stemmer.stem(word) for word in args["content"]]
-    # Ignore english stopwords
-    args["content"] = [word for word in args["content"] if word not in ENGLISH_STOPWORDS]
-    
+    args = cleanArguments(arguments)
+    args_get_str = argsToStr(arguments)
     
     # Query items from database
     begin = time.time()
     requested_articles = selectEntries(args)
-    
-    # with profiled():
-    #     requested_articles = requested_articles.all()
-    
-    requested_articles= requested_articles.all()
+    requested_articles = requested_articles.all()
     
     end = time.time()
-    print(f"Executing query took {end - begin:.4f} seconds")
+    print(f"\nExecuting query took {end - begin:.4f} seconds")
     
+    items = cleanResults(args, requested_articles)
+    
+    countsorting = False
+    # Sort on wordcount if no other sorting is specified
+    if arguments.get("content") != None and arguments.get("content") != "" and arguments.get("sort") == None:
+        items = sorted(items, reverse=True, key=lambda k: k["wordcount"]) 
+    
+    sort = args["sort"]
+    reverse = True if args["direction"] == "desc" else False
+    # args need to be passed so the filter isn't reset when sorting
+    table = ItemTable(args=args, items=items, sort_by=sort, sort_reverse=reverse)
+    
+    numResults = len(items)
+    
+    suggestLink = os.environ["SUGGEST_LITERATURE_URL"]
+    
+    end = time.time()
+    print(f"Finished loading everything in {end - begin:.4f} seconds\n")
+    return render_template("main.html", table=table, args=arguments, getStr=args_get_str, numResults=numResults, suggestLink=suggestLink)
+
+  
+## Frontend: Return admin page
+@app.route("/admin", methods=["GET"])
+@basic_auth.required
+def admin():
+    link = os.environ["SUGGEST_LITERATURE_URL"]
+    return render_template("admin.html", suggestLink=link)
+
+
+def cleanArguments(arguments):
+    args = {"title":"", "author":"", "timestart":"", "until":"", "type":"all", "sort":"author", "direction":"asc", "content":"", "search":""}
+    
+    args.update(arguments)
+    
+    if args["content"] != "":
+        # Lemmatize Content search words
+        stemmer = nltk.stem.snowball.SnowballStemmer("english")
+        # Split content searchstring into a list and remove special characters
+        args["content"] = [''.join(e for e in word if e.isalnum()) for word in args["content"].split()]
+        # Use only the root of the word
+        args["content"] = [stemmer.stem(word) for word in args["content"]]
+        # Ignore english stopwords
+        args["content"] = [word for word in args["content"] if word not in ENGLISH_STOPWORDS]
+    
+    return args
+
+def cleanResults(args, requested_articles):
     items = []
     
     for ki, item in enumerate(requested_articles):
@@ -193,7 +209,7 @@ def main():
         if item["url"] != "":
             item["url"] = Markup(f'<a class="externalUrl" target="_blank" href="{item["url"]}">Source</a>')
         
-        if args["content"] != []:
+        if args["content"] != "":
             for ji, li in enumerate(item["quotes"]):
                     item["quotes"][ji] = li.split(';SEP;')
         
@@ -238,38 +254,21 @@ def main():
             item["wordcount"] = 0
         items.append(item)
     
-    end = time.time()
-    print(f"Modifying results took {end - begin:.4f} seconds")
-    
-    # Sort by importantWordsCount if the argument is passed
-    if countsorting:
-        newlist = sorted(items, reverse=True, key=lambda k: k["wordcount"]) 
-        items = newlist
-        
-    end = time.time()
-    print(f"Sorting took {end - begin:.4f} seconds")
-    
-    sort = args["sort"]
-    reverse = True if args["direction"] == "desc" else False
-    # args need to be passed so the filter isn't reset when sorting
-    table = ItemTable(args=args, items=items, sort_by=sort, sort_reverse=reverse)
-    
-    numResults = len(items)
-    
-    suggestLink = os.environ["SUGGEST_LITERATURE_URL"]
-    return render_template("main.html", table=table, args=arguments, numResults=numResults, suggestLink=suggestLink)
+    return items
 
-  
-## Frontend: Return admin page
-@app.route("/admin", methods=["GET"])
-@basic_auth.required
-def admin():
-    link = os.environ["SUGGEST_LITERATURE_URL"]
-    return render_template("admin.html", suggestLink=link)
-
+def argsToStr(arguments):
+    if len(arguments) > 0:
+        args_get_str = "?"
+        for key, val in arguments.items():
+            if args_get_str != "?":
+                args_get_str += "&"
+            args_get_str += f"{key}={val}"
+    else:
+        args_get_str = ""
+    return args_get_str
 
 # Function to Select the correct articles based on the selection done by the user in the frontent
-def selectEntries(request_json):
+def selectEntries(request_json, bibfile=False):
     """ 
     Example JSON:
     {
@@ -306,31 +305,40 @@ def selectEntries(request_json):
     author_filter = [unaccent(Article.author).ilike(f'%{unidecode(term)}%') for term in author_list]
     # time start is used as a filter, otherwise articles without a year are not selected, even if no year is specified
     timestart_filter = [Article.year >= timestart] if timestart != None else []
-    
-        # orderby = desc(getattr(Wordstat, sortby))
-    orderby = direction(getattr(Article, sortby))
-        
+    until_filter = [Article.year <= until]
     # Filter by Article.icon because unlike Artikcle.ENTRYTYPE, Article.icon groups books and bookchapters together
     filter_type = [~Article.icon.like("book"), ~Article.icon.like("article")] if article_type == "other" else [Article.icon.like(article_type)]
-   
-    # Todo articles without year!
-                
-    # db.session.query(Article).filter(and_(Article.wordnet.any(Wordstat.word=="social"), Article.wordnet.any(Wordstat.word=="vote"))).all()
-    if len(content_list) == 0:
-        requested_articles = db.session.query(Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract).\
-            filter(and_(*title_filter), or_(*author_filter),\
-                and_(*timestart_filter, Article.year <= until),\
-                and_(*filter_type), and_(*search_filter)).order_by(orderby)
-    else:
-        content_filter = [Wordstat.word == f"{unidecode(term)}" for term in content_list]
+    
+    filters = title_filter + search_filter + author_filter + timestart_filter + filter_type + until_filter
+    
+    content_filter = [Wordstat.word == f"{unidecode(term)}" for term in content_list]
+    
+    # How to order the results
+    orderby = direction(getattr(Article, sortby))
+    
+    # Desired columns
+    columns = [Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract]            
+    
+    
+    if len(content_list) == 0 and bibfile:
+        requested_articles = db.session.query(Article).\
+            filter(*filters).order_by(orderby)
+    elif len(content_list) == 0:
+        requested_articles = db.session.query(*columns).\
+            filter(*filters).order_by(orderby)
+    elif bibfile:    
         stmt = db.session.query(Wordstat.article_ref_id, func.sum(Wordstat.count).label("wordcount"), func.array_agg(Wordstat.quote).label("quotes")).\
             filter(or_(*content_filter)).group_by(Wordstat.article_ref_id).having(func.count('*') == len(content_list)).subquery()
         
-        requested_articles = db.session.query(Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract, stmt.c.wordcount, stmt.c.quotes).\
+        requested_articles = db.session.query(Article).\
             join(stmt, Article.dbid == stmt.c.article_ref_id).\
-                filter(and_(*title_filter), or_(*author_filter),\
-                    and_(*timestart_filter, Article.year <= until),\
-                    and_(*filter_type), and_(*search_filter)).order_by(orderby)
+                filter(*filters).order_by(orderby)
+    else:
+        stmt = db.session.query(Wordstat.article_ref_id, func.sum(Wordstat.count).label("wordcount"), func.array_agg(Wordstat.quote).label("quotes")).\
+            filter(or_(*content_filter)).group_by(Wordstat.article_ref_id).having(func.count('*') == len(content_list)).subquery()
         
+        requested_articles = db.session.query(*columns, stmt.c.wordcount, stmt.c.quotes).\
+            join(stmt, Article.dbid == stmt.c.article_ref_id).\
+                filter(*filters).order_by(orderby)
                 
     return requested_articles
