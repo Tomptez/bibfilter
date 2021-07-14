@@ -317,21 +317,20 @@ def selectEntries(request_json):
                 
     # db.session.query(Article).filter(and_(Article.wordnet.any(Wordstat.word=="social"), Article.wordnet.any(Wordstat.word=="vote"))).all()
     if len(content_list) == 0:
-        requested_articles = db.session.query(Article.dbid, Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract).\
+        requested_articles = db.session.query(Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract).\
             filter(and_(*title_filter), or_(*author_filter),\
                 and_(*timestart_filter, Article.year <= until),\
                 and_(*filter_type), and_(*search_filter)).order_by(orderby)
     else:
         content_filter = [Wordstat.word == f"{unidecode(term)}" for term in content_list]
-        stmt = db.session.query(Wordstat.article_ref_id, func.count('*').label("wrd_count"), func.sum(Wordstat.count).label("wordcount"), func.array_agg(Wordstat.quote).label("quotes")).\
+        stmt = db.session.query(Wordstat.article_ref_id, func.sum(Wordstat.count).label("wordcount"), func.array_agg(Wordstat.quote).label("quotes")).\
             filter(or_(*content_filter)).group_by(Wordstat.article_ref_id).having(func.count('*') == len(content_list)).subquery()
         
-        requested_articles = db.session.query(Article.dbid, Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract, stmt.c.wordcount, stmt.c.quotes).\
+        requested_articles = db.session.query(Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract, stmt.c.wordcount, stmt.c.quotes).\
             join(stmt, Article.dbid == stmt.c.article_ref_id).\
                 filter(and_(*title_filter), or_(*author_filter),\
                     and_(*timestart_filter, Article.year <= until),\
-                    and_(*filter_type), and_(*search_filter)).order_by(asc(getattr(Article, "dbid")))
+                    and_(*filter_type), and_(*search_filter)).order_by(orderby)
         
                 
-        # print(requested_articles.first())
     return requested_articles
