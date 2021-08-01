@@ -149,7 +149,6 @@ def main():
     # Query items from database
     begin = time.time()
     requested_articles = selectEntries(args)
-    requested_articles = requested_articles.all()
     
     end = time.time()
     print(f"\nExecuting query took {end - begin:.4f} seconds")
@@ -228,8 +227,12 @@ def cleanResults(args, requested_articles):
                             finalQuotes += "<p>" + item["quotes"][j][i] + "</p>"
                             # finalQuotes += "<p>" + item["quote"][searchterm][i] + "</p>"
                     except Exception as e:
-                        # list index out of range (When there is less than 4 items available)
-                        return finalQuotes
+                        # list index out of range (When there is less than 4 qzote available)
+                        # if there are no quotes left for either searchterm return:
+                        if j+1 == len(args["content"]):
+                            return finalQuotes
+                        else:
+                            continue
                     
                     # Use six quotes at most (when using multiple searchterms)
                     if count == 6:
