@@ -125,7 +125,7 @@ def main():
         title = Col('Title', column_html_attrs={"class":"colTitle"})
         publication = Col('Publication', column_html_attrs={"class":"colPublication"})
         url = Col('URL', column_html_attrs={"class":"tableUrl colUrl"})
-        wordcount = Col('Occur', show=True)
+        wordcount = Col('Occur', show=False)
         abstract = Col('hidden', column_html_attrs={"class":"hiddenRowContent"})
         
         allow_sort = True
@@ -241,7 +241,7 @@ def cleanResults(args, requested_articles):
         
         # Check whether environment variable is set to show search quotes            
         formattedAbstract = f'<b>Abstract</b><br>{item["abstract"]}</b><br>' if item["abstract"] != "" else ""         
-        if args["content"] != [] and os.environ.get("SHOW_SEARCH_QUOTES") == "Yes":
+        if args["content"] != "" and os.environ.get("SHOW_SEARCH_QUOTES") == "Yes":
             finalQuotes = formatQuotes()
             
             hiddentext = Markup(f'<div class="hidden_content">{formattedAbstract}<br><b>Search Results</b><br>{finalQuotes}</div>')
