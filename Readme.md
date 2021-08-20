@@ -167,5 +167,17 @@ You do however need to make sure that you have the right to push to dokku. For t
     git push some_name master
 
 If there are problems online you might want to read to logs of your running application
-    
+
+### 3. Restarting the Application
+
+In case of issues a restart may be necessary
+
+1. Login to the server using SSH key. 
+ a. Open command prompt.
+ b. Connect to the server by typing (you need to be in the university or be connected to the VPN)
+   ssh nbreznau@134.102.137.46
+ c. You might have to enter the password you chose when setting the ssh key up
+2. Restart
+    dokku ps:start bibfilter
+  
     dokku logs my_application_name --tail
