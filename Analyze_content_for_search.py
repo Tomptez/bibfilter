@@ -1,6 +1,5 @@
 # Indexes all words of a text to make the text easily searchable and to provide matching text passages.
 
-from textblob import TextBlob as tb
 import nltk
 # need NLTK data punkt, stopwords, wordnet, brown, averaged_perceptron_tagger
 import sys
@@ -125,16 +124,6 @@ def readAttachedPDF(articleID, title, Q):
     Q.put((content, references))
     return
 
-def clean_tokens(blob):
-    tokens = blob.tokens
-    stop_words = set(stopwords.words('english'))
-    stemmer = nltk.stem.snowball.SnowballStemmer("english")
-    tokens = [token for token in tokens if len(token) > 2]
-    tokens = [stemmer.stem(token) for token in tokens]
-    # tokens = [token.lemmatize().lower() for token in tokens]
-    tokens = [token for token in tokens if token not in stop_words]
-    return tokens
-
 def analyzeContent():
     print()
     session = db.session()
@@ -169,100 +158,20 @@ def analyzeContent():
         p1.kill()
         p1.join()
         p1.close()
-    
+        
     # Need to use unidecode to handle some misread OCR_characters
     articleContent = unidecode(articleContent)
     session = db.session()
     article = session.query(Article).filter(Article.ID == articleID).first()
     article.articleFullText = articleContent
     
-    if articleContent == "":
-        article.contentChecked = True
-        session.commit()
-        session.close()
-        return False
-    else:
-        session.commit()
-        session.close()
-        
-    
-    blob = tb(articleContent)
-    blob = tb(" ".join(clean_tokens(blob)))
-
-    # Count all the words if they appear at least twice
-    scores = {}
-    for word in blob.words:
-        if blob.word_counts[word] > 1:
-            scores[word] = blob.word_counts[word]
-
-    # optional: sort
-    sorted_words = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-
-    # # optional: print
-    # print(f"Top words in Article:")
-    # for word, score in sorted_words[:40]:
-    #     print(f"Word: {word}, count: {score}")
-
-    articleContent = " ".join(articleContent.split())[200:]
-    session = db.session()
-    for word, count in sorted_words:
-        regexp = f" {word.encode('unicode_escape').decode()}"
-        occurList = [m.start() for m in re.finditer(regexp, articleContent, re.IGNORECASE)]
-        partList = []
-        oldInstance, end = 0, 0
-        for instance in occurList:
-            # Check whether occurence is already included in the last excerpt
-            if instance < end:
-                continue
-            
-            start = max(instance-160,0)
-            end = min(instance+165,len(articleContent)-1)
-            
-            if oldInstance > start:
-                del partList[-1]
-            
-            textPart = articleContent[start:end]
-            
-            words = textPart.split(" ")
-            cnt, wordIndex = 0, 0
-            for ix, k in enumerate(words):
-                cnt += len(k)+1
-                # instance-start+2 is usually 162, the exact center, except when the word is at the start of the article
-                if cnt > instance-start+2:
-                    wordIndex = ix
-                    break
-            htmlWords = words[1:wordIndex] + [f"<b>{words[wordIndex]}</b>"] + words[wordIndex+1:-1]
-            textFinal = "(...)" + " ".join(htmlWords) + "(...)"
-            
-            partList.append(textFinal)
-            
-            # Only use 4 quotes for each word
-            if len(partList) > 3:
-                break
-            
-            oldInstance = instance
-        
-        # Make sure the word hasn't been added before e.g. the process was killed while adding words from this article
-        if session.query(Wordstat).filter(Wordstat.word == word, Wordstat.article_ref_id == articleSQLID).first() == None:
-            quote = ";SEP;".join(partList)
-            newWord = Wordstat(word=word, count=scores[word], quote=quote, article_ref_id=articleSQLID)
-            session.add(newWord)
-            session.commit()
-    
-    content_words = " ".join(scores.keys())
-    
-    article = session.query(Article).filter(Article.ID == articleID).first()
-    article.importantWords = content_words
-    # article.importantWordsCount = json.dumps(scores)
-    # article.importantWordsLocation = json.dumps(occurence_dict)
     article.contentChecked = True
     session.commit()
     session.close()
-    
     return False
     
 
-def analyzeSomeArticles():
+def analyzeArticles():
     total_articles = db.session.query(Article).count()
     for i in range(total_articles):
         time.sleep(2)
@@ -273,4 +182,4 @@ def analyzeSomeArticles():
 # Analyze the Content based on articleFullTExt of each Artice
 # Once on start, after that every 1.1 hours (slighty unsynced from update_library.py)
 if __name__ == "__main__":
-    analyzeSomeArticles()
+    analyzeArticles()

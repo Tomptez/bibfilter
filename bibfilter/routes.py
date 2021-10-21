@@ -22,6 +22,10 @@ import cProfile
 import io
 import pstats
 import contextlib
+from elasticsearch import Elasticsearch
+from pprint import pprint
+from elasticsearch_dsl import Search
+from elasticsearch_dsl import Q
 
 ENGLISH_STOPWORDS = set(stopwords.words('english'))
 
@@ -122,10 +126,11 @@ def main():
         icon = OptCol(' ', choices=icons, default_key="other", column_html_attrs={"class":"colIcon"})
         authorlast = Col('Author', column_html_attrs={"class":"colAuthor"})
         year = Col('Year', column_html_attrs={"class":"colYear"})
+        
         title = Col('Title', column_html_attrs={"class":"colTitle"})
         publication = Col('Publication', column_html_attrs={"class":"colPublication"})
         url = Col('URL', column_html_attrs={"class":"tableUrl colUrl"})
-        wordcount = Col('Occur', show=False)
+        score = Col('Score', column_html_attrs={"class":"colScore"})
         abstract = Col('hidden', column_html_attrs={"class":"hiddenRowContent"})
         
         allow_sort = True
@@ -143,35 +148,91 @@ def main():
             else:
                 return {}
 
+
     args = cleanArguments(arguments)
     args_get_str = argsToStr(arguments)
     
     # Query items from database
     begin = time.time()
-    requested_articles = selectEntries(args)
     
-    end = time.time()
-    print(f"\nExecuting query took {end - begin:.4f} seconds")
+    if args["search"] != "xxx":
+        
+        es = Elasticsearch(host="localhost", port=9200)
+
+        s = Search(using=es, index='my-index')
+        if args["search"].strip() != "":
+            q = Q("multi_match", type="phrase", slop=400, query=args["search"], fields=['title', 'author', "abstract", "articleFullText"], minimum_should_match="80%")
+            s = s.query(q)
+            s = s.highlight('abstract', number_of_fragments=0)
+            s = s.highlight("articleFullText", fragment_size=0)
+            # , max_analyzed_offset=1000000
+            s = s.highlight_options(boundary_scanner="sentence", encoder="html", order='score', boundary_chars="\n")
+        s = s[:800]
+        response = s.execute()
+        print(response.hits.total.value)
+        
+        items = []
+        for each in response:
+            item = {}
+            
+            cols = ["icon", "year", "authorlast", "title", "publication",]
+            for col in cols:
+                item[col] = each[col]
+            
+            item["score"] = f"{float(each.meta.score):.3f}"
+            item["url"] = Markup(f'<a class="externalUrl" target="_blank" href="{each["url"]}">Source</a>')
+            try:
+                if "abstract" in each.meta.highlight:
+                    abstract = "".join(each.meta.highlight.abstract)
+                else:
+                    abstract = each["abstract"]
+                if "articleFullText" in each.meta.highlight:
+                    highlights = "<b>Abstract</b><br>"+"<br><br>".join(each.meta.highlight.articleFullText)
+                else:
+                    highlights = ""
+                    
+                item["abstract"] = Markup("<div class='hidden_content'> <b>Abstract</b><br>"+ abstract + "<br><br>" + highlights +"</div>")
+            except Exception as e:
+                print(e)
+                print("no highlight available")
+                item["abstract"] = Markup("<div class='hidden_content'> <b>Abstract</b><br></div>")
+                
+            items.append(item)
+        
+        table = ItemTable(args=args, items=items)
+        
+        numResults = len(response)
+        
+        end = time.time()
+        print(f"Finished loading everything in {end - begin:.4f} seconds\n")
+        suggestLink = os.environ["SUGGEST_LITERATURE_URL"]
+        return render_template("main.html", table=table, args=arguments, getStr=args_get_str, numResults=numResults, suggestLink=suggestLink)
     
-    items = cleanResults(args, requested_articles)
-    
-    countsorting = False
-    # Sort on wordcount if no other sorting is specified
-    if arguments.get("content") != None and arguments.get("content") != "" and arguments.get("sort") == None:
-        items = sorted(items, reverse=True, key=lambda k: k["wordcount"]) 
-    
-    sort = args["sort"]
-    reverse = True if args["direction"] == "desc" else False
-    # args need to be passed so the filter isn't reset when sorting
-    table = ItemTable(args=args, items=items, sort_by=sort, sort_reverse=reverse)
-    
-    numResults = len(items)
-    
-    suggestLink = os.environ["SUGGEST_LITERATURE_URL"]
-    
-    end = time.time()
-    print(f"Finished loading everything in {end - begin:.4f} seconds\n")
-    return render_template("main.html", table=table, args=arguments, getStr=args_get_str, numResults=numResults, suggestLink=suggestLink)
+    else:
+        requested_articles = selectEntries(args)
+        
+        end = time.time()
+        print(f"\nExecuting query took {end - begin:.4f} seconds")
+        
+        items = cleanResults(args, requested_articles)
+        
+        countsorting = False
+        # Sort on wordcount if no other sorting is specified
+        if arguments.get("content") != None and arguments.get("content") != "" and arguments.get("sort") == None:
+            items = sorted(items, reverse=True, key=lambda k: k["wordcount"]) 
+        
+        sort = args["sort"]
+        reverse = True if args["direction"] == "desc" else False
+        # args need to be passed so the filter isn't reset when sorting
+        table = ItemTable(args=args, items=items, sort_by=sort, sort_reverse=reverse)
+        
+        numResults = len(items)
+        
+        suggestLink = os.environ["SUGGEST_LITERATURE_URL"]
+        
+        end = time.time()
+        print(f"Finished loading everything in {end - begin:.4f} seconds\n")
+        return render_template("main.html", table=table, args=arguments, getStr=args_get_str, numResults=numResults, suggestLink=suggestLink)
 
   
 ## Frontend: Return admin page

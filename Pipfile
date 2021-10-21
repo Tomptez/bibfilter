@@ -31,6 +31,8 @@ ocrmypdf = "*"
 flask-table = "*"
 marshmallow = "*"
 flask-marshmallow = "*"
+elasticsearch = "*"
+elasticsearch-dsl = "*"
 
 [requires]
 python_version = "3.9"

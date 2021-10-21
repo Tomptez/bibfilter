@@ -12,7 +12,7 @@ from pytz import timezone
 from pyzotero import zotero
 from bibfilter import db
 from bibfilter.models import Article, Wordstat
-from Analyze_content_for_search import analyzeSomeArticles
+from Analyze_content_for_search import analyzeArticles
 
 # List to store key of all items in zotero to later check if some of the items in the database have been deleted in zotero
 zotero_keylist = []
@@ -254,10 +254,10 @@ def update_from_zotero():
 # Sync once with the zotero library, after that sync ever hour
 if __name__ == "__main__":
     update_from_zotero()
-    analyzeSomeArticles()
+    analyzeArticles()
     
     schedule.every(1).hours.do(update_from_zotero)
-    schedule.every(2).hours.do(analyzeSomeArticles)
+    schedule.every(2).hours.do(analyzeArticles)
     
     while True:
         schedule.run_pending()

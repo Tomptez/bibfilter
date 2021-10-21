@@ -381,3 +381,16 @@ a.externalUrl:hover {
     max-width: 250px;
     margin: 0 auto;
 }
+
+.hidden_content em {
+    font-weight: bold;
+}
+
+.hiddenRowContent {
+    display: none;
+}
+
+.tableUrl {
+    white-space: nowrap;
+}
+
