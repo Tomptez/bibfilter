@@ -163,8 +163,9 @@ def main():
         if args["search"].strip() != "":
             q = Q("multi_match", type="phrase", slop=400, query=args["search"], fields=['title', 'author', "abstract", "articleFullText"], minimum_should_match="80%")
             s = s.query(q)
-            s = s.highlight('abstract', number_of_fragments=0)
-            s = s.highlight("articleFullText", fragment_size=0)
+            s = s.highlight('abstract', number_of_fragments=0, pre_tags=["<mark>"], post_tags=["</mark>"])
+            s = s.highlight("articleFullText", type="fvh", fragment_size=350, boundary_scanner="word", pre_tags=["<mark>"], post_tags=["</mark>"])
+            
             # , max_analyzed_offset=1000000
             s = s.highlight_options(boundary_scanner="sentence", encoder="html", order='score', boundary_chars="\n")
         s = s[:800]
@@ -180,21 +181,28 @@ def main():
                 item[col] = each[col]
             
             item["score"] = f"{float(each.meta.score):.3f}"
-            item["url"] = Markup(f'<a class="externalUrl" target="_blank" href="{each["url"]}">Source</a>')
+            if each["url"] != "":
+                item["url"] = Markup(f'<a class="externalUrl" target="_blank" href="{each["url"]}">Source</a>')
+            else:
+                item["url"] = ""
             try:
-                if "abstract" in each.meta.highlight:
-                    abstract = "".join(each.meta.highlight.abstract)
+                if hasattr(each.meta, 'highlight'):
+                    if "abstract" in each.meta.highlight:
+                        abstract = "".join(each.meta.highlight.abstract)
+                    else:
+                        abstract = each["abstract"]
+                    if "articleFullText" in each.meta.highlight:
+                        highlights = "<b>Text results</b><br>"+" (...)<br><br>".join(each.meta.highlight.articleFullText)
+                    else:
+                        highlights = ""
                 else:
                     abstract = each["abstract"]
-                if "articleFullText" in each.meta.highlight:
-                    highlights = "<b>Abstract</b><br>"+"<br><br>".join(each.meta.highlight.articleFullText)
-                else:
                     highlights = ""
                     
                 item["abstract"] = Markup("<div class='hidden_content'> <b>Abstract</b><br>"+ abstract + "<br><br>" + highlights +"</div>")
             except Exception as e:
                 print(e)
-                print("no highlight available")
+                print("Error. No highlight available")
                 item["abstract"] = Markup("<div class='hidden_content'> <b>Abstract</b><br></div>")
                 
             items.append(item)

@@ -382,8 +382,8 @@ a.externalUrl:hover {
     margin: 0 auto;
 }
 
-.hidden_content em {
-    font-weight: bold;
+mark    {
+    background-color:#fffd95;
 }
 
 .hiddenRowContent {
