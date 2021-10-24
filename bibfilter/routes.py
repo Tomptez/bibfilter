@@ -310,7 +310,7 @@ def cleanResults(args, requested_articles):
         
         # Check whether environment variable is set to show search quotes            
         formattedAbstract = f'<b>Abstract</b><br>{item["abstract"]}</b><br>' if item["abstract"] != "" else ""         
-        if args["content"] != "" and os.environ.get("SHOW_SEARCH_QUOTES") == "Yes":
+        if args["content"] != "" and os.environ.get("SHOW_SEARCH_QUOTES").upper() == "TRUE":
             finalQuotes = formatQuotes()
             
             hiddentext = Markup(f'<div class="hidden_content">{formattedAbstract}<br><b>Search Results</b><br>{finalQuotes}</div>')

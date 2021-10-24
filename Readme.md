@@ -48,19 +48,11 @@ Then you can select the database and install the unaccent extension
     CREATE EXTENSION unaccent;
 
 Before we can start the application, we need to set our environment variables.
-To do so, create a new file in the main directory (in which the Pipfile sits) called `.env` where you define the environment variables which we will use in the project.
-To create it type we will use the terminal editor `nano`. In your bash terminal type
+To do so, we need new file in the main directory (in which the Pipfile sits) called `.env` where you define the environment variables which we will use in the project. There is a sample .env file we can use as a template.
+Let's copy it as our real .env file and edit it. I will use the terminal editor `nano`. In your bash terminal type
 
+    cp sample.env .env
     nano .env
-
-and type (or paste) in the following variables
-
-    DATABASE_URL = "postgresql://postgres:mypassword@localhost/bibfilter"
-    APP_USERNAME = "username"
-    APP_PASSWORD = "password"
-    LIBRARY_ID = "2364338"
-    COLLECTION_ID = "VIZDZ4PX"
-    SUGGEST_LITERATURE_URL="https://duckduckgo.com"
 
 You can change the values of `APP_USERNAME` and `APP_PASSWORD` to whatever you like. They will be used for the login for the `/admin` page.
 `LIBRARY_ID` and `COLLECTION_ID` should reflect the respective ID of your zotero Library and collection. You can retrieve these IDs from the adress field in your browser if you open the collection at zotero.org in your browser. Note that it has to be a public library, otherwise you also need to use an API-Key which this application does not yet account for.
@@ -71,7 +63,7 @@ You then change `DATABASE_URL`, so that `postgres` is your PostgreSQL username (
 You can now close the `nano` editor by hitting Ctr+X and then typing `Y` and then `Enter` to save the file
 
 
-Then you can activate the environment via
+Now, you can activate the environment via
 
     pipenv shell
 
