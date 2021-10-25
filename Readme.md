@@ -1,8 +1,8 @@
 # Bibfilter
-A Searchable Literature database interface
+A Searchable Literature database web-interface for [Zotero](zotero.org/)
 
-The Backend is using flask.
-The front-end, which can be found under templates/main.html is being served from flask but is written in plain html/css and javascript so it can be used without flask.
+It is developed using python and flask and it is configured so it can easily be deployed using [dokku](https://dokku.com/).
+This version on the master branch uses [elasticsearch](https://www.elastic.co/) as a backend for searching. This is still a work in progress and not quite ready for deployment yet.
 
 ![Screenshot](/img/Screenshot.png?raw=true "Screenshot")
 

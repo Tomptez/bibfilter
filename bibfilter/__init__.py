@@ -46,6 +46,7 @@ if os.environ.get("SQL_DEBUG") == "Yes":
 # Don't sort json elements alphabetically 
 app.config['JSON_SORT_KEYS'] = False
 
+
 # Init Cors (needed to communicate properly on local server)
 CORS(app)
 # Init db

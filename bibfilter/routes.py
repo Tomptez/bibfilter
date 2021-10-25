@@ -46,6 +46,12 @@ limiter = Limiter(
 table_schema = TableSchema(many=True)
 bibliography_schema = BibliographySchema(many=True)
 
+# Do you want to show quotes of the  Articles in the results (TRUE or FALSE)
+showSearchQuotes = os.environ.get("SHOW_SEARCH_QUOTES").upper() == "TRUE"
+
+# Use elasticsearch (TRUE or FALSE)
+useElasticSearch = os.environ.get("USE_ELASTICSEARCH").upper() == "TRUE"
+
 ## API: return .bib as string
 @app.route("/bibfile", methods=["GET"])
 @limiter.limit("4/minute")
@@ -155,11 +161,12 @@ def main():
     # Query items from database
     begin = time.time()
     
-    if args["search"] != "xxx":
+    # Use elasticsearch if enabled via environment variable
+    if useElasticSearch:
         
         es = Elasticsearch(host="localhost", port=9200)
 
-        s = Search(using=es, index='my-index')
+        s = Search(using=es, index='bibfilter-index')
         if args["search"].strip() != "":
             q = Q("multi_match", type="phrase", slop=400, query=args["search"], fields=['title', 'author', "abstract", "articleFullText"], minimum_should_match="80%")
             s = s.query(q)
@@ -310,7 +317,7 @@ def cleanResults(args, requested_articles):
         
         # Check whether environment variable is set to show search quotes            
         formattedAbstract = f'<b>Abstract</b><br>{item["abstract"]}</b><br>' if item["abstract"] != "" else ""         
-        if args["content"] != "" and os.environ.get("SHOW_SEARCH_QUOTES").upper() == "TRUE":
+        if args["content"] != "" and showSearchQuotes == "TRUE":
             finalQuotes = formatQuotes()
             
             hiddentext = Markup(f'<div class="hidden_content">{formattedAbstract}<br><b>Search Results</b><br>{finalQuotes}</div>')

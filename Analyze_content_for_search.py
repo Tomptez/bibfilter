@@ -17,6 +17,79 @@ from pdfminer.high_level import extract_text
 from pdfminer.layout import LAParams
 from PyPDF2 import PdfFileReader
 from multiprocessing import Process, Queue
+from elasticsearch import Elasticsearch
+from elasticsearch import helpers
+
+if os.environ.get("SHOW_SEARCH_QUOTES").upper() == "TRUE":
+    es = Elasticsearch(host="localhost", port=9200)
+    
+elasticMapping = {
+    "mappings": {
+        "properties": {
+            "dbid": {"type": "text"},
+            "ID": {"type": "text"},
+            "ENTRYTYPE": {"type": "text"},
+            "title": {"type": "text", "term_vector": "with_positions_offsets"},
+            "author": {"type": "text", "term_vector": "with_positions_offsets"},
+            "authorlast": {"type": "text"},
+            "year": {"type": "text"},
+            "journal": {"type": "text"},
+            "publication": {"type": "text"},
+            "booktitle": {"type": "text"},
+            "isbn": {"type": "text"},
+            "issn": {"type": "text"},
+            "doi": {"type": "text"},
+            "pages": {"type": "text"},
+            "volume": {"type": "text"},
+            "number": {"type": "text"},
+            "tags": {"type": "text"},
+            "icon": {"type": "text"},
+            "notes": {"type": "text"},
+            "abstract": {"type": "text", "term_vector": "with_positions_offsets"},
+            "editor": {"type": "text"},
+            "tags_man": {"type": "text"},
+            "tags_auto": {"type": "text"},
+            "extra": {"type": "text"},
+            "journal_abbrev": {"type": "text"},
+            "address": {"type": "text"},
+            "institution": {"type": "text"},
+            "publisher": {"type": "text"},
+            "language": {"type": "text"},
+            "url": {"type": "text"},
+            "articleFullText": {"type": "text", "term_vector": "with_positions_offsets"},
+            "importantWords": {"type": "text"},
+            "contentChecked": {"type": "text"},
+            "references": {"type": "text"},
+            "searchIndex": {"type": "text"},
+            "date_added": {"type": "text"},
+            "date_modified": {"type": "text"},
+            "date_last_zotero_sync": {"type": "text"},
+            "date_modified_pretty": {"type": "text"},
+            "date_added_pretty": {"type": "text"},
+            "_date_created_str": {"type": "text"},
+            "_date_created": {"type": "text"}
+        }
+    }
+}
+
+# Converts SQL article to dict to insert in elasticsearch
+def row2dict(row):
+        d = {}
+        for column in row.__table__.columns:
+            d[column.name] = str(getattr(row, column.name))
+        return d
+    
+def addToElasticsearch(article):
+    try:
+        if os.environ.get("USE_ELASTICSEARCH").upper() == "TRUE":
+            if not es.indices.exists("bibfilter-index"):
+                es.indices.create(index="bibfilter-index", body=elasticMapping)
+            body = row2dict(article)
+            res = es.index(index='bibfilter-index', body=body)
+        else:
+            pass
+    except Exception as e:
+        print(e)
 
 def readAttachedPDF(articleID, title, Q):
     def faceProblem(message):
@@ -124,18 +197,24 @@ def readAttachedPDF(articleID, title, Q):
     Q.put((content, references))
     return
 
-def analyzeContent():
+def progressMessage():
     print()
     session = db.session()
     checked = session.query(Article).filter(Article.contentChecked == True).count()
     notChecked = session.query(Article).count()
     print(f"Checked {checked} of {notChecked} articles")
+    session.close()
+
+def analyzeContent():
+    progressMessage()
+    
+    session = db.session()
     article = session.query(Article).filter(Article.contentChecked == False).first()
-    # article = session.query(Article).filter(Article.ID == "DUMD4NTK").first()
     
     if article == None:
         print("No articles left to analyze")
         return True
+    
     articleID, articleTitle, articleSQLID = article.ID, article.title, article.dbid
     session.close()
     
@@ -151,6 +230,7 @@ def analyzeContent():
         session = db.session()
         article = session.query(Article).filter(Article.ID == articleID).first()
         article.contentChecked = True
+        addToElasticsearch(article)
         session.commit()
         session.close()
         return False
@@ -163,9 +243,16 @@ def analyzeContent():
     articleContent = unidecode(articleContent)
     session = db.session()
     article = session.query(Article).filter(Article.ID == articleID).first()
+    
+    # Make sure articleFullText is at most 1000000 characters long
+    if len(articleContent) > 1000000:
+         articleContent =  articleContent[:1000000]
+         print("Shorten articleContent because it exceeds max size of 1000000 chars")
+        
     article.articleFullText = articleContent
     
     article.contentChecked = True
+    addToElasticsearch(article)
     session.commit()
     session.close()
     return False

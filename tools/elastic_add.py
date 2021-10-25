@@ -82,17 +82,6 @@ def delete():
     print(res)
     return
 
-# Checks whether one Full text of article is too long.
-# Should probably be handled elsewhere instead of here
-def shortenContent():
-    session = db.session()
-    rows = db.session.query(Article).all()
-    for row in rows:
-        if len(row.articleFullText) > 1000000:
-            print("Error. text is too long. This needs to be handled")
-            exit()
-    session.close()
-    return
 
 if __name__ == "__main__":
     
