@@ -1,0 +1,5 @@
+punkt
+stopwords
+wordnet
+brown
+averaged_perceptron_tagger

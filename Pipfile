@@ -6,8 +6,6 @@ verify_ssl = true
 [packages]
 flask = "*"
 flask-sqlalchemy = "*"
-flask-marshmallow = "*"
-marshmallow = "*"
 flask-cors = "*"
 sqlalchemy = "*"
 bibtexparser = "*"
@@ -22,9 +20,24 @@ flask-limiter = "*"
 pyzotero = "*"
 schedule = "*"
 unidecode = "*"
+"pdfminer.six" = "*"
+camelot-py = {extras = ["cv"], version = "*"}
+pillow = "*"
+pdf2image = "*"
+pypdf2 = "*"
+textblob = "*"
+pikepdf = "*"
+ocrmypdf = "*"
+flask-table = "*"
+marshmallow = "*"
+flask-marshmallow = "*"
+elasticsearch = "*"
+elasticsearch-dsl = "*"
 
 [requires]
 python_version = "3.9"
 
 [dev-packages]
 requests = "*"
+matplotlib = "*"
+memory-profiler = "*"

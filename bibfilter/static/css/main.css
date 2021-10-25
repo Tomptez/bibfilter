@@ -44,12 +44,11 @@ body {
 }
 
 #add-box {
-    font-size: 0.8em;
+    font-size: 0.9em;
     text-align: center;
     margin: 2em;
     padding: 4px;
-    border-radius: 4px;
-    border: 1px dotted grey;
+    border: 0;
 
 }
 button:focus {
@@ -146,7 +145,7 @@ fieldset td{
     outline: none;
 }
 
-.form-row > button, .center-top > .button{
+.bigbutton {
     background: #3a4a52;
     font-size: 1.4em;
     padding: 3px 20px;
@@ -156,7 +155,7 @@ fieldset td{
     border-radius: 3px;
 }
 
-.form-row > button:hover, p > .linkButton:hover {
+.bigbutton:hover, .linkButton:hover {
     background: #4d6e80;
 }
 
@@ -164,24 +163,30 @@ fieldset td{
     margin: 0;
 }
 
-.form-row > .reset {
+.resetbutton {
     background-color:  #804d4d;
 }
 
-.form-row > .linkButton, .center-top > .linkButton, p > .linkButton{
- 
+.resetbutton:hover {
+    background-color:  #c48484;
+}
+
+.linkButton{
     background: #0d7d9f;
     color: white;
     text-decoration: none;
     margin-left: 5px;
+    margin-bottom: 2px;
     padding: 8 20;
     display: inline-block;
     font-weight: bold;
-    /* font-size: 1.1em; */
     padding: 0.4em;
     border-radius: 2px;
 }
 
+#sortrelevance {
+    text-align: right;
+}
 
 .fieldset_table td {
     border: none;
@@ -218,7 +223,7 @@ th {
     table {
         font-size: 1em;
     }
-    table colgroup #authorlast {
+    table .colAuthor {
         max-width: 13%;
     }
     td {
@@ -229,20 +234,14 @@ th {
         padding: 5px;
     }
     
-    colgroup #url {
+    .colUrl {
     /* min-width needed for compatibility with firefox, width for compatibility with chrome */
-        width: 55pt;
-        min-width: 55pt;
+        width: 30pt;
+        min-width: 30pt;
     }
-    colgroup #year {
+    .colYear {
         min-width: 45pt;
     } 
-    colgroup #ID {
-        min-width: 55pt;
-    }
-    colgroup #_date_created_str{
-        min-width: 62pt;
-    }
 }
 
 /* For very small screens */
@@ -262,24 +261,24 @@ th {
     td {
         padding: 10px 1px;
     }
-    colgroup #title {
+    .colTitle {
         width: 200pt;
     }
-    colgroup #url {
+    .colUrl {
         min-width: 40pt;
     }
-    colgroup #year {
+    .colYear {
         min-width: 30pt;
     }
 }
 
 @media (min-width: 902px) {
-    colgroup #title {
+    .colTitle {
         min-width: 48%;
     }
 }
 @media (max-width: 901px) {
-    colgroup #title {
+    .colTitle {
         min-width: 30%;
     }
 }
@@ -291,12 +290,12 @@ td {
 }
 
 /* add stripes to table */
-.articlerow:nth-child(odd) {
+#tablehead:nth-child(odd) {
     background-color: #f2f2f2;
 }
 
 /* Hover over table rows */
-.articlerow:hover td {
+#tablehead:hover td {
     background: #dbf5fa;
     }
 
@@ -348,11 +347,14 @@ a.externalUrl:hover {
 }
 
 .hidden_content {
-    padding: 5px 0px;
-    padding-right: 70px;
+    padding: 5px 10px;
     font-size: 1.1em;
     text-align: justify;
-    
+    width: 90%;
+}
+
+.hidden_left {
+    background-color: #7796a8;
 }
 
 /* Admin Header*/
@@ -377,4 +379,29 @@ a.externalUrl:hover {
     flex: 1;
     max-width: 250px;
     margin: 0 auto;
+}
+
+mark    {
+    background-color:#fffd95;
+}
+
+.hiddenRowContent {
+    display: none;
+}
+
+.tableUrl {
+    white-space: nowrap;
+}
+
+#sourcecode {
+    background: #b5d0d8;
+    color: black;
+    text-decoration: none;
+    margin-left: 5px;
+    margin-bottom: 2px;
+    padding: 8 20;
+    display: inline-block;
+    font-weight: bold;
+    padding: 0.4em;
+    border-radius: 2px;
 }

@@ -3,6 +3,7 @@
 
 from bibfilter import db, ma
 from marshmallow import pre_dump, post_dump, Schema
+import json
 
 ## Define Article Class
 class Article(db.Model):
@@ -11,7 +12,7 @@ class Article(db.Model):
     
     # Define the name of columns and their attributes using SQLAlchemy:   
     # The naming of the collumns tries to follow the bibtex naming scheme https://www.bibtex.com/e/entry-types/
-    dbid = db.Column(db.Integer, primary_key=True, nullable=False) 
+    dbid = db.Column(db.Integer, primary_key=True, nullable=False, index=True) 
     ID = db.Column(db.String)
     ENTRYTYPE = db.Column(db.String)
     title = db.Column(db.String)
@@ -41,6 +42,10 @@ class Article(db.Model):
     publisher = db.Column(db.String)
     language = db.Column(db.String)
     url = db.Column(db.String)
+    articleFullText = db.Column(db.Text)
+    importantWords = db.Column(db.String)
+    contentChecked = db.Column(db.Boolean)
+    references = db.Column(db.String)
     searchIndex = db.Column(db.String)
     date_added = db.Column(db.String)
     date_modified = db.Column(db.String)
@@ -50,6 +55,8 @@ class Article(db.Model):
     _date_created_str = db.Column(db.String)
     _date_created= db.Column(db.DateTime)
     
+    wordnet = db.relationship("Wordstat", backref="article_ref")
+    
     # needed?
     # def __init__(self, name, description, price, qty):
     #     self.name = name
@@ -57,14 +64,18 @@ class Article(db.Model):
     #     self.price = price
     #     self.qty = qty
 
-# Create DB / already done previously
-# db.create_all()
+class Wordstat(db.Model):
+    id = db.Column(db.Integer, primary_key=True, nullable=False)
+    word = db.Column(db.String, index=True, nullable=False)
+    count = db.Column(db.Integer)
+    quote = db.Column(db.String)
+    article_ref_id = db.Column(db.Integer, db.ForeignKey("Article.dbid"), index=True)
 
-# Article Schema
-class ArticleSchema(ma.Schema):
+# Table Schema
+class TableSchema(ma.Schema):
 
     class Meta:
-        fields = ("icon", "authorlast","year", "title", "publication", "url", "abstract")
+        fields = ("icon", "authorlast", "year", "title", "publication", "url", "importantWordsCount", "abstract", "importantWordsLocation")
         ordered = True
 
 class BibliographySchema(ma.Schema):

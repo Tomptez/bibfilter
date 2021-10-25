@@ -44,7 +44,7 @@
     <div class="sidebar">
         <div id="result-box">
             <p><b>Number of Results: <span id="result_count"> </span>  </b>
-            <a href="javascript:void(0)" class="button linkButton" id="download" onclick="downloadBib()"> Download as .bib</a></p>
+            <a href="/bibfile{{ getStr }}" class="button linkButton" id="download"> Download as .bib</a></p>
         </div>
 
         <div class="stickyside">
@@ -57,7 +57,7 @@
                         <input class="fulltext" type="text" name="search" placeholder="Topic, Keywords, DOI, Authors...">
                     </li>
                     <li class="form-row top-search">
-                        <button type="submit">Search</button>
+                        <button class="bigbutton" type="submit">Search</button>
                     </li>
                     <div id="advanced-box">
                     <li class="form-row text-only">
@@ -70,6 +70,10 @@
                     <li class="form-row">
                         <label for="author">Author</label>
                         <input type="text" name="author"> 
+                    </li>
+                    <li class="form-row">
+                        <label for="content">Content</label>
+                        <input type="text" name="content"> 
                     </li>
                     <li class="form-row">
                         <label for="title">From (year)</label>
@@ -96,8 +100,8 @@
                     </fieldset>
                     </li>
                     <li class="form-row">
-                    <button class="reset" onclick="resetPage()">Reset</button>
-                    <button type="submit">Search</button>
+                        <button class="resetbutton bigbutton" onclick="resetPage()">Reset</button>
+                        <button class="bigbutton" type="submit">Search</button>
                     </li>
                 </div>
                 </ul>
@@ -111,9 +115,9 @@
     </div>
 
     <div class="main">
+        <div id="sortrelevance"></div>
         <div id="showData"></div>
     </div>
-    
 </div>
 
 </body>
