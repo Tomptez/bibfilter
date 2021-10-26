@@ -1,14 +1,12 @@
 # Indexes all words of a text to make the text easily searchable and to provide matching text passages.
 
-import nltk
-# need NLTK data punkt, stopwords, wordnet, brown, averaged_perceptron_tagger
 import sys
 sys.path.append(".")
 from bibfilter import db
-from bibfilter.models import Article, Wordstat
+from bibfilter.models import Article
+from bibfilter.functions import elasticsearchCheck
 import re
 import time
-from nltk.corpus import stopwords  
 from unidecode import unidecode
 from pyzotero import zotero
 import os
@@ -20,8 +18,21 @@ from multiprocessing import Process, Queue
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
 
-if os.environ.get("SHOW_SEARCH_QUOTES").upper() == "TRUE":
+import time
+connected = False
+
+useElasticSearch = elasticsearchCheck()
+if useElasticSearch:
     es = Elasticsearch(host="localhost", port=9200)
+
+while not connected:
+    try:
+        es.info()
+        connected = True
+    except:
+        print("Elasticsearch not available yet, trying again in 2s...")
+        time.sleep(2)
+
     
 elasticMapping = {
     "mappings": {
@@ -59,6 +70,7 @@ elasticMapping = {
             "articleFullText": {"type": "text", "term_vector": "with_positions_offsets"},
             "importantWords": {"type": "text"},
             "contentChecked": {"type": "text"},
+            "elasticIndexed": {"type": "text"},
             "references": {"type": "text"},
             "searchIndex": {"type": "text"},
             "date_added": {"type": "text"},
@@ -66,8 +78,6 @@ elasticMapping = {
             "date_last_zotero_sync": {"type": "text"},
             "date_modified_pretty": {"type": "text"},
             "date_added_pretty": {"type": "text"},
-            "_date_created_str": {"type": "text"},
-            "_date_created": {"type": "text"}
         }
     }
 }
@@ -81,15 +91,15 @@ def row2dict(row):
     
 def addToElasticsearch(article):
     try:
-        if os.environ.get("USE_ELASTICSEARCH").upper() == "TRUE":
-            if not es.indices.exists("bibfilter-index"):
-                es.indices.create(index="bibfilter-index", body=elasticMapping)
+        if useElasticSearch:
             body = row2dict(article)
-            res = es.index(index='bibfilter-index', body=body)
+            res = es.index(index='bibfilter-index', document=body, id=body["ID"])
+            return True
         else:
-            pass
+            return False
     except Exception as e:
         print(e)
+        return False
 
 def readAttachedPDF(articleID, title, Q):
     def faceProblem(message):
@@ -230,7 +240,8 @@ def analyzeContent():
         session = db.session()
         article = session.query(Article).filter(Article.ID == articleID).first()
         article.contentChecked = True
-        addToElasticsearch(article)
+        # Add to elasticSearch and mark as indexed
+        article.elasticIndexed = addToElasticsearch(article)
         session.commit()
         session.close()
         return False
@@ -252,7 +263,8 @@ def analyzeContent():
     article.articleFullText = articleContent
     
     article.contentChecked = True
-    addToElasticsearch(article)
+    # Add to elasticSearch and mark as indexed
+    article.elasticIndexed = addToElasticsearch(article)
     session.commit()
     session.close()
     return False

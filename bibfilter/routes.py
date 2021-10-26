@@ -5,7 +5,7 @@ from sqlalchemy.sql.expression import asc, desc, or_, and_
 from sqlalchemy.sql import func
 from bibtexparser.bibdatabase import BibDatabase
 import bibtexparser
-from bibfilter.models import Article, Wordstat, BibliographySchema, TableSchema
+from bibfilter.models import Article, BibliographySchema, TableSchema
 from bibfilter import app, basic_auth, db
 from update_library import update_from_zotero
 from datetime import datetime
@@ -23,6 +23,7 @@ import io
 import pstats
 import contextlib
 from elasticsearch import Elasticsearch
+from bibfilter.functions import elasticsearchCheck
 from pprint import pprint
 from elasticsearch_dsl import Search
 from elasticsearch_dsl import Q
@@ -49,8 +50,9 @@ bibliography_schema = BibliographySchema(many=True)
 # Do you want to show quotes of the  Articles in the results (TRUE or FALSE)
 showSearchQuotes = os.environ.get("SHOW_SEARCH_QUOTES").upper() == "TRUE"
 
-# Use elasticsearch (TRUE or FALSE)
-useElasticSearch = os.environ.get("USE_ELASTICSEARCH").upper() == "TRUE"
+useElasticSearch = elasticsearchCheck()
+if useElasticSearch:
+    es = Elasticsearch(host="localhost", port=9200)
 
 ## API: return .bib as string
 @app.route("/bibfile", methods=["GET"])
@@ -164,8 +166,6 @@ def main():
     # Use elasticsearch if enabled via environment variable
     if useElasticSearch:
         
-        es = Elasticsearch(host="localhost", port=9200)
-
         s = Search(using=es, index='bibfilter-index')
         if args["search"].strip() != "":
             q = Q("multi_match", type="phrase", slop=400, query=args["search"], fields=['title', 'author', "abstract", "articleFullText"], minimum_should_match="80%")
@@ -175,7 +175,6 @@ def main():
             
             # , max_analyzed_offset=1000000
             s = s.highlight_options(boundary_scanner="sentence", encoder="html", order='score', boundary_chars="\n")
-        s = s[:800]
         response = s.execute()
         print(response.hits.total.value)
         

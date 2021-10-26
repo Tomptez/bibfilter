@@ -43,8 +43,8 @@ class Article(db.Model):
     language = db.Column(db.String)
     url = db.Column(db.String)
     articleFullText = db.Column(db.Text)
-    importantWords = db.Column(db.String)
     contentChecked = db.Column(db.Boolean)
+    elasticIndexed = db.Column(db.Boolean)
     references = db.Column(db.String)
     searchIndex = db.Column(db.String)
     date_added = db.Column(db.String)
@@ -52,25 +52,7 @@ class Article(db.Model):
     date_last_zotero_sync = db.Column(db.String)
     date_modified_pretty = db.Column(db.String)
     date_added_pretty = db.Column(db.String)
-    _date_created_str = db.Column(db.String)
-    _date_created= db.Column(db.DateTime)
     
-    wordnet = db.relationship("Wordstat", backref="article_ref")
-    
-    # needed?
-    # def __init__(self, name, description, price, qty):
-    #     self.name = name
-    #     self.description = description
-    #     self.price = price
-    #     self.qty = qty
-
-class Wordstat(db.Model):
-    id = db.Column(db.Integer, primary_key=True, nullable=False)
-    word = db.Column(db.String, index=True, nullable=False)
-    count = db.Column(db.Integer)
-    quote = db.Column(db.String)
-    article_ref_id = db.Column(db.Integer, db.ForeignKey("Article.dbid"), index=True)
-
 # Table Schema
 class TableSchema(ma.Schema):
 

@@ -11,8 +11,10 @@ from pprint import pprint
 from pytz import timezone
 from pyzotero import zotero
 from bibfilter import db
-from bibfilter.models import Article, Wordstat
+from bibfilter.models import Article
+from bibfilter.functions import elasticsearchCheck
 from Analyze_content_for_search import analyzeArticles
+from elasticsearch import Elasticsearch
 
 # List to store key of all items in zotero to later check if some of the items in the database have been deleted in zotero
 zotero_keylist = []
@@ -20,6 +22,10 @@ zotero_keylist = []
 # Count new and updated articles for finish report
 report = {"new" : 0, "updated" : 0, "existed" : 0, "deleted": 0}
 
+# Connect to elasticSearch if it's suppoed to be used
+useElasticSearch = elasticsearchCheck()
+if useElasticSearch:
+    es = Elasticsearch(host="localhost", port=9200)
 
 def delete_old():
     global report
@@ -37,6 +43,9 @@ def delete_old():
     for entry in request:
         if entry.ID not in zoteroKeys:
             print(f"delete {entry.title}")
+            # If indexed by Elasticsearch delete from elasticsearch
+            if entry.elasticIndexed:
+                es.delete(index='bibfilter-index', id=entry.ID, refresh=True)
             session.delete(entry)
             session.commit()
             count +=1
@@ -45,14 +54,6 @@ def delete_old():
 
     report["deleted"] = count
     return True
-
-def delete_old_words():
-    session = db.session()
-    countwords = session.query(Wordstat).filter(Wordstat.article_ref_id == None).count()
-    print(f"Delete {countwords} content_words for filtering that belonged to old or updated articles")
-    session.query(Wordstat).filter(Wordstat.article_ref_id == None).delete(synchronize_session=False)
-    session.commit()
-    session.close()
 
 def check_item(item):
     global zotero_keylist
@@ -85,7 +86,8 @@ def check_item(item):
 
     # If the item existed but has been modified delete it now and continue to add it again
     elif reqlen > 0 and req[0].date_modified != data["dateModified"]:
-        dbid = req[0].dbid
+        if req[0].elasticIndexed:
+            es.delete(index='bibfilter-index', id=req[0].ID, refresh=True)
         session.delete(req[0])
         session.commit()
         report["updated"] += 1
@@ -167,16 +169,14 @@ def check_item(item):
                         icon="book" if content["itemType"].startswith("book") else csv_bib_pattern[content["itemType"]], 
                         articleFullText = "",
                         references = "",
-                        importantWords = "",
                         searchIndex = " ".join([content["title"], author, content["publicationTitle"], content["abstractNote"], content["DOI"], content["ISSN"], content["ISBN"]]),
                         date_last_zotero_sync = date_str,
                         date_added = content["dateAdded"],
                         date_modified = content["dateModified"],
                         contentChecked = False,
+                        elasticIndexed = False,
                         date_modified_pretty = content["dateModified"].split("T")[0] + " " + content["dateModified"].split("T")[1][:-4],
-                        date_added_pretty = content["dateAdded"].split("T")[0] + " " + content["dateAdded"].split("T")[1][:-4],
-                        _date_created_str = date_str,
-                        _date_created = date_str)
+                        date_added_pretty = content["dateAdded"].split("T")[0] + " " + content["dateAdded"].split("T")[1][:-4])
     
     session.add(new_art)
     session.commit()
@@ -203,7 +203,8 @@ def update_from_zotero():
     except:
         collectionID = None
 
-    # Connect to the database
+
+    # Connect to the zotero database
     zot = zotero.Zotero(libraryID, "group")
     
     # Retrieve the zotero items 50 at a time and get the number of items
@@ -233,9 +234,6 @@ def update_from_zotero():
     # Delete all articles which are not in zotero anymore
     delete_old()
     
-    # Delete all words that belonged to deleted or modified entries
-    delete_old_words()
-
     # Count how many items are in the database in total
     session = db.session()
     total = session.query(Article).count()
