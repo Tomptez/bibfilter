@@ -25,14 +25,6 @@ useElasticSearch = elasticsearchCheck()
 if useElasticSearch:
     es = Elasticsearch(host="localhost", port=9200)
 
-while not connected:
-    try:
-        es.info()
-        connected = True
-    except:
-        print("Elasticsearch not available yet, trying again in 2s...")
-        time.sleep(2)
-
 # Converts SQL article to dict to insert in elasticsearch
 def row2dict(row):
         d = {}

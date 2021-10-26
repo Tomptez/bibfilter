@@ -138,7 +138,8 @@ def main():
         title = Col('Title', column_html_attrs={"class":"colTitle"})
         publication = Col('Publication', column_html_attrs={"class":"colPublication"})
         url = Col('URL', column_html_attrs={"class":"tableUrl colUrl"})
-        score = Col('Score', column_html_attrs={"class":"colScore"})
+        if useElasticSearch:
+            score = Col('Score', column_html_attrs={"class":"colScore"})
         abstract = Col('hidden', column_html_attrs={"class":"hiddenRowContent"})
         
         allow_sort = True

@@ -61,4 +61,6 @@ def elasticsearchCheck():
         except Exception as e:
             print(e)
             useElasticSearch = False
-    return useElasticSearch
+        return useElasticSearch
+    else:
+        return False
