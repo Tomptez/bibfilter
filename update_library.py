@@ -256,7 +256,7 @@ def update_from_zotero():
     session.close()
     print("------------------------------------")
     print("Summary of synchronization with Zotero:")
-    print(f"Added {report['new']} new entries.\n{report['existed']} entries existed already.")
+    print(f"{report['existed']} entries existed already. {report['new']} new entries were added.\n")
     print(f"Updated {report['updated']} entries\nDeleted {report['deleted']} articles.\n\nTotal Articles: {total}")
 
     # Reset the counters and the keylist

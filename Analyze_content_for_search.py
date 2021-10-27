@@ -8,7 +8,7 @@ from bibfilter.functions import elasticsearchCheck
 import re
 import time
 from unidecode import unidecode
-from pyzotero import zotero
+from pyzotero import zotero, zotero_errors
 import os
 from io import BytesIO
 from pdfminer.high_level import extract_text
@@ -51,13 +51,14 @@ def readAttachedPDF(articleID, title, Q):
         return ""
     
     try:
+        content = ""
+        references = ""
+        connectionError = False
+        
         libraryID = os.environ["LIBRARY_ID"]
         zot = zotero.Zotero(libraryID, "group")
         attachments = zot.children(articleID)
 
-        content = ""
-        references = ""
-        
         # Goes through each attachment if there is any
         for each in attachments:
             try:
@@ -140,14 +141,18 @@ def readAttachedPDF(articleID, title, Q):
                     print(title)
                     print("Error when trying to read attachments/PDFs")
                     print(e)
-                    
                     continue
+    except zotero_errors.HTTPError:
+        print("Experienced connection error")
+        connectionError = True
+        Q.put((content, references, connectionError))        
+        return                
     except Exception as e:
         print(e)
         print(f"Error occured when checking {title}\n")
         return
 
-    Q.put((content, references))
+    Q.put((content, references, connectionError))
     return
 
 def progressMessage():
@@ -177,9 +182,10 @@ def analyzeContent():
     p1 = Process(target=readAttachedPDF, args=(articleID, articleTitle, Q))
     p1.start()
     try:
-        articleContent, references = Q.get(timeout=360)
+        articleContent, references, connectionError = Q.get(timeout=360)
     except:
         print("Analyzing article didn't finish in expected time. Maybe the process was killed because of memory issue or the network connection was interrupted")
+        print("For this article there will be no content available")
         session = db.session()
         article = session.query(Article).filter(Article.ID == articleID).first()
         article.contentChecked = True
@@ -192,6 +198,10 @@ def analyzeContent():
         p1.kill()
         p1.join()
         p1.close()
+        
+    if connectionError:
+        print("There seems to be an issue with the zotero server. Will again try to connect later")
+        return True
         
     # Need to use unidecode to handle some misread OCR_characters
     articleContent = unidecode(articleContent)
