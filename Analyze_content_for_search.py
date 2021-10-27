@@ -143,8 +143,8 @@ def readAttachedPDF(articleID, title, Q):
                     
                     continue
     except Exception as e:
-        print(title)
         print(e)
+        print(f"Error occured when checking {title}\n")
         return
 
     Q.put((content, references))

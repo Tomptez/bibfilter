@@ -9,12 +9,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from pprint import pprint
 from pytz import timezone
-from pyzotero import zotero
+from pyzotero import zotero, zotero_errors
 from bibfilter import db
 from bibfilter.models import Article
 from bibfilter.functions import elasticsearchCheck
 from Analyze_content_for_search import analyzeArticles
 from elasticsearch import Elasticsearch
+from multiprocessing import Process, Queue
 
 # List to store key of all items in zotero to later check if some of the items in the database have been deleted in zotero
 zotero_keylist = []
@@ -184,6 +185,32 @@ def check_item(item):
 
     return True
 
+def getZoteroItems(Q):
+    # Retrieve the environment variables
+    libraryID = os.environ["LIBRARY_ID"]
+    
+    try:
+        collectionID = os.environ["COLLECTION_ID"]
+    except:
+        collectionID = None
+    
+    # Connect to the zotero database
+    zot = zotero.Zotero(libraryID, "group")
+    
+    try:
+        # Retrieve the zotero items 50 at a time and get the number of items
+        # Uses the COLLECTION_ID if one is provided as environment variable
+        if collectionID == None:
+            items = zot.everything(zot.top(limit=size))
+        else:
+            items = zot.everything(zot.collection_items_top(collectionID))
+    except Exception as e:
+        print(e)
+        items = None
+    finally:    
+        Q.put(items)
+        return
+
 def update_from_zotero():
     print("Started syncing with zotero collection")
     # Make variables alterable inside the function
@@ -195,42 +222,31 @@ def update_from_zotero():
     db.create_all()
     session.close()
 
-    # Retrieve the environment variables
-    libraryID = os.environ["LIBRARY_ID"]
-    
+    ## Use multiprocessing to handle zotero server connection timing out
+    Q = Queue()
+    p1 = Process(target=getZoteroItems, args=(Q,))
+    p1.start()
     try:
-        collectionID = os.environ["COLLECTION_ID"]
+        items = Q.get(timeout=360)
+        print("Queue finished")
+        if items == None:
+            print("Couldn't connect to zotero server, Trying again later.")
+            return
+        else:
+            print(len(items))
     except:
-        collectionID = None
-
-
-    # Connect to the zotero database
-    zot = zotero.Zotero(libraryID, "group")
-    
-    # Retrieve the zotero items 50 at a time and get the number of items
-    # Uses the COLLECTION_ID if one is provided as environment variable
-    if collectionID == None:
-        items = zot.top(limit=50)
-        size = zot.num_items()
-    else:
-        items = zot.collection_items_top(collectionID, limit=50)
-        size = zot.num_collectionitems(collectionID)
+        print("Connection to Zotero timed out")
+        return
+    finally:
+        p1.kill()
+        p1.join()
+        p1.close()
 
     # Iterate over every single entry
-    for num in range(size):
-
-        for item in items:
-
-            # check_item return (1,0,0) when adding new item, (0,1,0) when updating, (0,0,1) when item existed
-            check_item(item)
+    for item in items:
+        # check_item return (1,0,0) when adding new item, (0,1,0) when updating, (0,0,1) when item existed
+        check_item(item)
         
-        # Get next set of entries
-        try:
-            items = zot.follow()
-        # Stop when there are no items left
-        except Exception:
-            break
-
     # Delete all articles which are not in zotero anymore
     delete_old()
     
