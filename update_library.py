@@ -5,7 +5,6 @@ import datetime
 import time
 import schedule
 import re
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from pprint import pprint
 from pytz import timezone
@@ -217,10 +216,8 @@ def update_from_zotero():
     global zotero_keylist
     global report
 
-    session = db.session()
     # Create the database
     db.create_all()
-    session.close()
 
     ## Use multiprocessing to handle zotero server connection timing out
     Q = Queue()
@@ -257,7 +254,8 @@ def update_from_zotero():
     print("------------------------------------")
     print("Summary of synchronization with Zotero:")
     print(f"{report['existed']} entries existed already. {report['new']} new entries were added.\n")
-    print(f"Updated {report['updated']} entries\nDeleted {report['deleted']} articles.\n\nTotal Articles: {total}")
+    print(f"Updated {report['updated']} entries\nDeleted {report['deleted']} articles.")
+    print(f"Total Articles: {total}")
 
     # Reset the counters and the keylist
     report = {"new" : 0, "updated" : 0, "existed" : 0, "deleted": 0}

@@ -6,20 +6,21 @@
     <link rel="icon"  href="{{ url_for('static', filename='img/favicon.ico') }}">
     <!-- Bootstrap CSS -->
     <link type="text/css" rel="stylesheet"  href="{{ url_for('static', filename='css/main.css') }}" />
+    <link type="text/css" rel="stylesheet"  href="{{ url_for('static', filename='css/flask_table.css') }}" />
     <link rel="icon"  href="{{ url_for('static', filename='img/favicon.ico') }}">
 </head>
 <body>
 <!-- different than main-->
-<script src="{{ url_for('static', filename='js/download.js') }}"></script>
 <script src="{{ url_for('static', filename='js/jquery-3.6.0.slim.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/table.js') }}"></script>
+<script src="{{ url_for('static', filename='js/manipulate_table.js') }}"></script>
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
-<script src="{{ url_for('static', filename='js/common_functions.js') }}"></script>
 
 <div class="header">
     <div class="left">
         <form id="deleteArticlesForm">
             <div id="zoteroSyncNotification">
+            <b>Last sync with Zotero</b><br>
+            {{ lastSync }}
             </div>
         </form>
     </div>
@@ -32,7 +33,7 @@
     </div>
     <div class="right">
         <div id="clearDB" class="center-top">
-            <b>Clear Datase</b> <br>
+            <b>Clear Database</b> <br>
             (Empties the Database) <br>
         <!-- You need to return the value of your method, and returning false in an onclick event prevents the default behaviour -->
             <a href="/clearDB" class="linkButton button" onclick="return confirm('This will clear all articles from the database \nuntil the next sync with zotero occurs\n\n Are you sure you want to proceed?')">Clear</a>
@@ -43,7 +44,7 @@
 <div class="container" >
     <div class="sidebar">
         <div id="result-box">
-            <p><b>Number of Results: <span id="result_count"> </span>  </b>
+            <p><b>Number of Results: {{ numResults }} </b>
             <a href="/bibfile{{ getStr }}" class="button linkButton" id="download"> Download as .bib</a></p>
         </div>
 
@@ -54,7 +55,7 @@
                         <span><b>Search</b></span>
                     </li>
                     <li class="form-row text-only">
-                        <input class="fulltext" type="text" name="search" placeholder="Topic, Keywords, DOI, Authors...">
+                        <input class="fulltext" type="text" name="search" value="{{ args['search'] }}" placeholder="Topic, Keywords, DOI, Authors..." >
                     </li>
                     <li class="form-row top-search">
                         <button class="bigbutton" type="submit">Search</button>
@@ -65,23 +66,19 @@
                     </li>
                     <li class="form-row">
                         <label for="title">Title</label>
-                        <input type="text" name="title">
+                        <input type="text" name="title" value="{{ args['title'] }}">
                     </li>
                     <li class="form-row">
                         <label for="author">Author</label>
-                        <input type="text" name="author"> 
-                    </li>
-                    <li class="form-row">
-                        <label for="content">Content</label>
-                        <input type="text" name="content"> 
+                        <input type="text" name="author" value="{{ args['author'] }}"> 
                     </li>
                     <li class="form-row">
                         <label for="title">From (year)</label>
-                        <input type="text" name="timestart" id="timestart">
+                        <input type="text" name="timestart" id="timestart" value="{{ args['timestart'] }}">
                     </li>
                     <li class="form-row">
                         <label for="author">Until (year)</label>
-                        <input type="text" name="until" id="until"> 
+                        <input type="text" name="until" id="until" value="{{ args['until'] }}"> 
                     </li>
                     
                     <li class="fieldsetcontainer">
@@ -100,25 +97,32 @@
                     </fieldset>
                     </li>
                     <li class="form-row">
-                        <button class="resetbutton bigbutton" onclick="resetPage()">Reset</button>
-                        <button class="bigbutton" type="submit">Search</button>
+                        <button type="reset" class="resetbutton bigbutton" onClick="window.location.href='admin'";">Reset</button>
+                        <button type="submit" class="bigbutton">Search</button>
                     </li>
                 </div>
                 </ul>
             </form>
+            <div>
+                
+            </div>
         </div>
 
         <div id="add-box">
-            <p><b>Suggest a new article </b>
-            <a href={{ suggestLink }} class="button linkButton" target="_blank" rel="noopener noreferrer">Suggest</a></p>
+            <p><b>Suggest a new article </b><br>
+            <a href="{{ suggestLink }}" class="button linkButton" target="_blank" rel="noopener noreferrer">Suggest</a></p>
+            <p>
+                <b>Source Code on </b><br>
+                <a href="https://gitlab.com/mx.tom/bibfilter" class="button linkButton"> Gitlab </a>
+            </p>
         </div>
     </div>
 
     <div class="main">
-        <div id="sortrelevance"></div>
-        <div id="showData"></div>
+        {{ table }}
     </div>
 </div>
+
 
 </body>
 </html>
