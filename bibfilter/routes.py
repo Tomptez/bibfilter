@@ -55,7 +55,6 @@ if useElasticSearch:
     es = Elasticsearch(host="localhost", port=9200)
 
 
-
 def cleanArguments(arguments):
     args = {"title":"", "author":"", "timestart":"", "until":"", "type":"all", "sort":"author", "direction":"asc", "search":""}
     
@@ -148,7 +147,6 @@ def selectEntries(request_json, bibfile=False):
     
     # Desired columns
     columns = [Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract]            
-    
     
     if bibfile:
         requested_articles = db.session.query(Article).\
@@ -318,17 +316,13 @@ def zotero_sync():
 @limiter.limit("5/day")
 @basic_auth.required
 def clearDB():
-    articles = db.session.query(Article)
-    numberDeleted = len(articles.all())
-    db.session.close()
-    
     engine = db.engine
     Article.__table__.drop(engine)
     db.create_all()
     if useElasticSearch:
         es.indices.delete(index='bibfilter-index', ignore=[400, 404])
         
-    print(f"/clearDB, Deleted all {numberDeleted} articles from Databse")
+    print("/clearDB, Deleted all articles from Databse")
     return redirect("/admin")
 
 ## Admin API: Sync the database
