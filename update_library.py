@@ -1,3 +1,8 @@
+# This script is responsible to sync the database to zotero
+# It is automatically started by dokku via the Procfile
+# It regularly cheks the Zotero database for changes
+# and also triggers analyzeArticles() from synchronize_pdf_contents to scrape PDF contents
+
 import sys
 sys.path.append(".")
 import os
@@ -6,13 +11,12 @@ import time
 import schedule
 import re
 from sqlalchemy.orm import sessionmaker
-from pprint import pprint
 from pytz import timezone
 from pyzotero import zotero, zotero_errors
 from bibfilter import db
 from bibfilter.models import Article
 from bibfilter.functions import elasticsearchCheck
-from Analyze_content_for_search import analyzeArticles
+from synchronize_pdf_content import analyzeArticles
 from elasticsearch import Elasticsearch
 from multiprocessing import Process, Queue
 

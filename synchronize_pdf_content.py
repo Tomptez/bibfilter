@@ -1,4 +1,6 @@
-# Indexes all words of a text to make the text easily searchable and to provide matching text passages.
+# This script goes through all articles which have been added using zotero and looks for a pdf file
+# If a pdf file is found, the content will be scraped and added to the database and, if available, to elasticsearch
+# analyzeArticles() is regularly scheduled from update_library.py if the server is running
 
 import sys
 sys.path.append(".")
@@ -17,9 +19,7 @@ from PyPDF2 import PdfFileReader
 from multiprocessing import Process, Queue
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
-
 import time
-connected = False
 
 useElasticSearch = elasticsearchCheck()
 if useElasticSearch:
@@ -222,7 +222,6 @@ def analyzeContent():
     session.close()
     return False
     
-
 def analyzeArticles():
     total_articles = db.session.query(Article).count()
     for i in range(total_articles):
@@ -231,7 +230,5 @@ def analyzeArticles():
         if finished:
             return
 
-# Analyze the Content based on articleFullTExt of each Artice
-# Once on start, after that every 1.1 hours (slighty unsynced from update_library.py)
 if __name__ == "__main__":
     analyzeArticles()

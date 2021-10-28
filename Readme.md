@@ -120,18 +120,15 @@ First you need to create a new dokku application
 
     dokku apps:create my_application_name
 
-Next, you need to install postgres on dokku, create a new database and link it to the newly created application
+Next, you need to install postgres on dokku and create a new database.
+Afterwards you need to connect to the SQL interface, add the extension unaccent and then link the database to the application.
 
     sudo dokku plugin:install https://github.com/dokku/dokku-postgres.git
     dokku postgres:create my_database_name
-    dokku postgres:link my_database_name my_application_name
-
-The next step is to connect to the SQL interface of the database, to add the extension unaccent, which is required by bifilter.
-
     dokku postgres:connect my_database_name
     CREATE EXTENSION unaccent;
-    \c
     exit
+    dokku postgres:link my_database_name my_application_name
     
     
 After that you need to create the required environment variables. Of course you need to change it to the correct values. Note: This command is supposed to be one line not seperate lines.
