@@ -22,3 +22,5 @@ deploy:
   script: dokku-deploy
   after_script: [dokku-unlock]
   interruptible: true
+  environment:
+    name: production
