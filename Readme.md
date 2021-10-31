@@ -1,15 +1,49 @@
 # Bibfilter
+
 A Searchable Literature database web-interface for [Zotero](zotero.org/)
 
 It is developed using python and flask and it is configured so it can easily be deployed using [dokku](https://dokku.com/).
-This version on the master branch uses [elasticsearch](https://www.elastic.co/) as a backend for searching. This is still a work in progress and not quite ready for deployment yet.
+
+This version on the master branch can be used with [elasticsearch](https://www.elastic.co/) as a backend for searching. This is still a work in progress and not quite ready for deployment yet.
 
 ![Screenshot](/img/Screenshot.png?raw=true "Screenshot")
 
+## Table of contents
+
+1. [How to run the application on your local computer](#howto)
+   
+   1. [Requirements](#req)
+   
+   2. [Installation](#installation)
+   
+   3. [Setting up environment variables](#env-var)
+   
+   4. [Normal Usage](#normal)
+
+2. [Deploying the application](#deploy)
+   
+   [1. Setting up the application for dokku](#setup)
+   
+   [2. Updating the application remotely](#update)
+   
+   [3. Restarting the Application](#restart)
+
+<a id="howto"></a>
+
 ## How to run the application on your local computer
 
-First make sure you have [git](https://github.com/git-for-windows/git/releases/latest), `bash` (which is comes with git) and the version of python that is specified in the runtime.txt [here]https://www.python.org/downloads/) (and `pip` which will be installed together with python on windows) installed.
+<a id="req"></a>
+
+### Requirements
+
+First make sure you have [git](https://github.com/git-for-windows/git/releases/latest), `bash` (which is comes with git) and the version of python that is specified in the runtime.txt [here](https://www.python.org/downloads/) installed (and `pip` which will usually be installed together with python on windows).
 You will also need [PostgreSQL](https://www.postgresql.org/download/) to create the database.
+
+Optionally, if you want to make use of advanced searching capabilities, especially searching through the entire text of the articles, [Elasticsearch](https://github.com/elastic/elasticsearch) needs to be installed as well.
+
+<a id="installatioon"></a>
+
+### Installation
 
 Next, clone the repository to your local machine from your (git) bash terminal
 
@@ -37,7 +71,7 @@ This is done by typing in you `command line cmd` (this may or may not work in gi
 Or if that not works the exact filepath of your postgres installation
 
     "C:\Program Files\PostgreSQL\12\bin\psql.exe" -U postgres
- 
+
  To create the database you type
 
     CREATE DATABASE bibfilter;
@@ -46,6 +80,10 @@ Then you can select the database and install the unaccent extension
 
     \c bibfilter;
     CREATE EXTENSION unaccent;
+
+<a id="env-var"></a>
+
+### Setting up environment variables
 
 Before we can start the application, we need to set our environment variables.
 To do so, we need new file in the main directory (in which the Pipfile sits) called `.env` where you define the environment variables which we will use in the project. There is a sample .env file we can use as a template.
@@ -62,17 +100,16 @@ You then change `DATABASE_URL`, so that `postgres` is your PostgreSQL username (
 
 You can now close the `nano` editor by hitting Ctr+X and then typing `Y` and then `Enter` to save the file
 
-
 Now, you can activate the environment via
 
     pipenv shell
 
 You could now already open the application but it will not show any articles because we have no database yet.
-To create the database you need run update_library.py
+To create the database you need run update_library.py once
 
     python update_library.py
 
-If this doesn't print anything you may need to close it forcefully with `Ctrl + C`.
+If you see a report (`Summary of synchronization with Zotero`) you can stop the process using `Ctrl + C`.
 If there's any errors, there is probably an issue with your postgreql setup.
 If not, you have successfully setup the database and can now start the application with
 
@@ -87,7 +124,9 @@ If your are finished you can close the virtual environment by typing
 
 or just close the terminal.
 
-## Normal Usage
+<a id="normal"></a>
+
+### Normal Usage
 
 After the initial setup when you want to start the application you should first open the repository folder in your bash terminal.
 
@@ -104,14 +143,13 @@ and then you can run the flask app with
     python app.py
 
 ***
-
+<a id="deploy"></a>
 ## Deploying the application
 
 There are several ways to put the bibfilter application online. 
-Here we will explain how to get it online using dokku.
+Here we will explain how to get bibfilter running on a servere using dokku.
 
-***
-
+<a id="setup"></a>
 ### 1. Setting up the application for dokku
 
 This assumes you have got a running instance of dokku on your server.
@@ -129,8 +167,7 @@ Afterwards you need to connect to the SQL interface, add the extension unaccent 
     CREATE EXTENSION unaccent;
     exit
     dokku postgres:link my_database_name my_application_name
-    
-    
+
 After that you need to create the required environment variables. Of course you need to change it to the correct values. Note: This command is supposed to be one line not seperate lines.
 
     dokku config:set my_application_name APP_USERNAME=my_admin_name APP_PASSWORD=my_password LIBRARY_ID=my_public_zotero_library_id COLLECTION_ID=my_public_zotero_collection_id SUGGEST_LITERATURE_URL=url_of_form_where_one_can_suggest_an_article SHOW_SEARCH_QUOTES = "TRUE" USE_ELASTICSEARCH = "FALSE"
@@ -142,13 +179,13 @@ Lastly we want to add the letsencrypt plugin to the application, so that our app
     dokku letsencrypt my_application_name
 
 ***
-
+<a id="update"></a>
 ### 2. Updating the application remotely
 
 After you have set up the aplication on the dokku instance, you can basically use it the way you use a regular git repository and easily add any changes.
 On your local computer you want to add the server and application-name as a git repository
 
-    git remote add some_name dokku@134.102.137.46:my_application_name
+    git remote add some_name dokku@IP.ADRE.SS:my_application_name
 
 Change 'some_name' to whatever you like. Then you can easily push the application using git. 
 You do however need to make sure that you have the right to push to dokku. For that you might need an SSH-Key, which possibly has to be added to the whitelist of the server as well as to the whitelist of dokku. Depending on the setup of the server you might also need to be connected to a specific network (for example via VPN).
@@ -157,16 +194,25 @@ You do however need to make sure that you have the right to push to dokku. For t
 
 If there are problems online you might want to read to logs of your running application
 
+<a id="restart"></a>
 ### 3. Restarting the Application
 
 In case of issues a restart may be necessary
 
 1. Login to the server using SSH key. 
- a. Open command prompt.
- b. Connect to the server by typing (you need to be in the university or be connected to the VPN)
-   ssh nbreznau@134.102.137.46
- c. You might have to enter the password you chose when setting the ssh key up
-2. Restart
-    dokku ps:start bibfilter
-  
+   - a. Open command prompt.
+   - b. Connect to the server by typing (you need to be in the university or be connected to the VPN)
+    
+    ssh dokku@IP.ADRE.SS
+   
+   - c. You might have to enter the password you chose when setting the ssh key up
+
+2. Chek the logs
+
     dokku logs my_application_name --tail
+
+3. Restart
+    
+    dokku ps:start bibfilter
+   
+
