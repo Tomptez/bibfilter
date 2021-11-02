@@ -213,8 +213,11 @@ def createTable(arguments):
             
             # , max_analyzed_offset=1000000
             s = s.highlight_options(boundary_scanner="sentence", encoder="html", order='score', boundary_chars="\n")
+        # Obtain number of results
+        totalRes = s.count()
+        # Specify to return ALL results and not only the first 10 (default)
+        s = s[:totalRes]
         response = s.execute()
-        print(response.hits.total.value)
         
         items = []
         for each in response:
