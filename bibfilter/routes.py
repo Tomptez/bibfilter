@@ -23,7 +23,7 @@ import io
 import pstats
 import contextlib
 from elasticsearch import Elasticsearch
-from bibfilter.functions import elasticsearchCheck
+from bibfilter.functions import elasticsearchCheck, getElasticClient
 from pprint import pprint
 from elasticsearch_dsl import Search
 from elasticsearch_dsl import Q
@@ -50,10 +50,10 @@ bibliography_schema = BibliographySchema(many=True)
 # Do you want to show quotes of the  Articles in the results (TRUE or FALSE)
 showSearchQuotes = os.environ.get("SHOW_SEARCH_QUOTES").upper() == "TRUE"
 
+# Connect to elasticSearch if it's suppoed to be used
 useElasticSearch = elasticsearchCheck()
 if useElasticSearch:
-    es = Elasticsearch(host="localhost", port=9200)
-
+    es = getElasticClient()
 
 def cleanArguments(arguments):
     args = {"title":"", "author":"", "timestart":"", "until":"", "type":"all", "sort":"author", "direction":"asc", "search":""}

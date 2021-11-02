@@ -15,7 +15,7 @@ from pytz import timezone
 from pyzotero import zotero, zotero_errors
 from bibfilter import db
 from bibfilter.models import Article
-from bibfilter.functions import elasticsearchCheck
+from bibfilter.functions import elasticsearchCheck, getElasticClient
 from synchronize_pdf_content import analyzeArticles
 from elasticsearch import Elasticsearch
 from multiprocessing import Process, Queue
@@ -29,7 +29,7 @@ report = {"new" : 0, "updated" : 0, "existed" : 0, "deleted": 0}
 # Connect to elasticSearch if it's suppoed to be used
 useElasticSearch = elasticsearchCheck()
 if useElasticSearch:
-    es = Elasticsearch(host="localhost", port=9200)
+    es = getElasticClient()
 
 def delete_old():
     global report

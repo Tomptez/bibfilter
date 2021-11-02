@@ -49,11 +49,17 @@ elasticMapping = {
     }
 }
 
+elasticURL = os.environ.get("ELASTICSEARCH_URL")
+
+def getElasticClient():
+    es = Elasticsearch(elasticURL)
+    return es
+
 # Check if the elasticsearch environment variable is set, if a connection is possible and bibfilter-index exists
 def elasticsearchCheck():    
     if os.environ.get("USE_ELASTICSEARCH").upper() == "TRUE":
         try:
-            es = Elasticsearch(host="localhost", port=9200)
+            es = getElasticClient()
             if not es.indices.exists(index="bibfilter-index"):
                 es.indices.create(index="bibfilter-index", body=elasticMapping)
             useElasticSearch = True

@@ -6,7 +6,7 @@ import sys
 sys.path.append(".")
 from bibfilter import db
 from bibfilter.models import Article
-from bibfilter.functions import elasticsearchCheck
+from bibfilter.functions import elasticsearchCheck, getElasticClient
 import re
 import time
 from unidecode import unidecode
@@ -21,9 +21,10 @@ from elasticsearch import Elasticsearch
 from elasticsearch import helpers
 import time
 
+# Connect to elasticSearch if it's suppoed to be used
 useElasticSearch = elasticsearchCheck()
 if useElasticSearch:
-    es = Elasticsearch(host="localhost", port=9200)
+    es = getElasticClient()
 
 # Converts SQL article to dict to insert in elasticsearch
 def row2dict(row):
