@@ -1,12 +1,16 @@
 # Bibfilter
 
-A Searchable Literature database web-interface for [Zotero](zotero.org/)
+A Searchable Literature database web-interface for use with [Zotero](zotero.org/). 
 
 It is developed using python and flask and it is configured so it can easily be deployed using [dokku](https://dokku.com/).
 
-This version on the master branch can be used with [elasticsearch](https://www.elastic.co/) as a backend for searching. This is still a work in progress and not quite ready for deployment yet.
+The version on the master branch can be used with [elasticsearch](https://www.elastic.co/) as a backend for searching. This version is not yet deployed publicly.
 
 ![Screenshot](/img/Screenshot.png?raw=true "Screenshot")
+
+## Background
+
+It was developed specifically as part of the German Science Foundation funded project "The Reciprocal Relationship of Public Opinion and Social Policy" ([BR 5423/2-1](https://www.socium.uni-bremen.de/projects/?proj=614)). As such it was designed to provide an interactive tool for searching through all known literature in the specific subject area of public preferences for social policy and redistribution. However, it can easily be deployed with any literature library contained in a Zotero folder. The former version with title and abstract search functions is currently deployed on the webpage of the [_Social Policy Preferences Network_](https://sites.google.com/view/sppn/bibliography) with the server hosted by the University of Bremen's [Bremen International Graduate School of Social Sciences](https://www.bigsss-bremen.de/) internal server system. 
 
 ## Table of contents
 
