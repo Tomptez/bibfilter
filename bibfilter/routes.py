@@ -6,35 +6,24 @@ from sqlalchemy.sql import func
 from sqlalchemy.sql.functions import ReturnTypeFromArgs
 from bibtexparser.bibdatabase import BibDatabase
 import bibtexparser
-from bibfilter.models import Article, BibliographySchema, TableSchema
+from bibfilter.models import Article, BibliographySchema
 from bibfilter import app, basic_auth, db
-from update_library import update_from_zotero
+from update_library import updateDatabase
 from datetime import datetime
 import os
 from unidecode import unidecode
 from dotenv import load_dotenv
-import threading
-import nltk
-from nltk.corpus import stopwords 
 from flask_table import Table, Col, OptCol
 import time
-import cProfile
-import io
-import pstats
-import contextlib
 from elasticsearch import Elasticsearch
-from bibfilter.functions import elasticsearchCheck, getElasticClient
+from bibfilter.elasticsearchfunctions import elasticsearchCheck, getElasticClient, createElasticsearchIndex
 from pprint import pprint
 from elasticsearch_dsl import Search
 from elasticsearch_dsl import Q
-
-ENGLISH_STOPWORDS = set(stopwords.words('english'))
+from multiprocessing import Process, Queue
+import io
 
 load_dotenv()
-
-# Class needed to ignore accents. Not that the unaccent extension needs to be installed in postgreSQL
-class unaccent(ReturnTypeFromArgs):
-    pass
 
 # Rate limiting Setup
 limiter = Limiter(
@@ -43,49 +32,92 @@ limiter = Limiter(
     default_limits=["100/minute"]
 )
 
-# Init schemas
-table_schema = TableSchema(many=True)
-bibliography_schema = BibliographySchema(many=True)
-
 # Do you want to show quotes of the  Articles in the results (TRUE or FALSE)
 showSearchQuotes = os.environ.get("SHOW_SEARCH_QUOTES").upper() == "TRUE"
+if showSearchQuotes:
+    try:
+        quoteSize = int(os.environ.get("SEARCH_QUOTE_SIZE"))
+        if quoteSize > 1200:
+            quoteSize = 1200
+    except:
+        quoteSize = 300
+
+# Link where Literature suggestions can be submitted
+suggestLink = os.environ["SUGGEST_LITERATURE_URL"]
 
 # Connect to elasticSearch if it's suppoed to be used
 useElasticSearch = elasticsearchCheck()
 if useElasticSearch:
     es = getElasticClient()
 
+######################################## ADMIN #####################
+
+## Get Date of last sync between zotero and database
+def zotero_last_sync_date():
+    max_value = db.session.query(func.max(Article.date_last_zotero_sync)).scalar()
+
+    # If the database is empty
+    if max_value == None:
+        max_value = ""    
+    return max_value
+
+p1 = Process(target=updateDatabase)
+
+## Admin API: Clear the database
+@app.route("/clearDB", methods=["GET"])
+@limiter.limit("5/day")
+@basic_auth.required
+def clearDB():
+    global p1
+    print("/clearDB, Delete Database and elasticsearch index")
+    # Stop manual resyncDB if it is  currently running
+    if p1.is_alive():
+        print("Terminate manual resyncDB Process")
+        p1.terminate()
+        p1.join()
+    engine = db.engine
+    Article.__table__.drop(engine)
+    db.create_all()
+    print("Created database")
+    if useElasticSearch:
+        es.indices.delete(index='bibfilter-index', ignore=[400, 404])
+        createElasticsearchIndex()
+    
+    return redirect("/admin")
+
+## Admin API: Sync the database
+@app.route("/resyncDB", methods=["GET"])
+@limiter.limit("20/hour")
+@basic_auth.required
+def resyncDB():
+    print("/resyncDB, running updateDatabase() in background")
+    global p1
+    
+    # Stop manual resyncDB if it is  currently running
+    if p1.is_alive():
+        print("Terminate manual resyncDB Process")
+        p1.terminate()
+        p1.join()
+    p1 = Process(target=updateDatabase)
+    p1.start()
+    return redirect("/admin")
+
+## Return admin page
+@app.route("/admin", methods=["GET"])
+@basic_auth.required
+def admin():
+    arguments = request.args
+    table, args, args_get_str, numResults, suggestLink = createTable(arguments)
+    lastSync = zotero_last_sync_date()
+    return render_template("admin.html", table=table, args=args, getStr=args_get_str, numResults=numResults, suggestLink=suggestLink, lastSync=lastSync)
+
+######################################### ADMIN END ########################
+
 def cleanArguments(arguments):
     args = {"title":"", "author":"", "timestart":"", "until":"", "type":"all", "sort":"author", "direction":"asc", "search":""}
-    
     args.update(arguments)
-    
+    args["reverse"] = True if args["direction"] == "desc" else False
     return args
-
-def cleanResults(args, requested_articles):
-    items = []
-    
-    for ki, item in enumerate(requested_articles):
-        item = dict(item)
-            
-        if item["url"] != "":
-            item["url"] = Markup(f'<a class="externalUrl" target="_blank" href="{item["url"]}">Source</a>')
-        
-        # Check whether environment variable is set to show search quotes            
-        formattedAbstract = f'<b>Abstract</b><br>{item["abstract"]}</b><br>' if item["abstract"] != "" else ""         
-        
-        if item["abstract"] != "":
-            hiddentext = Markup(f'<div class="hidden_content">{formattedAbstract}</div>')
-        else:
-            hiddentext = ""
-            
-        item["abstract"] = hiddentext
-        
-        if "wordcount" not in item:
-            item["wordcount"] = 0
-        items.append(item)
-    
-    return items
 
 def argsToStr(arguments):
     if len(arguments) > 0:
@@ -98,10 +130,14 @@ def argsToStr(arguments):
         args_get_str = ""
     return args_get_str
 
-# Function to Select the correct articles based on the selection done by the user in the frontent
-def selectEntries(request_json, bibfile=False):
+# Class needed to ignore accents when using SQL. Not that the unaccent extension needs to be installed in postgreSQL
+class unaccent(ReturnTypeFromArgs):
+    pass
+
+# Function to Select the correct articles from SQL based on the selection done by the user in the frontent
+def selectEntries(searchDict, bibfile=False):
     """ 
-    Example JSON:
+    Example DICT:
     {
         "title":        "mytitle",
         "author":       "authorname", 
@@ -113,20 +149,14 @@ def selectEntries(request_json, bibfile=False):
     }
     """
     
-    search_term = request_json["search"]
-    title =  request_json["title"]
-    author = request_json["author"]
-    
-    sortby = request_json["sort"]
-    sort_order = request_json["direction"]
-    timestart = request_json["timestart"] if len(request_json["timestart"]) == 4 and request_json["timestart"].isdigit else None
-    until = request_json["until"] if len(request_json["until"]) == 4 and request_json["until"].isdigit else "3000"
-    article_type = "%" if request_json["type"] == "all" else request_json["type"]
-    direction = desc if sort_order == 'desc' else asc
+    timestart = searchDict["timestart"] if len(searchDict["timestart"]) == 4 and searchDict["timestart"].isdigit else None
+    until = searchDict["until"] if len(searchDict["until"]) == 4 and searchDict["until"].isdigit else "3000"
+    article_type = "%" if searchDict["type"] == "all" else searchDict["type"]
+    direction = desc if searchDict["direction"] == 'desc' else asc
 
-    title_list = title.split()
-    search_term_list = search_term.split()
-    author_list = author.split()
+    title_list = searchDict["title"].split()
+    search_term_list = searchDict["search"].split()
+    author_list = searchDict["author"].split()
 
     #ILIKE is similar to LIKE in all aspects except in one thing: it performs a case in-sensitive matching
     #Unidecode removes accent from the search string whereas unaccent removes accents from the database. The unaccent Extension has to be installed for postgresql
@@ -141,13 +171,13 @@ def selectEntries(request_json, bibfile=False):
     
     filters = title_filter + search_filter + author_filter + timestart_filter + filter_type + until_filter
     
-    
     # How to order the results
-    orderby = direction(getattr(Article, sortby))
+    orderby = direction(getattr(Article, searchDict["sort"]))
     
     # Desired columns
     columns = [Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract]            
     
+    ## Return all columns when exporting as bibfile, otherwise only return columns needed for the table
     if bibfile:
         requested_articles = db.session.query(Article).\
             filter(*filters).order_by(orderby)
@@ -175,8 +205,6 @@ class ItemTable(Table):
     title = Col('Title', column_html_attrs={"class":"colTitle"})
     publication = Col('Publication', column_html_attrs={"class":"colPublication"})
     url = Col('URL', column_html_attrs={"class":"tableUrl colUrl"})
-    if useElasticSearch:
-        score = Col('Score', column_html_attrs={"class":"colScore"})
     abstract = Col('hidden', column_html_attrs={"class":"hiddenRowContent"})
     
     allow_sort = True
@@ -194,7 +222,7 @@ class ItemTable(Table):
         else:
             return {}
 
-def createTable(arguments):
+def createTable(arguments, bibfile=False):
     args = cleanArguments(arguments)
     args_get_str = argsToStr(arguments)
     
@@ -203,21 +231,50 @@ def createTable(arguments):
     
     # Use elasticsearch if enabled via environment variable
     if useElasticSearch:
-        
         s = Search(using=es, index='bibfilter-index')
         if args["search"].strip() != "":
             q = Q("multi_match", type="phrase", slop=400, query=args["search"], fields=['title', 'author', "abstract", "articleFullText"], minimum_should_match="80%")
             s = s.query(q)
-            s = s.highlight('abstract', number_of_fragments=0, pre_tags=["<mark>"], post_tags=["</mark>"])
-            s = s.highlight("articleFullText", type="fvh", fragment_size=350, boundary_scanner="word", pre_tags=["<mark>"], post_tags=["</mark>"])
+        if args["title"].strip() != "":
+            s = s.query("match", title=args["title"])
+        if args["author"].strip() != "":
+            s = s.query("match", author=args["author"])
+        if args["timestart"].strip() != "":
+            s = s.query('range', **{'year': {'gte': int(args["timestart"].strip())}})
+        if args["until"].strip() != "":
+            s = s.query('range', **{'year': {'lte': int(args["until"].strip())}})
             
-            # , max_analyzed_offset=1000000
-            s = s.highlight_options(boundary_scanner="sentence", encoder="html", order='score', boundary_chars="\n")
+        arType = args["type"].strip()
+        if arType == "other":
+            s = s.exclude("match", icon="article")
+            s = s.exclude("match", icon="book")
+        elif arType == "article" or arType == "book":
+            q = Q("match", icon=arType)
+            s = s.query(q)
+            
+        s = s.highlight('abstract', number_of_fragments=0, pre_tags=["<mark>"], post_tags=["</mark>"])
+        if showSearchQuotes:
+            s = s.highlight("articleFullText", type="fvh", fragment_size=quoteSize, boundary_scanner="word", pre_tags=["<mark>"], post_tags=["</mark>"])
+        
+        # , max_analyzed_offset=1000000
+        s = s.highlight_options(boundary_scanner="sentence", encoder="html", order="score", boundary_chars="\n")
+            
         # Obtain number of results
         totalRes = s.count()
         # Specify to return ALL results and not only the first 10 (default)
         s = s[:totalRes]
+        
+        # Sort the results. If no attribute is specified, it is sorting by search score
+        if arguments.get("sort") != None:
+            order = arguments.get("sort")
+            if order != "year":
+                order += ".keyword"
+            s = s.sort({order:{"order": args.get("direction")}})
+        
         response = s.execute()
+        
+        if bibfile:
+            return response
         
         items = []
         for each in response:
@@ -227,7 +284,6 @@ def createTable(arguments):
             for col in cols:
                 item[col] = each[col]
             
-            item["score"] = f"{float(each.meta.score):.3f}"
             if each["url"] != "":
                 item["url"] = Markup(f'<a class="externalUrl" target="_blank" href="{each["url"]}">Source</a>')
             else:
@@ -245,8 +301,14 @@ def createTable(arguments):
                 else:
                     abstract = each["abstract"]
                     highlights = ""
+                
+                if abstract != "":
+                    abstract = f"<b>Abstract</b><br>{abstract}<br><br>"
+                if not (highlights == "" and abstract == ""):
+                    item["abstract"] = Markup("<div class='hidden_content'>" + abstract + highlights +"</div>")
+                else:
+                    item["abstract"] = ""
                     
-                item["abstract"] = Markup("<div class='hidden_content'> <b>Abstract</b><br>"+ abstract + "<br><br>" + highlights +"</div>")
             except Exception as e:
                 print(e)
                 print("Error. No highlight available")
@@ -254,91 +316,64 @@ def createTable(arguments):
                 
             items.append(item)
         
-        table = ItemTable(args=args, items=items)
+        table = ItemTable(args=args, items=items, sort_by=args["sort"], sort_reverse=args["reverse"])
         
         numResults = len(response)
         
         end = time.time()
-        print(f"Finished loading everything in {end - begin:.4f} seconds\n")
-        suggestLink = os.environ["SUGGEST_LITERATURE_URL"]
-        return table, arguments, args_get_str, numResults, suggestLink
+        print(f"Finished loading in {end - begin:.4f} seconds\n")
+        return table, args, args_get_str, numResults, suggestLink
     
     else:
-        requested_articles = selectEntries(args)
+        if bibfile:
+            requested_articles = selectEntries(args, bibfile=True)
+            return requested_articles
+        else:
+            requested_articles = selectEntries(args)
         
-        end = time.time()
-        print(f"\nExecuting query took {end - begin:.4f} seconds")
+        items = []
+    
+        for ki, item in enumerate(requested_articles):
+            item = dict(item)
+                
+            if item["url"] != "":
+                item["url"] = Markup(f'<a class="externalUrl" target="_blank" href="{item["url"]}">Source</a>')
+            
+            if item["abstract"] == "":
+                hiddentext = ""
+            else:
+                item["abstract"] = Markup(f'<div class="hidden_content"><b>Abstract</b><br>{item["abstract"]}</b><br></div>')
+            
+            if "wordcount" not in item:
+                item["wordcount"] = 0
+            items.append(item)
         
-        items = cleanResults(args, requested_articles)
-        
-        countsorting = False
-        # Sort on wordcount if no other sorting is specified
-        if arguments.get("sort") == None:
-            items = sorted(items, reverse=True, key=lambda k: k["wordcount"]) 
-        
-        sort = args["sort"]
-        reverse = True if args["direction"] == "desc" else False
         # args need to be passed so the filter isn't reset when sorting
-        table = ItemTable(args=args, items=items, sort_by=sort, sort_reverse=reverse)
+        table = ItemTable(args=args, items=items, sort_by=args["sort"], sort_reverse=args["reverse"])
         
         numResults = len(items)
         
-        suggestLink = os.environ["SUGGEST_LITERATURE_URL"]
-        
         end = time.time()
-        print(f"Finished loading everything in {end - begin:.4f} seconds\n")
-        return table, arguments, args_get_str, numResults, suggestLink
+        print(f"Finished loading in {end - begin:.4f} seconds\n")
+        return table, args, args_get_str, numResults, suggestLink
 
+# Declare bibliography schma as defined in models.py
+bibliography_schema = BibliographySchema(many=True)
 
 ## API: return .bib as string
 @app.route("/bibfile", methods=["GET"])
-@limiter.limit("4/minute")
+@limiter.limit("10/minute")
 def get_bibfile():
     arguments = request.args
-    args = cleanArguments(arguments);
-    articles = selectEntries(args, bibfile=True)
-    result = bibliography_schema.dump(articles)
+    articles = createTable(arguments, bibfile=True)
+    # Clean up results to only contain needed attributes for bibfile and deleted missing fields
+    articles = bibliography_schema.dump(articles)
 
     dbib = BibDatabase()
-    dbib.entries = result
+    dbib.entries = articles
     bibtex_str = bibtexparser.dumps(dbib)
     string_out = io.BytesIO(bytes(bibtex_str, 'utf-8'))
     return send_file(string_out, mimetype="text/plain", download_name="results.bib", as_attachment=True)
-
-## Get Date of last sync between zotero and database
-def zotero_sync():
-    max_value = db.session.query(func.max(Article.date_last_zotero_sync)).scalar()
-
-    # If the database is empty
-    if max_value == None:
-        max_value = "00-00-00 00:00"    
-    return max_value
-
-## Admin API: Clear the database
-@app.route("/clearDB", methods=["GET"])
-@limiter.limit("5/day")
-@basic_auth.required
-def clearDB():
-    engine = db.engine
-    Article.__table__.drop(engine)
-    db.create_all()
-    if useElasticSearch:
-        es.indices.delete(index='bibfilter-index', ignore=[400, 404])
-        
-    print("/clearDB, Deleted all articles from Databse")
-    return redirect("/admin")
-
-## Admin API: Sync the database
-@app.route("/resyncDB", methods=["GET"])
-@limiter.limit("10/day")
-@basic_auth.required
-def resyncDB():
-    print("/resyncDB, running update_from_zotero in background")
-
-    # Running update_from_zotero using threading
-    thread_update = threading.Thread(target=update_from_zotero)
-    thread_update.start()
-    return redirect("/admin")
 
 # Redirect to main page if you land at index
 @app.route("/index", methods=["GET"])
@@ -350,14 +385,5 @@ def index():
 @limiter.exempt
 def main():
     arguments = request.args
-    table, arguments, args_get_str, numResults, suggestLink = createTable(arguments)
-    return render_template("main.html", table=table, args=arguments, getStr=args_get_str, numResults=numResults, suggestLink=suggestLink)
-  
-## Frontend: Return admin page
-@app.route("/admin", methods=["GET"])
-@basic_auth.required
-def admin():
-    arguments = request.args
-    table, arguments, args_get_str, numResults, suggestLink = createTable(arguments)
-    lastSync = zotero_sync()
-    return render_template("admin.html", table=table, args=arguments, getStr=args_get_str, numResults=numResults, suggestLink=suggestLink, lastSync=lastSync)
+    table, args, args_get_str, numResults, suggestLink = createTable(arguments)
+    return render_template("main.html", table=table, args=args, getStr=args_get_str, numResults=numResults, suggestLink=suggestLink)

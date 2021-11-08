@@ -25,7 +25,6 @@ camelot-py = {extras = ["cv"], version = "*"}
 pillow = "*"
 pdf2image = "*"
 pypdf2 = "*"
-textblob = "*"
 pikepdf = "*"
 ocrmypdf = "*"
 flask-table = "*"

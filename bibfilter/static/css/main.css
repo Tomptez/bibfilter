@@ -306,7 +306,7 @@ th {
     background-color: #3a4a52;
     border-color: oldlace; 
     position: sticky;
-    padding: 5px 10px;
+    padding: 0;
     top: 0px;
 }
 
@@ -317,6 +317,7 @@ table a {
 
 th a {
     display: block;
+    padding: 4px 10px;
 }
 th:hover {
     background-color: #4d6e80

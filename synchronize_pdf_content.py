@@ -6,7 +6,7 @@ import sys
 sys.path.append(".")
 from bibfilter import db
 from bibfilter.models import Article
-from bibfilter.functions import elasticsearchCheck, getElasticClient
+from bibfilter.elasticsearchfunctions import elasticsearchCheck, getElasticClient
 import re
 import time
 from unidecode import unidecode
@@ -184,7 +184,8 @@ def analyzeContent():
     p1.start()
     try:
         articleContent, references, connectionError = Q.get(timeout=360)
-    except:
+    except Exception as e:
+        print(e)
         print("Analyzing article didn't finish in expected time. Maybe the process was killed because of memory issue or the network connection was interrupted")
         print("For this article there will be no content available")
         session = db.session()

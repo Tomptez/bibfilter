@@ -6,7 +6,6 @@
     <link rel="icon"  href="{{ url_for('static', filename='img/favicon.ico') }}">
     <!-- Bootstrap CSS -->
     <link type="text/css" rel="stylesheet"  href="{{ url_for('static', filename='css/main.css') }}" />
-    <link type="text/css" rel="stylesheet"  href="{{ url_for('static', filename='css/flask_table.css') }}" />
     <link rel="icon"  href="{{ url_for('static', filename='img/favicon.ico') }}">
 </head>
 <body>
@@ -54,25 +53,26 @@
                     </li>
                     
                     <li class="fieldsetcontainer">
-                    <fieldset class="source">
-                        <legend>Literature Type</legend>
-                        <table style="width:100%" class="fieldset_table">
-                            <tr>
-                                <td><p><label> <input type="radio" name="type" value="article"> Article </label></p></td>
-                                <td><p><label> <input type="radio" name="type" value="book"> Book(chapter) </label></p></td>
-                            </tr>
-                            <tr>
-                                <td><p><label> <input type="radio" name="type" value="other"> Other </label></p></td>
-                                <td><p><label> <input type="radio" name="type" value="all" checked> All </label></p></td>
-                            </tr>
-                        </table>
-                    </fieldset>
+                        <fieldset class="source">
+                            <legend>Literature Type</legend>
+                            <table style="width:100%" class="fieldset_table">
+                                <tr>
+                                    <td><p><label> <input type="radio" name="type" value="article" {% if args["type"] == "article" %} checked {% endif %}> Article </label></p></td>
+                                    <td><p><label> <input type="radio" name="type" value="book" {% if args["type"] == "book" %} checked {% endif %}> Book(chapter) </label></p></td>
+                                </tr>
+                                <tr>
+                                    <td><p><label> <input type="radio" name="type" value="other" {% if args["type"] == "other" %} checked {% endif %}> Other </label></p></td>
+                                    <td><p><label> <input type="radio" name="type" value="all" {% if args["type"] == "all" %} checked {% endif %}> All </label></p></td>
+                                </tr>
+                            </table>
+                        </fieldset>
                     </li>
                     <li class="form-row">
                         <button type="reset" class="resetbutton bigbutton" onClick="window.location.href='index'";">Reset</button>
                         <button type="submit" class="bigbutton">Search</button>
                     </li>
                 </div>
+                
                 </ul>
             </form>
             <div>

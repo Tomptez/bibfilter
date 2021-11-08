@@ -15,10 +15,11 @@ from pytz import timezone
 from pyzotero import zotero, zotero_errors
 from bibfilter import db
 from bibfilter.models import Article
-from bibfilter.functions import elasticsearchCheck, getElasticClient
+from bibfilter.elasticsearchfunctions import elasticsearchCheck, getElasticClient
 from synchronize_pdf_content import analyzeArticles
 from elasticsearch import Elasticsearch
 from multiprocessing import Process, Queue
+from sqlalchemy.sql import func
 
 # List to store key of all items in zotero to later check if some of the items in the database have been deleted in zotero
 zotero_keylist = []
@@ -30,6 +31,14 @@ report = {"new" : 0, "updated" : 0, "existed" : 0, "deleted": 0}
 useElasticSearch = elasticsearchCheck()
 if useElasticSearch:
     es = getElasticClient()
+
+# Retrieve the environment variables regarding zotero
+libraryID = os.environ["LIBRARY_ID"]
+
+try:
+    collectionID = os.environ["COLLECTION_ID"]
+except:
+    collectionID = None
 
 def delete_old():
     global report
@@ -49,6 +58,7 @@ def delete_old():
             print(f"delete {entry.title}")
             # If indexed by Elasticsearch delete from elasticsearch
             if entry.elasticIndexed:
+                es = getElasticClient()
                 es.delete(index='bibfilter-index', id=entry.ID, refresh=True)
             session.delete(entry)
             session.commit()
@@ -91,6 +101,7 @@ def check_item(item):
     # If the item existed but has been modified delete it now and continue to add it again
     elif reqlen > 0 and req[0].date_modified != data["dateModified"]:
         if req[0].elasticIndexed:
+            es = getElasticClient()
             es.delete(index='bibfilter-index', id=req[0].ID, refresh=True)
         session.delete(req[0])
         session.commit()
@@ -189,39 +200,28 @@ def check_item(item):
     return True
 
 def getZoteroItems(Q):
-    # Retrieve the environment variables
-    libraryID = os.environ["LIBRARY_ID"]
-    
-    try:
-        collectionID = os.environ["COLLECTION_ID"]
-    except:
-        collectionID = None
-    
     # Connect to the zotero database
     zot = zotero.Zotero(libraryID, "group")
+    items = None
     
     try:
         # Retrieve the zotero items 50 at a time and get the number of items
         # Uses the COLLECTION_ID if one is provided as environment variable
         if collectionID == None:
-            items = zot.everything(zot.top(limit=size))
+            items = zot.everything(zot.top())
         else:
             items = zot.everything(zot.collection_items_top(collectionID))
     except Exception as e:
         print(e)
-        items = None
     finally:    
         Q.put(items)
         return
 
-def update_from_zotero():
+def synchronizeZoteroDB():
     print("Started syncing with zotero collection")
     # Make variables alterable inside the function
     global zotero_keylist
     global report
-
-    # Create the database
-    db.create_all()
 
     ## Use multiprocessing to handle zotero server connection timing out
     Q = Queue()
@@ -229,14 +229,14 @@ def update_from_zotero():
     p1.start()
     try:
         items = Q.get(timeout=360)
-        print("Queue finished")
         if items == None:
             print("Couldn't connect to zotero server, Trying again later.")
             return
         else:
-            print(len(items))
-    except:
-        print("Connection to Zotero timed out")
+            print(f"Retrieved {len(items)} items from Zotero database")
+    except Exception as e:
+        print(e)
+        print("Connection to Zotero was interrupted. Stop synchronization")
         return
     finally:
         p1.kill()
@@ -264,17 +264,46 @@ def update_from_zotero():
     # Reset the counters and the keylist
     report = {"new" : 0, "updated" : 0, "existed" : 0, "deleted": 0}
     zotero_keylist = []
-    
-    
+ 
+def updateDatabase():
+    sync = False
+    try:
+        # Create the database
+        db.create_all()
+        
+        # Connect to the zotero database
+        zot = zotero.Zotero(libraryID, "group")
 
-# Sync once with the zotero library, after that sync ever hour
-if __name__ == "__main__":
-    update_from_zotero()
-    analyzeArticles()
+        if collectionID == None:
+            items = zot.top(limit=1)
+        else:
+            items = zot.collection_items_top(collectionID, limit=1)
+
+        newestModified = items[0]["data"]["dateModified"]
+        newestInDB = db.session.query(func.max(Article.date_modified)).scalar()
+        sync = (newestModified != newestInDB)
+        
+    except Exception as e:
+        print(e)
+        print("Unable to retrieve dateModified of newest zotero item. Maybe Zotero server is down or API changed?")
     
-    schedule.every(1).hours.do(update_from_zotero)
-    schedule.every(2).hours.do(analyzeArticles)
+    if sync:
+        synchronizeZoteroDB()
+        analyzeArticles()
+    
+    session = db.session()
+    article = session.query(Article).filter(Article.contentChecked == False).first()
+    ### Check whether still scraping should take place in case the process was interrupted before
+    if article != None:
+        analyzeArticles()
+    return
+     
+# Sync once with the zotero library, after that, regularly check whether new articles or updated articles are found
+if __name__ == "__main__":
+    updateDatabase()
+    
+    schedule.every(10).minutes.do(updateDatabase)
     
     while True:
         schedule.run_pending()
-        time.sleep(60)
+        time.sleep(30)

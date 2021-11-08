@@ -53,15 +53,8 @@ class Article(db.Model):
     date_modified_pretty = db.Column(db.String)
     date_added_pretty = db.Column(db.String)
     
-# Table Schema
-class TableSchema(ma.Schema):
-
-    class Meta:
-        fields = ("icon", "authorlast", "year", "title", "publication", "url", "importantWordsCount", "abstract", "importantWordsLocation")
-        ordered = True
-
 class BibliographySchema(ma.Schema):
-    SKIP_VALUES = set([None, "NaN", ""])
+    SKIP_VALUES = set([None, "NaN", "", "None"])
 
     # don't include NULL or "NaN" values in output JSON
     @post_dump

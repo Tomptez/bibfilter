@@ -2,15 +2,15 @@
 
 A Searchable Literature database web-interface for use with [Zotero](zotero.org/). 
 
-It is developed using python and flask and it is configured so it can easily be deployed using [dokku](https://dokku.com/).
+It is developed using python and flask and can easily be deployed using [dokku](https://dokku.com/).
 
-The version on the master branch can be used with [elasticsearch](https://www.elastic.co/) as a backend for searching. This version is not yet deployed publicly.
+For advanced searching features, [elasticsearch](https://www.elastic.co/) can be used as a backend for searching.
 
 ![Screenshot](/img/Screenshot.png?raw=true "Screenshot")
 
 ## Background
 
-It was developed specifically as part of the German Science Foundation funded project "The Reciprocal Relationship of Public Opinion and Social Policy" ([BR 5423/2-1](https://www.socium.uni-bremen.de/projects/?proj=614)). As such it was designed to provide an interactive tool for searching through all known literature in the specific subject area of public preferences for social policy and redistribution. However, it can easily be deployed with any literature library contained in a Zotero folder. The former version with title and abstract search functions is currently deployed on the webpage of the [_Social Policy Preferences Network_](https://sites.google.com/view/sppn/bibliography) with the server hosted by the University of Bremen's [Bremen International Graduate School of Social Sciences](https://www.bigsss-bremen.de/) internal server system. 
+It was developed specifically as part of the German Science Foundation funded project "The Reciprocal Relationship of Public Opinion and Social Policy" ([BR 5423/2-1](https://www.socium.uni-bremen.de/projects/?proj=614)). As such it was designed to provide an interactive tool for searching through all known literature in the specific subject area of public preferences for social policy and redistribution. However, it can easily be deployed with any literature library contained in a Zotero folder. A current version of bibfilter is used on the webpage of the [_Social Policy Preferences Network_](https://sites.google.com/view/sppn/bibliography) with the server hosted by the University of Bremen's [Bremen International Graduate School of Social Sciences](https://www.bigsss-bremen.de/). 
 
 ## Table of contents
 
@@ -90,10 +90,10 @@ Then you can select the database and install the unaccent extension
 ### Setting up environment variables
 
 Before we can start the application, we need to set our environment variables.
-To do so, we need new file in the main directory (in which the Pipfile sits) called `.env` where you define the environment variables which we will use in the project. There is a sample .env file we can use as a template.
+To do so, we need new file in the main directory (in which the Pipfile sits) called `.env` where you define the environment variables which we will use in the project. There is an example.env file we can use as a template.
 Let's copy it as our real .env file and edit it. I will use the terminal editor `nano`. In your bash terminal type
 
-    cp sample.env .env
+    cp example.env .env
     nano .env
 
 You can change the values of `APP_USERNAME` and `APP_PASSWORD` to whatever you like. They will be used for the login for the `/admin` page.
