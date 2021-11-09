@@ -255,11 +255,11 @@ def synchronizeZoteroDB():
     session = db.session()
     total = session.query(Article).count()
     session.close()
-    print("------------------------------------")
     print("Summary of synchronization with Zotero:")
     print(f"{report['existed']} entries existed already. {report['new']} new entries were added.\n")
     print(f"Updated {report['updated']} entries\nDeleted {report['deleted']} articles.")
     print(f"Total Articles: {total}")
+    print("------------------------------------")
 
     # Reset the counters and the keylist
     report = {"new" : 0, "updated" : 0, "existed" : 0, "deleted": 0}

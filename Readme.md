@@ -2,9 +2,9 @@
 
 A Searchable Literature database web-interface for use with [Zotero](zotero.org/). 
 
-It is developed using python and flask and can easily be deployed using [dokku](https://dokku.com/).
+It is developed using python and flask and can easily be deployed using [Dokku](https://dokku.com/).
 
-For advanced searching features, [elasticsearch](https://www.elastic.co/) can be used as a backend for searching.
+For advanced searching features, [Elasticsearch](https://www.elastic.co/) can be used as a backend for searching.
 
 ![Screenshot](/img/Screenshot.png?raw=true "Screenshot")
 
@@ -204,19 +204,21 @@ If there are problems online you might want to read to logs of your running appl
 In case of issues a restart may be necessary
 
 1. Login to the server using SSH key. 
-   - a. Open command prompt.
-   - b. Connect to the server by typing (you need to be in the university or be connected to the VPN)
-    
+   - Open command prompt.
+   - Connect to the server by typing (you need to be in the university or be connected to the VPN)
+   - You might have to enter the password you chose when setting the ssh key up
+
+<!-- comment to end list -->
     ssh dokku@IP.ADRE.SS
-   
-   - c. You might have to enter the password you chose when setting the ssh key up
 
-2. Chek the logs
+2. Check the logs
 
+<!-- comment to end list -->
     dokku logs my_application_name --tail
 
 3. Restart
-    
+
+<!-- comment to end list -->
     dokku ps:start bibfilter
    
 

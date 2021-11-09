@@ -38,12 +38,16 @@ def addToElasticsearch(article):
         if useElasticSearch:
             body = row2dict(article)
             res = es.index(index='bibfilter-index', document=body, id=body["ID"])
-            return True
+            return True, False
+        elif os.environ.get("USE_ELASTICSEARCH").upper() == "TRUE":
+            print("Error: USE_ELASTICSEARCH env is set to True, but cannot connect to elasticsearch. Abort and try later.")
+            return False, True
         else:
-            return False
+            return False, False
     except Exception as e:
         print(e)
-        return False
+        print("Couldn't connect to elasticsearch")
+        return False, True
 
 def readAttachedPDF(articleID, title, Q):
     def faceProblem(message):
@@ -192,7 +196,9 @@ def analyzeContent():
         article = session.query(Article).filter(Article.ID == articleID).first()
         article.contentChecked = True
         # Add to elasticSearch and mark as indexed
-        article.elasticIndexed = addToElasticsearch(article)
+        article.elasticIndexed, esError = addToElasticsearch(article)
+        if esError:
+            return True
         session.commit()
         session.close()
         return False
@@ -219,7 +225,9 @@ def analyzeContent():
     
     article.contentChecked = True
     # Add to elasticSearch and mark as indexed
-    article.elasticIndexed = addToElasticsearch(article)
+    article.elasticIndexed, esError = addToElasticsearch(article)
+    if esError:
+        return True
     session.commit()
     session.close()
     return False

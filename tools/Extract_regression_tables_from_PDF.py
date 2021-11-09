@@ -10,12 +10,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 folder = os.environ["PDF_FOLDER"]
-fileName = "cruces"
+fileName = "excampleName"
 filepath = os.path.join(folder,fileName+".pdf")
 
 os.makedirs(os.path.join(folder,fileName),exist_ok=True)
-
-pdfFile = PdfFileReader(open(filepath, 'rb'))
+try:
+    pdfFile = PdfFileReader(open(filepath, 'rb'))
+except Exception as e:
+    print(e)
+    print("Please specify which files to scan")
+    
 totalPages = pdfFile.getNumPages()
 
 # Get document dimensions from page 1
