@@ -62,7 +62,7 @@ First make sure you have `pipenv` installed by running.
 
     pip install pipenv
 
-After that we initiate the virtual environment and install all required modules by running
+After that we initiate the virtual environment, the exact packages and versions needed, and install all required modules by running
 This can take a while.
 
     pipenv install
