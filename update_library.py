@@ -281,17 +281,17 @@ def updateDatabase():
 
         newestModified = items[0]["data"]["dateModified"]
         newestInDB = db.session.query(func.max(Article.date_modified)).scalar()
-        sync = (newestModified != newestInDB)
-        if sync == False:
-            print("Checked Zotero for new articles: Nothing to update")
+        syncNeeded = (newestModified != newestInDB)         
         
     except Exception as e:
         print(e)
         print("Unable to retrieve dateModified of newest zotero item. Maybe Zotero server is down or API changed?")
     
-    if sync:
+    if syncNeeded:
         synchronizeZoteroDB()
         analyzeArticles()
+    else:
+        print("Checked Zotero for new articles: Nothing to update")
     
     session = db.session()
     article = session.query(Article).filter(Article.contentChecked == False).first()
