@@ -56,7 +56,6 @@ def readAttachedPDF(articleID, title, Q):
         return ""
     
     try:
-        content = ""
         references = ""
         connectionError = False
         
@@ -66,6 +65,7 @@ def readAttachedPDF(articleID, title, Q):
 
         # Goes through each attachment if there is any
         for each in attachments:
+            content = ""
             try:
                 # Notes are different from attachments and don't have contentType attribute
                 if each["data"]["itemType"] == "attachment":
@@ -81,10 +81,9 @@ def readAttachedPDF(articleID, title, Q):
                         # Parse only first 60 pages at maximum
                         totalPages = min(60, totalPages)
                         
-                        # normal extract
+                        # Set paramters of extraction
                         laparam = LAParams(detect_vertical=True)
                         # get content of pdf
-                        content = ""
                         # Parsing over only a few pages seperately may take longer but uses less memory
                         step = 3
                         for pg in range(0, totalPages, step):

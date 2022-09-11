@@ -84,7 +84,7 @@ def elasticsearchCheck():
             useElasticSearch = True
             es.close()
         except Exception as e:
-            print(e)
+            print("Could not connect to Elasticsearch Server")
             useElasticSearch = False
         return useElasticSearch
     else:

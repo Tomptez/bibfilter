@@ -34,13 +34,17 @@ limiter = Limiter(
 
 # Do you want to show quotes of the  Articles in the results (TRUE or FALSE)
 showSearchQuotes = os.environ.get("SHOW_SEARCH_QUOTES").upper() == "TRUE"
+
 if showSearchQuotes:
+    print("SHOW_SEATCH_QUOTES set to TRUE")
     try:
         quoteSize = int(os.environ.get("SEARCH_QUOTE_SIZE"))
         if quoteSize > 1200:
             quoteSize = 1200
     except:
         quoteSize = 300
+else:
+    print("SHOW_SEATCH_QUOTES not set or set to FALSE")
 
 # Link where Literature suggestions can be submitted
 suggestLink = os.environ["SUGGEST_LITERATURE_URL"]
@@ -251,7 +255,7 @@ def createTable(arguments, bibfile=False):
         elif arType == "article" or arType == "book":
             q = Q("match", icon=arType)
             s = s.query(q)
-            
+        
         s = s.highlight('abstract', number_of_fragments=0, pre_tags=["<mark>"], post_tags=["</mark>"])
         if showSearchQuotes:
             s = s.highlight("articleFullText", type="fvh", fragment_size=quoteSize, boundary_scanner="word", pre_tags=["<mark>"], post_tags=["</mark>"])

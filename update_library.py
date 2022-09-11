@@ -282,6 +282,8 @@ def updateDatabase():
         newestModified = items[0]["data"]["dateModified"]
         newestInDB = db.session.query(func.max(Article.date_modified)).scalar()
         sync = (newestModified != newestInDB)
+        if sync == False:
+            print("Checked Zotero for new articles: Nothing to update")
         
     except Exception as e:
         print(e)
