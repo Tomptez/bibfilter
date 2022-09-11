@@ -51,7 +51,7 @@ Optionally, if you want to make use of advanced searching capabilities, especial
 
 Next, clone the repository to your local machine from your (git) bash terminal
 
-    git clone https://gitlab.com/mx.tom/bibfilter.git
+    git clone https://github.com/Tomptez/bibfilter.git
 
 and then open the cloned directory
 
