@@ -220,5 +220,9 @@ In case of issues a restart may be necessary
 
 <!-- comment to end list -->
     dokku ps:start bibfilter
-   
 
+
+
+## Contributors
+
+[Tom Knuf](https://github.com/Tomptez/), [Nate Breznau](https://github.com/nbreznau)
