@@ -36,7 +36,6 @@ limiter = Limiter(
 showSearchQuotes = os.environ.get("SHOW_SEARCH_QUOTES").upper() == "TRUE"
 
 if showSearchQuotes:
-    print("SHOW_SEATCH_QUOTES set to TRUE")
     try:
         quoteSize = int(os.environ.get("SEARCH_QUOTE_SIZE"))
         if quoteSize > 1200:

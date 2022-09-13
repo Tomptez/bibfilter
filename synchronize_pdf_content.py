@@ -21,11 +21,6 @@ from elasticsearch import Elasticsearch
 from elasticsearch import helpers
 import time
 
-# Connect to elasticSearch if it's suppoed to be used
-useElasticSearch = elasticsearchCheck()
-if useElasticSearch:
-    es = getElasticClient()
-
 # Converts SQL article to dict to insert in elasticsearch
 def row2dict(row):
         d = {}
@@ -34,9 +29,11 @@ def row2dict(row):
         return d
     
 def addToElasticsearch(article):
+    useElasticSearch = elasticsearchCheck()
     try:
         if useElasticSearch:
             body = row2dict(article)
+            es = getElasticClient()
             res = es.index(index='bibfilter-index', document=body, id=body["ID"])
             return True, False
         elif os.environ.get("USE_ELASTICSEARCH").upper() == "TRUE":

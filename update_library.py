@@ -27,11 +27,6 @@ zotero_keylist = []
 # Count new and updated articles for finish report
 report = {"new" : 0, "updated" : 0, "existed" : 0, "deleted": 0}
 
-# Connect to elasticSearch if it's suppoed to be used
-useElasticSearch = elasticsearchCheck()
-if useElasticSearch:
-    es = getElasticClient()
-
 # Retrieve the environment variables regarding zotero
 libraryID = os.environ["LIBRARY_ID"]
 
@@ -42,6 +37,7 @@ except:
 
 def delete_old():
     global report
+    useElasticSearch = elasticsearchCheck()
 
     # Convert zotero keys from list to tuple to make iteration faster
     zoteroKeys = tuple(zotero_keylist)
@@ -56,10 +52,15 @@ def delete_old():
     for entry in request:
         if entry.ID not in zoteroKeys:
             print(f"delete {entry.title}")
+            ## If article was indexed by elasticsearch but elasticsearch server is down, do nothing
+            if entry.elasticIndexed and not useElasticSearch:
+                print(f"Couldn't connect to elasitcsearch. Therefore didn't delete {entry.title}")
+                break
             # If indexed by Elasticsearch delete from elasticsearch
-            if entry.elasticIndexed:
+            elif entry.elasticIndexed and useElasticSearch:
                 es = getElasticClient()
                 es.delete(index='bibfilter-index', id=entry.ID, refresh=True)
+
             session.delete(entry)
             session.commit()
             count +=1
@@ -73,6 +74,8 @@ def check_item(item):
     global zotero_keylist
     global report
 
+    useElasticSearch = elasticsearchCheck()
+    
     # Create the session
     session = db.session()
     data = item["data"]
@@ -100,7 +103,7 @@ def check_item(item):
 
     # If the item existed but has been modified delete it now and continue to add it again
     elif reqlen > 0 and req[0].date_modified != data["dateModified"]:
-        if req[0].elasticIndexed:
+        if req[0].elasticIndexed and useElasticSearch:
             es = getElasticClient()
             es.delete(index='bibfilter-index', id=req[0].ID, refresh=True)
         session.delete(req[0])
