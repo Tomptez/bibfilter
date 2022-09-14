@@ -25,11 +25,15 @@ import io
 
 load_dotenv()
 
+# How to keep track of site visits using lask_limiter
+limiter_URI = os.getenv("MEMCACHED_URL")
+
 # Rate limiting Setup
 limiter = Limiter(
     app,
     key_func=get_remote_address,
-    default_limits=["100/minute"]
+    default_limits=["100/minute"],
+    storage_uri=limiter_URI,
 )
 
 # Do you want to show quotes of the  Articles in the results (TRUE or FALSE)

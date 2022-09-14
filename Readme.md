@@ -172,6 +172,12 @@ Afterwards you need to connect to the SQL interface, add the extension unaccent 
     exit
     dokku postgres:link my_database_name my_application_name
 
+For flask_limiter you also need to create a memcached service as a backend and link it to the application
+
+    sudo dokku plugin:install https://github.com/dokku/dokku-memcached.git memcached
+    dokku memcached:create memcached_backend
+    dokku memcached:link memcached_backend my_application_name
+
 After that you need to create the required environment variables. Of course you need to change it to the correct values. Note: This command is supposed to be one line not seperate lines.
 
     dokku config:set my_application_name APP_USERNAME=my_admin_name APP_PASSWORD=my_password LIBRARY_ID=my_public_zotero_library_id COLLECTION_ID=my_public_zotero_collection_id SUGGEST_LITERATURE_URL=url_of_form_where_one_can_suggest_an_article SHOW_SEARCH_QUOTES = "TRUE" USE_ELASTICSEARCH = "FALSE"
