@@ -1,7 +1,7 @@
-from flask import request, jsonify, render_template, redirect, url_for, Markup, send_file
+from flask import request, render_template, redirect, url_for, Markup, send_file
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from sqlalchemy.sql.expression import asc, desc, or_, and_
+from sqlalchemy.sql.expression import asc, desc
 from sqlalchemy.sql import func
 from sqlalchemy.sql.functions import ReturnTypeFromArgs
 from bibtexparser.bibdatabase import BibDatabase
@@ -9,18 +9,15 @@ import bibtexparser
 from bibfilter.models import Article, BibliographySchema
 from bibfilter import app, basic_auth, db
 from update_library import updateDatabase
-from datetime import datetime
 import os
 from unidecode import unidecode
 from dotenv import load_dotenv
 from flask_table import Table, Col, OptCol
 import time
-from elasticsearch import Elasticsearch
 from bibfilter.elasticsearchfunctions import elasticsearchCheck, getElasticClient, createElasticsearchIndex
-from pprint import pprint
 from elasticsearch_dsl import Search
 from elasticsearch_dsl import Q
-from multiprocessing import Process, Queue
+from multiprocessing import Process
 import io
 
 load_dotenv()
@@ -58,9 +55,8 @@ if useElasticSearch:
     es = getElasticClient()
 
 ######################################## ADMIN #####################
-
-## Get Date of last sync between zotero and database
 def zotero_last_sync_date():
+    """ Get Date of last sync between zotero and database """
     max_value = db.session.query(func.max(Article.date_last_zotero_sync)).scalar()
 
     # If the database is empty
@@ -70,11 +66,11 @@ def zotero_last_sync_date():
 
 p1 = Process(target=updateDatabase)
 
-## Admin API: Clear the database
 @app.route("/clearDB", methods=["GET"])
 @limiter.limit("5/day")
 @basic_auth.required
 def clearDB():
+    """ Admin API: Clear the database """
     global p1
     print("/clearDB, Delete Database and elasticsearch index")
     # Stop manual resyncDB if it is  currently running
@@ -92,11 +88,11 @@ def clearDB():
     
     return redirect("/admin")
 
-## Admin API: Sync the database
 @app.route("/resyncDB", methods=["GET"])
 @limiter.limit("20/hour")
 @basic_auth.required
 def resyncDB():
+    """ Admin API: Sync the database """
     print("/resyncDB, running updateDatabase() in background")
     global p1
     
@@ -109,10 +105,10 @@ def resyncDB():
     p1.start()
     return redirect("/admin")
 
-## Return admin page
 @app.route("/admin", methods=["GET"])
 @basic_auth.required
 def admin():
+    """ Return admin page """
     arguments = request.args
     table, args, args_get_str, numResults, suggestLink = createTable(arguments)
     lastSync = zotero_last_sync_date()
@@ -121,12 +117,24 @@ def admin():
 ######################################### ADMIN END ########################
 
 def cleanArguments(arguments):
+    """
+    Converts explicitly given arguments to filter literature to dict containing all parameters
+
+    :param arguments: Dictionary containing arbitrary number of filter arguments
+    :returns: Dictionary containing all filter parameters
+    """
     args = {"title":"", "author":"", "timestart":"", "until":"", "type":"all", "sort":"author", "direction":"asc", "search":""}
     args.update(arguments)
     args["reverse"] = True if args["direction"] == "desc" else False
     return args
 
-def argsToStr(arguments):
+def argsURLFormat(arguments):
+    """
+    Converts dictionary of arguments to string to pass arguments via the URL
+
+    :param arguments: Dictionary containing arbitrary number of filter arguments
+    :returns: String of arguments in a URL compatible format
+    """
     if len(arguments) > 0:
         args_get_str = "?"
         for key, val in arguments.items():
@@ -137,33 +145,28 @@ def argsToStr(arguments):
         args_get_str = ""
     return args_get_str
 
-# Class needed to ignore accents when using SQL. Not that the unaccent extension needs to be installed in postgreSQL
 class unaccent(ReturnTypeFromArgs):
+    """
+    Class needed to ignore accents when using SQL. Not that the unaccent extension needs to be installed in postgreSQL
+    """
     pass
 
-# Function to Select the correct articles from SQL based on the selection done by the user in the frontent
-def selectEntries(searchDict, bibfile=False):
-    """ 
-    Example DICT:
-    {
-        "title":        "mytitle",
-        "author":       "authorname", 
-        "timestart":    "1960", 
-        "until":        "2010", 
-        "type":         "all",
-        "sortby":       "author",
-        "sort_order":    "asc"
-    }
+def selectEntries(args, bibfile=False):
+    """
+    Function to select the correct articles from SQL based on the selection done by the user in the frontent
+    
+    :param args: Keywords to filter the literature by (e.g. title, author, timestart, until, type, sortby, sort_order)
+    :returns: SQLAlchemy Query Object
     """
     
-    timestart = searchDict["timestart"] if len(searchDict["timestart"]) == 4 and searchDict["timestart"].isdigit else None
-    until = searchDict["until"] if len(searchDict["until"]) == 4 and searchDict["until"].isdigit else "3000"
-    article_type = "%" if searchDict["type"] == "all" else searchDict["type"]
-    direction = desc if searchDict["direction"] == 'desc' else asc
+    timestart = args["timestart"] if len(args["timestart"]) == 4 and args["timestart"].isdigit else None
+    until = args["until"] if len(args["until"]) == 4 and args["until"].isdigit else "3000"
+    article_type = "%" if args["type"] == "all" else args["type"]
+    direction = desc if args["direction"] == 'desc' else asc
 
-    title_list = searchDict["title"].split()
-    search_term_list = searchDict["search"].split()
-    author_list = searchDict["author"].split()
+    title_list = args["title"].split()
+    search_term_list = args["search"].split()
+    author_list = args["author"].split()
 
     #ILIKE is similar to LIKE in all aspects except in one thing: it performs a case in-sensitive matching
     #Unidecode removes accent from the search string whereas unaccent removes accents from the database. The unaccent Extension has to be installed for postgresql
@@ -179,7 +182,7 @@ def selectEntries(searchDict, bibfile=False):
     filters = title_filter + search_filter + author_filter + timestart_filter + filter_type + until_filter
     
     # How to order the results
-    orderby = direction(getattr(Article, searchDict["sort"]))
+    orderby = direction(getattr(Article, args["sort"]))
     
     # Desired columns
     columns = [Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract]            
@@ -230,8 +233,15 @@ class ItemTable(Table):
             return {}
 
 def createTable(arguments, bibfile=False):
+    """
+    Output an HTML-table based of the literature based on the keywords specified in arguments.
+    
+    :param arguments: Keywords to filter the literature by (e.g. title, author, timestart, until, type, sortby, sort_order)
+    :param bibfile: True if you want to get items in a format for a bibfile instead of and HTML table. Defaults to true
+    :returns: table (as HTML), args (dict of filter arguments), args_get_str (filter arguments as URL string), numResults (int), suggestLink (string of URL)
+    """
     args = cleanArguments(arguments)
-    args_get_str = argsToStr(arguments)
+    args_get_str = argsURLFormat(arguments)
     
     # Query items from database
     begin = time.time()
@@ -371,6 +381,9 @@ bibliography_schema = BibliographySchema(many=True)
 @app.route("/bibfile", methods=["GET"])
 @limiter.limit("10/minute")
 def get_bibfile():
+    """
+    Returns selected articles as a bibfile
+    """
     arguments = request.args
     articles = createTable(arguments, bibfile=True)
     # Clean up results to only contain needed attributes for bibfile and deleted missing fields
@@ -382,15 +395,15 @@ def get_bibfile():
     string_out = io.BytesIO(bytes(bibtex_str, 'utf-8'))
     return send_file(string_out, mimetype="text/plain", download_name="results.bib", as_attachment=True)
 
-# Redirect to main page if you land at index
 @app.route("/index", methods=["GET"])
 def index():
+    """ Redirect to main page if you land at index """
     return redirect("/")
 
-## Frontend: Return our frontend
 @app.route("/", methods=["GET"])
 @limiter.exempt
 def main():
+    """ Return main page """
     arguments = request.args
     table, args, args_get_str, numResults, suggestLink = createTable(arguments)
     return render_template("main.html", table=table, args=args, getStr=args_get_str, numResults=numResults, suggestLink=suggestLink)

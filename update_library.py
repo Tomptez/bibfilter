@@ -9,15 +9,12 @@ import os
 import datetime
 import time
 import schedule
-import re
-from sqlalchemy.orm import sessionmaker
 from pytz import timezone
 from pyzotero import zotero, zotero_errors
 from bibfilter import db
 from bibfilter.models import Article
 from bibfilter.elasticsearchfunctions import elasticsearchCheck, getElasticClient
 from synchronize_pdf_content import analyzeArticles
-from elasticsearch import Elasticsearch
 from multiprocessing import Process, Queue
 from sqlalchemy.sql import func
 
@@ -36,6 +33,11 @@ except:
     collectionID = None
 
 def delete_old():
+    """
+    Deletes all articles from the database which don't exist in the current zotero library
+
+    :returns: True
+    """
     global report
     useElasticSearch = elasticsearchCheck()
 
@@ -71,6 +73,12 @@ def delete_old():
     return True
 
 def check_item(item):
+    """
+    Adds an zotero Item to DB if it didn't exist before, updates it if it has changed or does nothing if it exists an hasn't changed
+
+    :param item: Item of a zotero library given by pyzotero API
+    :returns: (1,0,0) when adding new item, (0,1,0) when updating, (0,0,1) when item existed
+    """
     global zotero_keylist
     global report
 
@@ -86,7 +94,6 @@ def check_item(item):
     req = session.query(Article).filter(Article.ID == data["key"])
     reqlen = req.count()
     # If article exists and hasn't been modified, update last sync date and return
-
     # Get date. If timezone environment variable exists, use it
     try:
         zone = os.environ["TIMEZONE"]
@@ -203,12 +210,18 @@ def check_item(item):
     return True
 
 def getZoteroItems(Q):
+    """
+    Functions that retrieves all items of Zotero library or zotero collection if collectionID env var is set. Results are put into Queue.
+
+    :param Q: Multiprocessing Queue
+    :returns: Nothing
+    """
     # Connect to the zotero database
     zot = zotero.Zotero(libraryID, "group")
     items = None
     
     try:
-        # Retrieve the zotero items 50 at a time and get the number of items
+        # Retrieve all items in zotero library
         # Uses the COLLECTION_ID if one is provided as environment variable
         if collectionID == None:
             items = zot.everything(zot.top())
@@ -221,6 +234,9 @@ def getZoteroItems(Q):
         return
 
 def synchronizeZoteroDB():
+    """
+    Synchronizes the postgresQL Database with the zotero library it is supposed to mirror
+    """
     print("Started syncing with zotero collection")
     # Make variables alterable inside the function
     global zotero_keylist
@@ -248,7 +264,6 @@ def synchronizeZoteroDB():
 
     # Iterate over every single entry
     for item in items:
-        # check_item return (1,0,0) when adding new item, (0,1,0) when updating, (0,0,1) when item existed
         check_item(item)
         
     # Delete all articles which are not in zotero anymore
@@ -269,7 +284,9 @@ def synchronizeZoteroDB():
     zotero_keylist = []
  
 def updateDatabase():
-    sync = False
+    """
+    Checks the newest item of the zotero library. If it detects a change in the library, starts synchronization.
+    """
     try:
         # Create the database
         db.create_all()

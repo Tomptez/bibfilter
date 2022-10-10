@@ -12,29 +12,34 @@ import time
 from unidecode import unidecode
 from pyzotero import zotero, zotero_errors
 import os
-from io import BytesIO
 from pdfminer.high_level import extract_text
 from pdfminer.layout import LAParams
 from PyPDF2 import PdfFileReader
 from multiprocessing import Process, Queue
-from elasticsearch import Elasticsearch
-from elasticsearch import helpers
 import time
 
-# Converts SQL article to dict to insert in elasticsearch
 def row2dict(row):
-        d = {}
-        for column in row.__table__.columns:
-            d[column.name] = str(getattr(row, column.name))
-        return d
+    """ Converts SQL article to dict to insert in elasticsearch """
+    d = {}
+    for column in row.__table__.columns:
+        d[column.name] = str(getattr(row, column.name))
+    return d
     
 def addToElasticsearch(article):
+    """
+    Given an SQLAlchemy item, adds it to Elasticsearch index if elasticsearch is set to be used.
+    
+    :param article: SQLAlchemy Query item
+    :returns: Tuple of two booleans. The first indicates whether an article was index, the second if an error was encountered.
+    """
+    
     useElasticSearch = elasticsearchCheck()
     try:
         if useElasticSearch:
             body = row2dict(article)
             es = getElasticClient()
-            res = es.index(index='bibfilter-index', document=body, id=body["ID"])
+            ## Creates or updates a document in index.
+            es.index(index='bibfilter-index', document=body, id=body["ID"])
             return True, False
         elif os.environ.get("USE_ELASTICSEARCH").upper() == "TRUE":
             print("Error: USE_ELASTICSEARCH env is set to True, but cannot connect to elasticsearch. Abort and try later.")
@@ -47,6 +52,14 @@ def addToElasticsearch(article):
         return False, True
 
 def readAttachedPDF(articleID, title, Q):
+    """
+    Scrapes the content of the PDF file of a specified article and puts it in Queue.
+    
+    :param articleID: ID of zotero item
+    :param title: Title of article for logging
+    :param Q: multiprocessing Queue to be used
+    :returns: Nothing
+    """
     def faceProblem(message):
         print(title)
         print(message+"\n")
@@ -157,6 +170,11 @@ def readAttachedPDF(articleID, title, Q):
     return
 
 def progressMessage():
+    """
+    Prints progress of content scraping to the console
+    
+    :returns: Nothing
+    """
     print()
     session = db.session()
     checked = session.query(Article).filter(Article.contentChecked == True).count()
@@ -165,6 +183,12 @@ def progressMessage():
     session.close()
 
 def analyzeContent():
+    """
+    If at least one article has its property contentChecked set to False, scrapes content of PDF file if available and saves it in database. 
+    Indexes Database items to Elasticsearch. Doesn't commit to Database if it encounters error when connecting to Elasticsearch.
+    
+    :returns: True if Elasticsearch Error was encountered, else False
+    """
     progressMessage()
     
     session = db.session()
@@ -229,8 +253,8 @@ def analyzeContent():
     return False
     
 def analyzeArticles():
-    total_articles = db.session.query(Article).count()
-    for i in range(total_articles):
+    """ Checks all items in database unless nothing to do or error when connecting to elasticsearch """
+    while True:
         time.sleep(2)
         finished = analyzeContent()
         if finished:
