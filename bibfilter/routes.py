@@ -232,6 +232,54 @@ class ItemTable(Table):
         else:
             return {}
 
+def formatESResponse(response):
+    """
+    Formats the content of the literature in an elasticseach DSL response
+    
+    :param response: Elasticsearch DSL Response object
+    :returns: Dictionary with formatted article properties
+    """
+    items = []
+    for each in response:
+        item = {}
+        
+        cols = ["icon", "year", "authorlast", "title", "publication",]
+        for col in cols:
+            item[col] = each[col]
+        
+        if each["url"] != "":
+            item["url"] = Markup(f'<a class="externalUrl" target="_blank" href="{each["url"]}">Source</a>')
+        else:
+            item["url"] = ""
+        try:
+            if hasattr(each.meta, 'highlight'):
+                if "abstract" in each.meta.highlight:
+                    abstract = "".join(each.meta.highlight.abstract)
+                else:
+                    abstract = each["abstract"]
+                if "articleFullText" in each.meta.highlight:
+                    highlights = "<b>Text results</b><br>"+" (...)<br><br>".join(each.meta.highlight.articleFullText)
+                else:
+                    highlights = ""
+            else:
+                abstract = each["abstract"]
+                highlights = ""
+            
+            if abstract != "":
+                abstract = f"<b>Abstract</b><br>{abstract}<br><br>"
+            if not (highlights == "" and abstract == ""):
+                item["abstract"] = Markup("<div class='hidden_content'>" + abstract + highlights +"</div>")
+            else:
+                item["abstract"] = ""
+                
+        except Exception as e:
+            print(e)
+            print("Error. No highlight available")
+            item["abstract"] = Markup("<div class='hidden_content'> <b>Abstract</b><br></div>")
+            
+        items.append(item)
+    return items
+
 def createTable(arguments, bibfile=False):
     """
     Output an HTML-table based of the literature based on the keywords specified in arguments.
@@ -273,7 +321,6 @@ def createTable(arguments, bibfile=False):
         if showSearchQuotes:
             s = s.highlight("articleFullText", type="fvh", fragment_size=quoteSize, boundary_scanner="word", pre_tags=["<mark>"], post_tags=["</mark>"])
         
-        # , max_analyzed_offset=1000000
         s = s.highlight_options(boundary_scanner="sentence", encoder="html", order="score", boundary_chars="\n")
             
         # Obtain number of results
@@ -293,53 +340,16 @@ def createTable(arguments, bibfile=False):
         if bibfile:
             return response
         
-        items = []
-        for each in response:
-            item = {}
+        else:
+            items = formatESResponse(response)
+            # args need to be passed so the filter isn't reset when sorting
+            table = ItemTable(args=args, items=items, sort_by=args["sort"], sort_reverse=args["reverse"])
             
-            cols = ["icon", "year", "authorlast", "title", "publication",]
-            for col in cols:
-                item[col] = each[col]
+            numResults = len(response)
             
-            if each["url"] != "":
-                item["url"] = Markup(f'<a class="externalUrl" target="_blank" href="{each["url"]}">Source</a>')
-            else:
-                item["url"] = ""
-            try:
-                if hasattr(each.meta, 'highlight'):
-                    if "abstract" in each.meta.highlight:
-                        abstract = "".join(each.meta.highlight.abstract)
-                    else:
-                        abstract = each["abstract"]
-                    if "articleFullText" in each.meta.highlight:
-                        highlights = "<b>Text results</b><br>"+" (...)<br><br>".join(each.meta.highlight.articleFullText)
-                    else:
-                        highlights = ""
-                else:
-                    abstract = each["abstract"]
-                    highlights = ""
-                
-                if abstract != "":
-                    abstract = f"<b>Abstract</b><br>{abstract}<br><br>"
-                if not (highlights == "" and abstract == ""):
-                    item["abstract"] = Markup("<div class='hidden_content'>" + abstract + highlights +"</div>")
-                else:
-                    item["abstract"] = ""
-                    
-            except Exception as e:
-                print(e)
-                print("Error. No highlight available")
-                item["abstract"] = Markup("<div class='hidden_content'> <b>Abstract</b><br></div>")
-                
-            items.append(item)
-        
-        table = ItemTable(args=args, items=items, sort_by=args["sort"], sort_reverse=args["reverse"])
-        
-        numResults = len(response)
-        
-        end = time.time()
-        print(f"Finished loading in {end - begin:.4f} seconds\n")
-        return table, args, args_get_str, numResults, suggestLink
+            end = time.time()
+            print(f"Finished loading in {end - begin:.4f} seconds\n")
+            return table, args, args_get_str, numResults, suggestLink
     
     else:
         if bibfile:
@@ -350,7 +360,7 @@ def createTable(arguments, bibfile=False):
         
         items = []
     
-        for ki, item in enumerate(requested_articles):
+        for item in requested_articles:
             item = dict(item)
                 
             if item["url"] != "":
