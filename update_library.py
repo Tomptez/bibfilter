@@ -10,8 +10,8 @@ import datetime
 import time
 import schedule
 from pytz import timezone
-from pyzotero import zotero, zotero_errors
-from bibfilter import db
+from pyzotero import zotero
+from bibfilter import app, db
 from bibfilter.models import Article
 from bibfilter.elasticsearchfunctions import elasticsearchCheck, getElasticClient
 from synchronize_pdf_content import analyzeArticles
@@ -44,30 +44,31 @@ def deleteOld():
     # Convert zotero keys from list to tuple to make iteration faster
     zoteroKeys = tuple(zotero_keylist)
 
-    session = db.session()
+    with app.app_context():
+        session = db.session()
 
-    # Select all entries in the database
-    request = session.query(Article)
+        # Select all entries in the database
+        request = session.query(Article)
 
-    # Delete each item from the database which isn't in the zotero database
-    count = 0
-    for entry in request:
-        if entry.ID not in zoteroKeys:
-            print(f"delete {entry.title}")
-            ## If article was indexed by elasticsearch but elasticsearch server is down, do nothing
-            if entry.elasticIndexed and not useElasticSearch:
-                print(f"Couldn't connect to elasitcsearch. Therefore didn't delete {entry.title}")
-                break
-            # If indexed by Elasticsearch delete from elasticsearch
-            elif entry.elasticIndexed and useElasticSearch:
-                es = getElasticClient()
-                es.delete(index='bibfilter-index', id=entry.ID, refresh=True)
+        # Delete each item from the database which isn't in the zotero database
+        count = 0
+        for entry in request:
+            if entry.ID not in zoteroKeys:
+                print(f"delete {entry.title}")
+                ## If article was indexed by elasticsearch but elasticsearch server is down, do nothing
+                if entry.elasticIndexed and not useElasticSearch:
+                    print(f"Couldn't connect to elasitcsearch. Therefore didn't delete {entry.title}")
+                    break
+                # If indexed by Elasticsearch delete from elasticsearch
+                elif entry.elasticIndexed and useElasticSearch:
+                    es = getElasticClient()
+                    es.delete(index='bibfilter-index', id=entry.ID, refresh=True)
 
-            session.delete(entry)
-            session.commit()
-            count +=1
+                session.delete(entry)
+                session.commit()
+                count +=1
 
-    session.close()
+        session.close()
 
     report["deleted"] = count
     return True
@@ -142,84 +143,85 @@ def checkItem(item):
 
     useElasticSearch = elasticsearchCheck()
     
-    # Create the session
-    session = db.session()
-    data = item["data"]
+    # Create the session in app context
+    with app.app_context():
+        session = db.session()
+        data = item["data"]
 
-    ## Adding each key the keylist which is needed by deleteOld()
-    zotero_keylist.append(data["key"])
+        ## Adding each key the keylist which is needed by deleteOld()
+        zotero_keylist.append(data["key"])
 
-    req = session.query(Article).filter(Article.ID == data["key"])
-    reqlen = req.count()
-    # If article exists and hasn't been modified, update last sync date and return
-    # Get date. If timezone environment variable exists, use it
-    try:
-        zone = os.environ["TIMEZONE"]
-        date_str = datetime.datetime.now(timezone(zone)).strftime("%Y-%m-%d %H:%M")
-    except:
-        date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        req = session.query(Article).filter(Article.ID == data["key"])
+        reqlen = req.count()
+        # If article exists and hasn't been modified, update last sync date and return
+        # Get date. If timezone environment variable exists, use it
+        try:
+            zone = os.environ["TIMEZONE"]
+            date_str = datetime.datetime.now(timezone(zone)).strftime("%Y-%m-%d %H:%M")
+        except:
+            date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    if reqlen > 0 and req[0].date_modified == data["dateModified"]:
-        req[0].date_last_zotero_sync = date_str
+        if reqlen > 0 and req[0].date_modified == data["dateModified"]:
+            req[0].date_last_zotero_sync = date_str
+            session.commit()
+            session.close()
+            report["existed"] += 1
+            return False
+        # If the item existed but has been modified delete it now and continue to add it again
+        elif reqlen > 0 and req[0].date_modified != data["dateModified"]:
+            if req[0].elasticIndexed and useElasticSearch:
+                es = getElasticClient()
+                es.delete(index='bibfilter-index', id=req[0].ID, refresh=True)
+            session.delete(req[0])
+            session.commit()
+            report["updated"] += 1
+        else:
+            report["new"] += 1
+    
+        try:
+            content = formatArticleData(item)
+        except:
+            return False
+
+        csv_bib_pattern = {"journalArticle": "article", "book": "book", "conferencePaper": "inproceedings", "manuscript": "article", "bookSection": "incollection", "webpage": "inproceedings", "techreport": "article", "letter": "misc", "report": "report", "document": "misc", "thesis": "thesis"}
+
+        # Create a new Database entry with all the attributes
+        new_art = Article(title = content["title"],
+                            url = content["url"],
+                            # publisher=publisher, 
+                            ID = content["key"], 
+                            ENTRYTYPE = csv_bib_pattern[content["itemType"]],
+                            author = content["author"],
+                            authorlast = content["authorlast"],
+                            year = content["itemYear"],
+                            doi = content["DOI"],
+                            issn = content["ISSN"],
+                            isbn = content["ISBN"],
+                            publication = content["publicationTitle"],
+                            journal = content["publicationTitle"] if not  content["itemType"].startswith("book") else "",
+                            booktitle = content["publicationTitle"] if content["itemType"].startswith("book") else "",
+                            journal_abbrev = content["journalAbbreviation"],
+                            abstract = content["abstractNote"],
+                            pages = content["pages"] if content["pages"] != "" else content["numPages"],
+                            language = content["language"],
+                            volume = content["volume"], 
+                            number = content["issue"],
+                            icon = "book" if content["itemType"].startswith("book") else csv_bib_pattern[content["itemType"]], 
+                            articleFullText = "",
+                            references = "",
+                            searchIndex = " ".join([content["title"], content["author"], content["publicationTitle"], content["abstractNote"], content["DOI"], content["ISSN"], content["ISBN"]]),
+                            date_last_zotero_sync = date_str,
+                            date_added = content["dateAdded"],
+                            date_modified = content["dateModified"],
+                            contentChecked = False,
+                            elasticIndexed = False,
+                            date_modified_pretty = content["dateModified"].split("T")[0] + " " + content["dateModified"].split("T")[1][:-4],
+                            date_added_pretty = content["dateAdded"].split("T")[0] + " " + content["dateAdded"].split("T")[1][:-4])
+                            
+        
+        session.add(new_art)
         session.commit()
         session.close()
-        report["existed"] += 1
-        return False
-    # If the item existed but has been modified delete it now and continue to add it again
-    elif reqlen > 0 and req[0].date_modified != data["dateModified"]:
-        if req[0].elasticIndexed and useElasticSearch:
-            es = getElasticClient()
-            es.delete(index='bibfilter-index', id=req[0].ID, refresh=True)
-        session.delete(req[0])
-        session.commit()
-        report["updated"] += 1
-    else:
-        report["new"] += 1
-    
-    try:
-        content = formatArticleData(item)
-    except:
-        return False
-
-    csv_bib_pattern = {"journalArticle": "article", "book": "book", "conferencePaper": "inproceedings", "manuscript": "article", "bookSection": "incollection", "webpage": "inproceedings", "techreport": "article", "letter": "misc", "report": "report", "document": "misc", "thesis": "thesis"}
-
-    # Create a new Database entry with all the attributes
-    new_art = Article(title = content["title"],
-                        url = content["url"],
-                        # publisher=publisher, 
-                        ID = content["key"], 
-                        ENTRYTYPE = csv_bib_pattern[content["itemType"]],
-                        author = content["author"],
-                        authorlast = content["authorlast"],
-                        year = content["itemYear"],
-                        doi = content["DOI"],
-                        issn = content["ISSN"],
-                        isbn = content["ISBN"],
-                        publication = content["publicationTitle"],
-                        journal = content["publicationTitle"] if not  content["itemType"].startswith("book") else "",
-                        booktitle = content["publicationTitle"] if content["itemType"].startswith("book") else "",
-                        journal_abbrev = content["journalAbbreviation"],
-                        abstract = content["abstractNote"],
-                        pages = content["pages"] if content["pages"] != "" else content["numPages"],
-                        language = content["language"],
-                        volume = content["volume"], 
-                        number = content["issue"],
-                        icon = "book" if content["itemType"].startswith("book") else csv_bib_pattern[content["itemType"]], 
-                        articleFullText = "",
-                        references = "",
-                        searchIndex = " ".join([content["title"], content["author"], content["publicationTitle"], content["abstractNote"], content["DOI"], content["ISSN"], content["ISBN"]]),
-                        date_last_zotero_sync = date_str,
-                        date_added = content["dateAdded"],
-                        date_modified = content["dateModified"],
-                        contentChecked = False,
-                        elasticIndexed = False,
-                        date_modified_pretty = content["dateModified"].split("T")[0] + " " + content["dateModified"].split("T")[1][:-4],
-                        date_added_pretty = content["dateAdded"].split("T")[0] + " " + content["dateAdded"].split("T")[1][:-4])
-                        
-    
-    session.add(new_art)
-    session.commit()
-    session.close()
 
     return True
 
@@ -283,10 +285,12 @@ def synchronizeZoteroDB():
     # Delete all articles which are not in zotero anymore
     deleteOld()
     
-    # Count how many items are in the database in total
-    session = db.session()
-    total = session.query(Article).count()
-    session.close()
+    with app.app_context():
+        # Count how many items are in the database in total
+        session = db.session()
+        total = session.query(Article).count()
+        session.close()
+        
     print("Summary of synchronization with Zotero:")
     print(f"{report['existed']} entries existed already. {report['new']} new entries were added.\n")
     print(f"Updated {report['updated']} entries\nDeleted {report['deleted']} articles.")
@@ -303,7 +307,7 @@ def updateDatabase():
     """
     try:
         # Create the database
-        db.create_all()
+        # db.create_all()
         
         # Connect to the zotero database
         zot = zotero.Zotero(libraryID, "group")
@@ -314,8 +318,10 @@ def updateDatabase():
             items = zot.collection_items_top(collectionID, limit=1)
 
         newestModified = items[0]["data"]["dateModified"]
-        newestInDB = db.session.query(func.max(Article.date_modified)).scalar()
-        syncNeeded = (newestModified != newestInDB)         
+        
+        with app.app_context():
+            newestInDB = db.session.query(func.max(Article.date_modified)).scalar()
+            syncNeeded = (newestModified != newestInDB)         
         
     except Exception as e:
         print(e)
@@ -327,11 +333,12 @@ def updateDatabase():
     else:
         print("Checked Zotero for new articles: Nothing to update")
     
-    session = db.session()
-    article = session.query(Article).filter(Article.contentChecked == False).first()
-    ### Check whether still scraping should take place in case the process was interrupted before
-    if article != None:
-        analyzeArticles()
+    with app.app_context():
+        session = db.session()
+        article = session.query(Article).filter(Article.contentChecked == False).first()
+        ### Check whether still scraping should take place in case the process was interrupted before
+        if article != None:
+            analyzeArticles()
     return
      
 # Sync once with the zotero library, after that, regularly check whether new articles or updated articles are found

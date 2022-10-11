@@ -4,7 +4,7 @@
 
 import sys
 sys.path.append(".")
-from bibfilter import db
+from bibfilter import db, app
 from bibfilter.models import Article
 from bibfilter.elasticsearchfunctions import elasticsearchCheck, getElasticClient
 import re
@@ -174,11 +174,12 @@ def progressMessage():
     :returns: Nothing
     """
     print()
-    session = db.session()
-    checked = session.query(Article).filter(Article.contentChecked == True).count()
-    notChecked = session.query(Article).count()
-    print(f"Checked {checked} of {notChecked} articles")
-    session.close()
+    with app.app_context():
+        session = db.session()
+        checked = session.query(Article).filter(Article.contentChecked == True).count()
+        notChecked = session.query(Article).count()
+        print(f"Checked {checked} of {notChecked} articles")
+        session.close()
 
 def analyzeContent():
     """
@@ -189,15 +190,16 @@ def analyzeContent():
     """
     progressMessage()
     
-    session = db.session()
-    article = session.query(Article).filter(Article.contentChecked == False).first()
-    
-    if article == None:
-        print("No articles left to analyze")
-        return True
-    
-    articleID, articleTitle, articleSQLID = article.ID, article.title, article.dbid
-    session.close()
+    with app.app_context():
+        session = db.session()
+        article = session.query(Article).filter(Article.contentChecked == False).first()
+        
+        if article == None:
+            print("No articles left to analyze")
+            return True
+        
+        articleID, articleTitle, articleSQLID = article.ID, article.title, article.dbid
+        session.close()
     
     # Get the content of article content from attached PDFs
     print("Analyze:", articleTitle)
@@ -210,17 +212,19 @@ def analyzeContent():
         print(e)
         print("Analyzing article didn't finish in expected time. Maybe the process was killed because of memory issue or the network connection was interrupted")
         print("For this article there will be no content available")
-        session = db.session()
-        article = session.query(Article).filter(Article.ID == articleID).first()
-        article.contentChecked = True
-        # Add to elasticSearch and mark as indexed
-        try:
-            article.elasticIndexed = addToElasticsearch(article)
-        except ConnectionError as e:
-            print(e)
-            return True
-        session.commit()
-        session.close()
+        
+        with app.app_context():
+            session = db.session()
+            article = session.query(Article).filter(Article.ID == articleID).first()
+            article.contentChecked = True
+            # Add to elasticSearch and mark as indexed
+            try:
+                article.elasticIndexed = addToElasticsearch(article)
+            except ConnectionError as e:
+                print(e)
+                return True
+            session.commit()
+            session.close()
         return False
     finally:
         p1.kill()
@@ -239,20 +243,21 @@ def analyzeContent():
         if len(articleContent) > 1000000:
             articleContent =  articleContent[:1000000]
             print("Shorten articleContent because it exceeds max size of 1000000 chars")
-
-    session = db.session()
-    article = session.query(Article).filter(Article.ID == articleID).first()
-    article.articleFullText = articleContent
-    article.contentChecked = True
     
-    # Add to elasticSearch and mark as indexed
-    try:
-        article.elasticIndexed = addToElasticsearch(article)
-    except ConnectionError as e:
-        print(e)
-        return True
-    session.commit()
-    session.close()
+    with app.app_context():
+        session = db.session()
+        article = session.query(Article).filter(Article.ID == articleID).first()
+        article.articleFullText = articleContent
+        article.contentChecked = True
+        
+        # Add to elasticSearch and mark as indexed
+        try:
+            article.elasticIndexed = addToElasticsearch(article)
+        except ConnectionError as e:
+            print(e)
+            return True
+        session.commit()
+        session.close()
     return False
     
 def analyzeArticles():

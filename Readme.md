@@ -63,6 +63,10 @@ First, create a new virtual environment called 'venv' and activate it.
     python -m venv venv
     source venv/bin/activate
 
+You should now see (venv) in your command line. Now we need to make sure pip is up to date
+
+    pip install --upgrade pip
+
 After that we initiate the virtual environment by installing the exact packages and versions needed. This can take a while.
 
     pip install -r requirements.txt
@@ -120,7 +124,7 @@ If you want to close the server you can hit `Ctr+C`
 
 If your are finished you can close the virtual environment by typing 
 
-    exit
+    deactivate
 
 or just close the terminal.
 
