@@ -30,9 +30,8 @@ def addToElasticsearch(article):
     Given an SQLAlchemy item, adds it to Elasticsearch index if elasticsearch is set to be used.
     
     :param article: SQLAlchemy Query item
-    :returns: Tuple of two booleans. The first indicates whether an article was index, the second if an error was encountered.
+    :returns: Boolean indicating whether an article was indexed or not
     """
-    
     useElasticSearch = elasticsearchCheck()
     try:
         if useElasticSearch:
@@ -40,16 +39,13 @@ def addToElasticsearch(article):
             es = getElasticClient()
             ## Creates or updates a document in index.
             es.index(index='bibfilter-index', document=body, id=body["ID"])
-            return True, False
+            return True
         elif os.environ.get("USE_ELASTICSEARCH").upper() == "TRUE":
-            print("Error: USE_ELASTICSEARCH env is set to True, but cannot connect to elasticsearch. Abort and try later.")
-            return False, True
+            raise ConnectionError("Error: USE_ELASTICSEARCH env is set to True, but cannot connect to elasticsearch. Abort and try later.")
         else:
-            return False, False
+            return False
     except Exception as e:
-        print(e)
-        print("Couldn't connect to elasticsearch")
-        return False, True
+        raise ConnectionError(f"{e}\nCouldn't connect to elasticsearch")
 
 def readAttachedPDF(articleID, title, Q):
     """
@@ -216,8 +212,10 @@ def analyzeContent():
         article = session.query(Article).filter(Article.ID == articleID).first()
         article.contentChecked = True
         # Add to elasticSearch and mark as indexed
-        article.elasticIndexed, esError = addToElasticsearch(article)
-        if esError:
+        try:
+            article.elasticIndexed = addToElasticsearch(article)
+        except ConnectionError as e:
+            print(e)
             return True
         session.commit()
         session.close()
