@@ -243,8 +243,10 @@ def analyzeContent():
     
     article.contentChecked = True
     # Add to elasticSearch and mark as indexed
-    article.elasticIndexed, esError = addToElasticsearch(article)
-    if esError:
+    try:
+        article.elasticIndexed = addToElasticsearch(article)
+    except ConnectionError as e:
+        print(e)
         return True
     session.commit()
     session.close()
