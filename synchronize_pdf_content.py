@@ -47,6 +47,12 @@ def addToElasticsearch(article):
     except Exception as e:
         raise ConnectionError(f"{e}\nCouldn't connect to elasticsearch")
 
+def faceProblem(title, message):
+    """ Format error messages for articles """
+    print(title)
+    print(message+"\n")
+    return ""
+
 def readAttachedPDF(articleID, title, Q):
     """
     Scrapes the content of the PDF file of a specified article and puts it in Queue.
@@ -56,12 +62,8 @@ def readAttachedPDF(articleID, title, Q):
     :param Q: multiprocessing Queue to be used
     :returns: Nothing
     """
-    def faceProblem(message):
-        print(title)
-        print(message+"\n")
-        return ""
-    
     try:
+        content = ""
         references = ""
         connectionError = False
         
@@ -97,7 +99,7 @@ def readAttachedPDF(articleID, title, Q):
                         
                         # Check length of content
                         if len(content) < 4000:
-                            content = faceProblem("Problem: extracted content shorter than expected, aborted extraction")
+                            content = faceProblem(title, "Problem: extracted content shorter than expected, aborted extraction")
                             break
                         
                         # Fix: ValueError: A string literal cannot contain NUL (0x00) characters. Caused by a problem with extract_text
@@ -129,13 +131,13 @@ def readAttachedPDF(articleID, title, Q):
                         # Check if CID code / character Ratio. If too high don't use it
                         ratio = (len(re.findall("\(cid:\d+\)", content)) / len(content) * 100)
                         if (len(re.findall("\(cid:\d+\)", content)) / len(content) * 100) > 6:
-                            content = faceProblem("Content contains mostly CID")
+                            content = faceProblem(title, "Content contains mostly CID")
                             break
                         
                         # Recognize Problem with detecting space in the PDF file
                         entitysize = content.split()
                         if len(content)/20 > len(entitysize):
-                            content = faceProblem("Problem when scraping pdf: Not detecting spaces")
+                            content = faceProblem(title, "Problem when scraping pdf: Not detecting spaces")
                             break
 
                         # Remove all CID codes from content if there is any
@@ -228,20 +230,21 @@ def analyzeContent():
     if connectionError:
         print("There seems to be an issue with the zotero server. Will again try to connect later")
         return True
+    
+    if len(articleContent) > 0:    
+        # Need to use unidecode to handle some misread OCR_characters
+        articleContent = unidecode(articleContent)
         
-    # Need to use unidecode to handle some misread OCR_characters
-    articleContent = unidecode(articleContent)
+        # Make sure articleFullText is at most 1000000 characters long
+        if len(articleContent) > 1000000:
+            articleContent =  articleContent[:1000000]
+            print("Shorten articleContent because it exceeds max size of 1000000 chars")
+
     session = db.session()
     article = session.query(Article).filter(Article.ID == articleID).first()
-    
-    # Make sure articleFullText is at most 1000000 characters long
-    if len(articleContent) > 1000000:
-         articleContent =  articleContent[:1000000]
-         print("Shorten articleContent because it exceeds max size of 1000000 chars")
-        
     article.articleFullText = articleContent
-    
     article.contentChecked = True
+    
     # Add to elasticSearch and mark as indexed
     try:
         article.elasticIndexed = addToElasticsearch(article)

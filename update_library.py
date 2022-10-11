@@ -32,7 +32,7 @@ try:
 except:
     collectionID = None
 
-def delete_old():
+def deleteOld():
     """
     Deletes all articles from the database which don't exist in the current zotero library
 
@@ -72,71 +72,28 @@ def delete_old():
     report["deleted"] = count
     return True
 
-def check_item(item):
+def formatArticleData(item):
     """
-    Adds an zotero Item to DB if it didn't exist before, updates it if it has changed or does nothing if it exists an hasn't changed
+    String formatting of zotero item data
 
-    :param item: Item of a zotero library given by pyzotero API
-    :returns: (1,0,0) when adding new item, (0,1,0) when updating, (0,0,1) when item existed
+    :param data: pyzotero API item
+    :returns: Dictionary of formatted data
     """
-    global zotero_keylist
-    global report
-
-    useElasticSearch = elasticsearchCheck()
-    
-    # Create the session
-    session = db.session()
     data = item["data"]
-
-    ## Adding each key the keylist which is needed by delete_old()
-    zotero_keylist.append(data["key"])
-
-    req = session.query(Article).filter(Article.ID == data["key"])
-    reqlen = req.count()
-    # If article exists and hasn't been modified, update last sync date and return
-    # Get date. If timezone environment variable exists, use it
-    try:
-        zone = os.environ["TIMEZONE"]
-        date_str = datetime.datetime.now(timezone(zone)).strftime("%Y-%m-%d %H:%M")
-    except:
-        date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-
-    if reqlen > 0 and req[0].date_modified == data["dateModified"]:
-        req[0].date_last_zotero_sync = date_str
-        session.commit()
-        session.close()
-        report["existed"] += 1
-        return False
-
-    # If the item existed but has been modified delete it now and continue to add it again
-    elif reqlen > 0 and req[0].date_modified != data["dateModified"]:
-        if req[0].elasticIndexed and useElasticSearch:
-            es = getElasticClient()
-            es.delete(index='bibfilter-index', id=req[0].ID, refresh=True)
-        session.delete(req[0])
-        session.commit()
-        report["updated"] += 1
-
-    else:
-        report["new"] += 1
-
-    csv_bib_pattern = {"journalArticle": "article", "book": "book", "conferencePaper": "inproceedings", "manuscript": "article", "bookSection": "incollection", "webpage": "inproceedings", "techreport": "article", "letter": "misc", "report": "report", "document": "misc", "thesis": "thesis"}
-
-    content = {"title": "","url":"", "key":"" ,"itemType":"", "DOI": "", "ISSN":"", "publicationTitle":"","journalAbbreviation":"","abstractNote":"","pages":"","language":"","volume":"","issue":"","dateAdded":"","dateModified":"","ISBN":"", "numPages":""}
+    content = {"title": "","url":"", "key":"" ,"itemType":"", "DOI": "", "ISSN":"", "publicationTitle":"","journalAbbreviation":"","abstractNote":"","pages":"","language":"","volume":"","issue":"","dateAdded":"","dateModified":"","ISBN":"", "numPages":"", "author": "", "authorlast": "", "itemYear": ""}
     
     # Get Article attributes and make sure to skip KeyError (not all entrytype e.g. journal book etc. have the same attributes)
     for key in content:
-        k = False
         try:
             content[key] = data[key]
-        except Exception as e:
+        except KeyError:
             pass
 
     # Get year        
     try:
-        itemYear = item["meta"]["parsedDate"].split("-")[0]
-    except Exception as e:
-        itemYear = ""
+        content["itemYear"] = item["meta"]["parsedDate"].split("-")[0]
+    except KeyError:
+        pass
     
     # Get author names
     author, authorlast = "", ""
@@ -166,35 +123,91 @@ def check_item(item):
                         author = dic["lastName"] + ", " + dic["firstName"]
             except Exception as e:
                 pass
+        content["author"] = author
+        content["authorlast"] = authorlast
     except Exception as e:
         print("data has no ḱey 'creator'. Entry may be only file without metadata. Skipping")
+        raise
+    return content
+
+def checkItem(item):
+    """
+    Adds an zotero Item to DB if it didn't exist before, updates it if it has changed or does nothing if it exists an hasn't changed
+
+    :param item: Item of a zotero library given by pyzotero API
+    :returns: (1,0,0) when adding new item, (0,1,0) when updating, (0,0,1) when item existed
+    """
+    global zotero_keylist
+    global report
+
+    useElasticSearch = elasticsearchCheck()
+    
+    # Create the session
+    session = db.session()
+    data = item["data"]
+
+    ## Adding each key the keylist which is needed by deleteOld()
+    zotero_keylist.append(data["key"])
+
+    req = session.query(Article).filter(Article.ID == data["key"])
+    reqlen = req.count()
+    # If article exists and hasn't been modified, update last sync date and return
+    # Get date. If timezone environment variable exists, use it
+    try:
+        zone = os.environ["TIMEZONE"]
+        date_str = datetime.datetime.now(timezone(zone)).strftime("%Y-%m-%d %H:%M")
+    except:
+        date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    if reqlen > 0 and req[0].date_modified == data["dateModified"]:
+        req[0].date_last_zotero_sync = date_str
+        session.commit()
+        session.close()
+        report["existed"] += 1
+        return False
+    # If the item existed but has been modified delete it now and continue to add it again
+    elif reqlen > 0 and req[0].date_modified != data["dateModified"]:
+        if req[0].elasticIndexed and useElasticSearch:
+            es = getElasticClient()
+            es.delete(index='bibfilter-index', id=req[0].ID, refresh=True)
+        session.delete(req[0])
+        session.commit()
+        report["updated"] += 1
+    else:
+        report["new"] += 1
+    
+    try:
+        content = formatArticleData(item)
+    except:
         return False
 
+    csv_bib_pattern = {"journalArticle": "article", "book": "book", "conferencePaper": "inproceedings", "manuscript": "article", "bookSection": "incollection", "webpage": "inproceedings", "techreport": "article", "letter": "misc", "report": "report", "document": "misc", "thesis": "thesis"}
+
     # Create a new Database entry with all the attributes
-    new_art = Article(title=content["title"], 
-                        url=content["url"], 
+    new_art = Article(title = content["title"],
+                        url = content["url"],
                         # publisher=publisher, 
-                        ID=content["key"], 
-                        ENTRYTYPE=csv_bib_pattern[content["itemType"]],
-                        author=author,
-                        authorlast=authorlast, 
-                        year=itemYear, 
-                        doi=content["DOI"],
+                        ID = content["key"], 
+                        ENTRYTYPE = csv_bib_pattern[content["itemType"]],
+                        author = content["author"],
+                        authorlast = content["authorlast"],
+                        year = content["itemYear"],
+                        doi = content["DOI"],
                         issn = content["ISSN"],
                         isbn = content["ISBN"],
-                        publication=content["publicationTitle"],
-                        journal=content["publicationTitle"] if not  content["itemType"].startswith("book") else "",
-                        booktitle=content["publicationTitle"] if content["itemType"].startswith("book") else "",
+                        publication = content["publicationTitle"],
+                        journal = content["publicationTitle"] if not  content["itemType"].startswith("book") else "",
+                        booktitle = content["publicationTitle"] if content["itemType"].startswith("book") else "",
                         journal_abbrev = content["journalAbbreviation"],
                         abstract = content["abstractNote"],
                         pages = content["pages"] if content["pages"] != "" else content["numPages"],
                         language = content["language"],
-                        volume=content["volume"], 
-                        number=content["issue"], 
-                        icon="book" if content["itemType"].startswith("book") else csv_bib_pattern[content["itemType"]], 
+                        volume = content["volume"], 
+                        number = content["issue"],
+                        icon = "book" if content["itemType"].startswith("book") else csv_bib_pattern[content["itemType"]], 
                         articleFullText = "",
                         references = "",
-                        searchIndex = " ".join([content["title"], author, content["publicationTitle"], content["abstractNote"], content["DOI"], content["ISSN"], content["ISBN"]]),
+                        searchIndex = " ".join([content["title"], content["author"], content["publicationTitle"], content["abstractNote"], content["DOI"], content["ISSN"], content["ISBN"]]),
                         date_last_zotero_sync = date_str,
                         date_added = content["dateAdded"],
                         date_modified = content["dateModified"],
@@ -202,6 +215,7 @@ def check_item(item):
                         elasticIndexed = False,
                         date_modified_pretty = content["dateModified"].split("T")[0] + " " + content["dateModified"].split("T")[1][:-4],
                         date_added_pretty = content["dateAdded"].split("T")[0] + " " + content["dateAdded"].split("T")[1][:-4])
+                        
     
     session.add(new_art)
     session.commit()
@@ -264,10 +278,10 @@ def synchronizeZoteroDB():
 
     # Iterate over every single entry
     for item in items:
-        check_item(item)
+        checkItem(item)
         
     # Delete all articles which are not in zotero anymore
-    delete_old()
+    deleteOld()
     
     # Count how many items are in the database in total
     session = db.session()
