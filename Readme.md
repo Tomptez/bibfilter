@@ -57,15 +57,15 @@ and then open the cloned directory
 
     cd bibfilter
 
-The next step is to create a virtual environment and install all the required modules using `pipenv`.
-First make sure you have `pipenv` installed by running. 
+The next step is to create a virtual environment and install all the required modules using `venv`.
+First, create a new virtual environment called 'venv' and activate it. 
 
-    pip install pipenv
+    python -m venv venv
+    source venv/bin/activate
 
-After that we initiate the virtual environment, the exact packages and versions needed, and install all required modules by running
-This can take a while.
+After that we initiate the virtual environment by installing the exact packages and versions needed. This can take a while.
 
-    pipenv install
+    pip install -r requirements.txt
 
 To use the application, you will also need to create a `PostgreSQL` Database called bibfilter and install an extension called unaccent.
 This is done by typing in you `command line cmd` (this may or may not work in git bash)
@@ -104,10 +104,6 @@ You then change `DATABASE_URL`, so that `postgres` is your PostgreSQL username (
 
 You can now close the `nano` editor by hitting Ctr+X and then typing `Y` and then `Enter` to save the file
 
-Now, you can activate the environment via
-
-    pipenv shell
-
 You could now already open the application but it will not show any articles because we have no database yet.
 To create the database you need run update_library.py once
 
@@ -140,9 +136,11 @@ Then you can check whether there have been andy updates in the gitlab repository
 
 to start the application, you always need to launch the virtual environment first
 
-    pipenv shell
+    source venv/bin/activate
 
-and then you can run the flask app with
+After that, you should see a `(venv)` in your command prompt which indicates the venv is active. You can exit the venv by typing `exit`
+
+After activating the virtual environment, you can start the flask app with
 
     python app.py
 
