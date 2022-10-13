@@ -1,6 +1,6 @@
 # Bibfilter
 
-A Searchable Literature database web-interface for use with [Zotero](zotero.org/). 
+A Searchable Literature database web-interface for use with [Zotero](https://www.zotero.org/). 
 
 It is developed using python and flask and can easily be deployed using [Dokku](https://dokku.com/).
 
@@ -16,21 +16,21 @@ It was developed specifically as part of the German Science Foundation funded pr
 
 1. [How to run the application on your local computer](#howto)
    
-   1. [Requirements](#req)
+   [1.1 Requirements](#req)
    
-   2. [Installation](#installation)
+   [1.2 Installation](#installation)
    
-   3. [Setting up environment variables](#env-var)
+   [1.3 Setting up environment variables](#env-var)
    
-   4. [Normal Usage](#normal)
+   [1.4 Normal Usage](#normal)
 
 2. [Deploying the application](#deploy)
    
-   [1. Setting up the application for dokku](#setup)
+   [2.1 Setting up the application for dokku](#setup)
    
-   [2. Updating the application remotely](#update)
+   [2.2 Updating the application remotely](#update)
    
-   [3. Restarting the Application](#restart)
+   [2.3 Restarting the Application](#restart)
 
 <a id="howto"></a>
 
