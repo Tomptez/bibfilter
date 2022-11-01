@@ -40,7 +40,7 @@ It was developed specifically as part of the German Science Foundation funded pr
 
 ### Requirements
 
-First make sure you have [git](https://github.com/git-for-windows/git/releases/latest), `bash` (which is comes with git) and the version of [python](https://www.python.org/downloads/) that is specified in the requirements.txt installed (and `pip` which will usually be installed together with python on windows). For MacOS, you also can install python from your terminal with brew, and make sure you add the python command to zsh since the automatic current command is python3. 
+First make sure you have [git](https://github.com/git-for-windows/git/releases/latest), `bash` (which is comes with git) and the version of python that is specified in the runtime.txt [here](https://www.python.org/downloads/) installed (and `pip` which will usually be installed together with python on windows).
 You will also need [PostgreSQL](https://www.postgresql.org/download/) to create the database.
 
 Optionally, if you want to make use of advanced searching capabilities, especially searching through the entire text of the articles, [Elasticsearch](https://github.com/elastic/elasticsearch) needs to be installed as well.
@@ -72,13 +72,13 @@ After that we initiate the virtual environment by installing the exact packages 
     pip install -r requirements.txt
 
 To use the application, you will also need to create a `PostgreSQL` Database called bibfilter and install an extension called unaccent.
-This is done by typing in your command line `cmd` (this may or may not work in git bash)
+This is done by typing in you `command line cmd` (this may or may not work in git bash)
 
-    psql -d postgres
+    psql -U postgres
 
 Or if that not works the exact filepath of your postgres installation
 
-    "C:\Program Files\PostgreSQL\12\bin\psql.exe" -d postgres
+    "C:\Program Files\PostgreSQL\12\bin\psql.exe" -U postgres
 
  To create the database you type
 
