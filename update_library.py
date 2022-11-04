@@ -321,24 +321,27 @@ def updateDatabase():
         
         with app.app_context():
             newestInDB = db.session.query(func.max(Article.date_modified)).scalar()
-            syncNeeded = (newestModified != newestInDB)         
+            syncNeeded = (newestModified != newestInDB) 
+            
+        if syncNeeded:
+            synchronizeZoteroDB()
+            analyzeArticles()
+        else:
+            print("Checked Zotero for new articles: Nothing to update")        
         
     except Exception as e:
         print(e)
-        print("Unable to retrieve dateModified of newest zotero item. Maybe Zotero server is down or API changed?")
-    
-    if syncNeeded:
-        synchronizeZoteroDB()
-        analyzeArticles()
-    else:
-        print("Checked Zotero for new articles: Nothing to update")
+        print("Problem: Unable to retrieve dateModified of newest zotero item. Possible reeasons: Zotero server is down, COLLECTION_ID or LIBRARY_ID wrong or library is not accessible through the API")
     
     with app.app_context():
         session = db.session()
         article = session.query(Article).filter(Article.contentChecked == False).first()
         ### Check whether still scraping should take place in case the process was interrupted before
         if article != None:
+            print("Run analyzeArticles()")
             analyzeArticles()
+        else:
+            print("Nothing to analyze. Sleep...")
     return
      
 # Sync once with the zotero library, after that, regularly check whether new articles or updated articles are found
