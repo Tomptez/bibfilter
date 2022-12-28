@@ -307,7 +307,8 @@ def updateDatabase():
     """
     try:
         # Create the database if it doesn't exist
-        db.create_all()
+        with app.app_context():
+            db.create_all()
         
         # Connect to the zotero database
         zot = zotero.Zotero(libraryID, "group")
