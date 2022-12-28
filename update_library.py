@@ -306,8 +306,8 @@ def updateDatabase():
     Checks the newest item of the zotero library. If it detects a change in the library, starts synchronization.
     """
     try:
-        # Create the database
-        # db.create_all()
+        # Create the database if it doesn't exist
+        db.create_all()
         
         # Connect to the zotero database
         zot = zotero.Zotero(libraryID, "group")
