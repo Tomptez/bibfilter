@@ -38,12 +38,12 @@ It was developed specifically as part of the German Science Foundation funded pr
 
 <a id="req"></a>
 
-### Requirements
+### Prerequisites
 
-First make sure you have [git](https://github.com/git-for-windows/git/releases/latest), `Bash` (which is comes with git) and the version of [Python](https://www.python.org/downloads/) that is specified in the requirements.txt installed (and `pip` which will usually be installed together with python on Windows and Mac).
-You will also need [PostgreSQL](https://www.postgresql.org/download/) to create the database. For Mac, we recommend you to use [Postgre.app](https://postgresapp.com).
+First make sure you have installed [git](https://github.com/git-for-windows/git/releases/latest), `Bash` (which comes with git on windows) and the version of [Python](https://www.python.org/downloads/) that is specified in the requirements.txt. You also need `pip` which will usually be installed together with python on Windows and Mac.
+You will also need [PostgreSQL](https://www.postgresql.org/download/) to create the database. For Mac, we recommend you to use [Postgres.app](https://postgresapp.com).
 
-Optionally, if you want to make use of advanced searching capabilities, especially searching through the entire text of the articles, [Elasticsearch](https://github.com/elastic/elasticsearch) needs to be installed as well.
+Optionally, if you want to make use of advanced searching capabilities and search through the fulltext of the articles, [Elasticsearch](https://github.com/elastic/elasticsearch) needs to be installed.
 
 <a id="installatioon"></a>
 
