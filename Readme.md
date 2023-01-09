@@ -16,7 +16,7 @@ It was developed specifically as part of the German Science Foundation funded pr
 
 1. [How to run the application on your local computer](#howto)
    
-   [1.1 Requirements](#req)
+   [1.1 Prerequisites](#pre)
    
    [1.2 Installation](#installation)
    
@@ -36,7 +36,7 @@ It was developed specifically as part of the German Science Foundation funded pr
 
 ## How to run the application on your local computer
 
-<a id="req"></a>
+<a id="pre"></a>
 
 ### Prerequisites
 
@@ -45,7 +45,7 @@ You will also need [PostgreSQL](https://www.postgresql.org/download/) to create 
 
 Optionally, if you want to make use of advanced searching capabilities and search through the fulltext of the articles, [Elasticsearch](https://github.com/elastic/elasticsearch) needs to be installed.
 
-<a id="installatioon"></a>
+<a id="installation"></a>
 
 ### Installation
 
