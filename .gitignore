@@ -12,3 +12,4 @@ __pycache__
 *.kate-swp
 *.old.png
 tools/tables
+.Rproj.user

@@ -62,6 +62,9 @@ First, create a new virtual environment called 'venv' and activate it.
 
     python -m venv venv
     source venv/bin/activate
+    
+Note that python command may not run. If this is the case it is likely due to one or both of the following. (A) Windows 10 default launching location for Python (and every app) is the AppData folder. So it tries to launch an app. If you installed Python from Python.org (recommended) rather than the Microsoft Store (not recommended) then you need to change the computer's environment variables. This is done by clicking the 'start' button which is now the Windows icon in the lower left corner, and type "Env". What should pop up is "Edit the system environment variables". Click on this, then click "EnvironmentVariables...", then select "Path" under "User variables" in the list and click "Edit". Create a "New" path and put in the exact directory where Python was installed (e.g. C:\Python311). then select this and click "Move Up" until it is at the top. (B) You need to turn of auto app launching. Go to "Apps" and click "App execution aliases". Turn off all App Installers associated with Python (there are usually two of them). After doing this, restart and try again.
+
 
 You should now see (venv) in your command line. Now we need to make sure pip is up to date
 
