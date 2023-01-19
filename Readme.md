@@ -82,7 +82,7 @@ After that we initiate the virtual environment by installing the exact packages 
     pip install -r requirements.txt
 
 To use the application, you will also need to create a `PostgreSQL` Database called bibfilter and install an extension called unaccent.
-This is done by typing in you `command line cmd` (this may or may not work in git bash)
+This is done by typing in your `command line cmd` (this may or may not work in git bash)
 
     psql -U postgres
 
