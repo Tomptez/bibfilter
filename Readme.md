@@ -90,7 +90,7 @@ If that does not work, you can specify the exact filepath of your postgres insta
 
     "C:\Program Files\PostgreSQL\12\bin\psql.exe" -U postgres
     
-Or, you can follow the instructions for setting Python in your Windows Environment, and add two new lines that 
+Or, you can follow the instructions above for setting Python PATH in your Windows Environment, and add two new lines that 
 point directly at the \bin and \lib directories in your PostgreSQL\[version#]\ folder
 
 For Mac, this is done by typing in your git bash 
@@ -124,7 +124,7 @@ Note: to open bash in Windows close the cmd window and type "bash" into the star
     
 You can change `DATABASE_URL`, so that `postgres` is your PostgreSQL username (postgres is the standard user which you can keep) and `mypassword` with the password that you chose for that user during the install.
 
-For macOS, you can change `DATABASE_URL`, so that it matches with the connection URL that PostgreSQL server provides for the database bibfilter.
+For macOS, you can change `DATABASE_URL`, so that it matches with the connection URL that PostgreSQL server provides for the database bibfilter. This URL requires you to input the username `postgres` and the password you specified. In Windows for example this looks like ` "postgresql://postgres:[password you set previously]@localhost:5432/bibfilter"`. If you start your password with '@' it will not work!
 
 You can then change the values of `APP_USERNAME` and `APP_PASSWORD` to whatever you like. They will be used for the login for the `/admin` page.
 `LIBRARY_ID` and `COLLECTION_ID` should reflect the respective ID of your zotero Library and collection. You can retrieve these IDs from the adress field in your browser if you open the collection at zotero.org in your browser. Note that it has to be a public library, otherwise you also need to use an API-Key which this application does not yet account for.
