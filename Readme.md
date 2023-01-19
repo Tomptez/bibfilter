@@ -136,6 +136,8 @@ You could now already open the application but it will not show any articles bec
 To create the database you need run update_library.py once
 
     python update_library.py
+    
+Note: if you are using a more recent version of Python3 you might have to update some of the requirements (schedule, pytz, etc), just type `pip install [name of package]`
 
 If you see a report (`Summary of synchronization with Zotero`), you can stop the process using `Ctrl + C`.
 If there's any errors, there is probably an issue with your postgreql setup.
