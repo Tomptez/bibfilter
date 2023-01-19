@@ -86,10 +86,13 @@ This is done by typing in your `command line cmd` (this may or may not work in g
 
     psql -U postgres
 
-Or if that not works the exact filepath of your postgres installation
+If that does not work, you can specify the exact filepath of your postgres installation (for example)
 
     "C:\Program Files\PostgreSQL\12\bin\psql.exe" -U postgres
     
+Or, you can follow the instructions for setting Python in your Windows Environment, and add two new lines that 
+point directly at the \bin and \lib directories in your PostgreSQL\[version#]\ folder
+
 For Mac, this is done by typing in your git bash 
 
     psql -d postgres
