@@ -117,6 +117,10 @@ Let's copy it as our real .env file and edit it. We will use the terminal editor
 
     cp example.env .env
     nano .env
+
+Note: to open bash in Windows close the cmd window and type "bash" into the start icon. Then make sure to navigate to the bibfilter folder, e.g. by typing
+
+    cd C:\bibfilter
     
 You can change `DATABASE_URL`, so that `postgres` is your PostgreSQL username (postgres is the standard user which you can keep) and `mypassword` with the password that you chose for that user during the install.
 
