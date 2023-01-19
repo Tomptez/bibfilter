@@ -101,6 +101,7 @@ Then you can select the database and install the unaccent extension
 ### Setting up environment variables
 
 Before we can start the application, we need to set our environment variables.
+
 To do so, we need a new file in the main directory (in which the Pipfile sits) called `.env` where you define the environment variables which we will use in the project. There is an example.env file we can use as a template.
 Let's copy it as our real .env file and edit it. We will use the terminal editor `nano`. In your bash terminal type
 
@@ -198,6 +199,19 @@ Lastly, we want to add the letsencrypt plugin to the application, so that our ap
     sudo dokku plugin:install https://github.com/dokku/dokku-letsencrypt.git
     dokku config:set --no-restart my_application_name DOKKU_LETSENCRYPT_EMAIL=example@email-adress.com
     dokku letsencrypt my_application_name
+    
+We also want to setup letsencrypt to automatically update
+
+With dokku it easy to create and renew the certificates. The documentation can be found  here
+
+To renew all certificates just log into the server and run
+
+`dokku letsencrypt:auto-renew`
+
+The auto renewal can be buggy, so these should set it up if it stops working.
+
+`dokku plugin:update letsencrypt`
+`dokku letsencrypt:cron-job --add`
 
 ***
 <a id="update"></a>
