@@ -41,7 +41,7 @@ It was developed specifically as part of the German Science Foundation funded pr
 ### Prerequisites
 
 First make sure you have installed [git](https://github.com/git-for-windows/git/releases/latest), `Bash` (which comes with git on windows) and [Python](https://www.python.org/downloads/) version 3.9 or newer. You also need `pip` which will usually be installed together with python on Windows and Mac.
-You will also need [PostgreSQL](https://www.postgresql.org/download/) to create the database. For Mac, we recommend you to use [Postgres.app](https://postgresapp.com).
+You will also need [PostgreSQL](https://www.postgresql.org/download/) to create the database. For Mac, we recommend you to use [Postgres.app](https://postgresapp.com). Depending on your system you may need [Microsoft Visual C++](https://visualstudio.microsoft.com/visual-cpp-build-tools/) installed and/or updated.
 
 Optionally, if you want to make use of advanced searching capabilities and search through the fulltext of the articles, [Elasticsearch](https://github.com/elastic/elasticsearch) needs to be installed.
 
