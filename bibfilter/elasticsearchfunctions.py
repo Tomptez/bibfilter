@@ -77,7 +77,7 @@ def getElasticClient():
     elif not ELASTIC_CERTIFICATE:
         es = Elasticsearch(ELASTIC_URL, basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
     else:
-        es = Elasticsearch(ELASTIC_URL, ca_cert=ELASTIC_CERTIFICATE, verify_certs=False, basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
+        es = Elasticsearch(ELASTIC_URL, ca_certs=ELASTIC_CERTIFICATE, verify_certs=False, basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
     return es
 
 def createElasticsearchIndex():
