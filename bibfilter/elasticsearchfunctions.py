@@ -66,6 +66,7 @@ elasticMapping = {
 ELASTIC_URL = os.environ.get("ELASTICSEARCH_URL")
 ELASTIC_PASSWORD = os.environ.get("ELASTICSEARCH_PASSWORD", None)
 ELASTIC_USERNAME = os.environ.get("ELASTICSEARCH_USERNAME", "elastic")
+ELASTIC_CERTIFICATE = os.environ.get("ELASTICSEARCH_CERTIFICATE", None)
 
 def getElasticClient():
     """
@@ -73,8 +74,10 @@ def getElasticClient():
     """
     if not ELASTIC_PASSWORD:
         es = Elasticsearch(ELASTIC_URL)
+    elif not ELASTIC_CERTIFICATE:
+        es = Elasticsearch(ELASTIC_URL, basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
     else:
-        es = Elasticsearch(basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
+        es = Elasticsearch(ELASTIC_URL, ca_cert=ELASTIC_CERTIFICATE, verify_certs=False, basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
     return es
 
 def createElasticsearchIndex():
@@ -92,6 +95,7 @@ def elasticsearchCheck():
             useElasticSearch = True
             es.close()
         except Exception as e:
+            print(e)
             print("Could not connect to Elasticsearch Server")
             useElasticSearch = False
         return useElasticSearch

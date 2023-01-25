@@ -243,12 +243,12 @@ To make dokku renew certificates automatically, run
 After you have set up the aplication on the dokku instance, you can basically use it the way you use a regular git repository and easily add any changes.
 On your local computer you want to add the server and application-name as a git repository
 
-    git remote add some_name dokku@IP.ADRE.SS:my_application_name
+    git remote add remote_name dokku@IP.ADRE.SS:my_application_name
 
-Change 'some_name' to whatever you like. Then you can easily push the application using git. 
+Change 'remote_name' to whatever you like. Then you can easily push the application using git. 
 You do however need to make sure that you have the right to push to dokku. For that, you might need an SSH-Key, which possibly has to be added to the whitelist of the server as well as to the whitelist of dokku. Depending on the setup of the server you might also need to be connected to a specific network (for example via VPN).
 
-    git push some_name master
+    git push remote_name main
 
 If there are problems online, you might want to read to logs of your running application
 
