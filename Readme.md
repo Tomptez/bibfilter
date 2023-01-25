@@ -110,6 +110,16 @@ Then you can select the database and install the unaccent extension
 
 ### Setting up environment variables
 
+---
+**NOTE**
+
+To open bash in Windows close the cmd window and type "bash" into the start icon. Then make sure to navigate to the bibfilter folder, e.g. by typing
+
+    cd C:\bibfilter
+
+---
+
+
 Before we can start the application, we need to set our environment variables.
 
 To do so, we need a new file in the main directory (in which the Pipfile sits) called `.env` where you define the environment variables which we will use in the project. There is an example.env file we can use as a template.
@@ -117,10 +127,6 @@ Let's copy it as our real .env file and edit it. We will use the terminal editor
 
     cp example.env .env
     nano .env
-
-Note: to open bash in Windows close the cmd window and type "bash" into the start icon. Then make sure to navigate to the bibfilter folder, e.g. by typing
-
-    cd C:\bibfilter
     
 You can change `DATABASE_URL`, so that `postgres` is your PostgreSQL username (postgres is the standard user which you can keep) and `mypassword` with the password that you chose for that user during the install.
 
@@ -129,6 +135,8 @@ For macOS, you can change `DATABASE_URL`, so that it matches with the connection
 You can then change the values of `APP_USERNAME` and `APP_PASSWORD` to whatever you like. They will be used for the login for the `/admin` page.
 `LIBRARY_ID` and `COLLECTION_ID` should reflect the respective ID of your zotero Library and collection. You can retrieve these IDs from the adress field in your browser if you open the collection at zotero.org in your browser. Note that it has to be a public library, otherwise you also need to use an API-Key which this application does not yet account for.
 `SUGGEST_LITERATURE_URL` should be the URL to a page where users can suggest articles to add.
+
+If you also want to use elasticsearch, depending on your setup you might need to change the URL of your elasticsearch instance `ELASTICSEARCH_URL`, or might need to specify `ELASTICSEARCH_PASSWORD` or `ELASTICSEARCH_USERNAME`. In that case, uncomment and change these lines accordingly.
 
 You can now close the `nano` editor by hitting Ctr+X and then typing `Y` and then `Enter` to save the file.
 
@@ -220,13 +228,12 @@ We also want to setup letsencrypt to automatically update
 
 With dokku it easy to create and renew the certificates. The documentation can be found  here
 
-To renew all certificates just log into the server and run
+To renew all certificates once, just log into the server and run
 
 `dokku letsencrypt:auto-renew`
 
-The auto renewal can be buggy, so these should set it up if it stops working.
+To make dokku renew certificates automatically, run
 
-`dokku plugin:update letsencrypt`
 `dokku letsencrypt:cron-job --add`
 
 ***

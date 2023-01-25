@@ -63,10 +63,18 @@ elasticMapping = {
     }
 }
 
-elasticURL = os.environ.get("ELASTICSEARCH_URL")
+ELASTIC_URL = os.environ.get("ELASTICSEARCH_URL")
+ELASTIC_PASSWORD = os.environ.get("ELASTICSEARCH_PASSWORD", None)
+ELASTIC_USERNAME = os.environ.get("ELASTICSEARCH_USERNAME", "elastic")
 
 def getElasticClient():
-    es = Elasticsearch(elasticURL)
+    """
+    Connects to elasticsearch. If password is specified in the .env file, consider env variables
+    """
+    if not ELASTIC_PASSWORD:
+        es = Elasticsearch(ELASTIC_URL)
+    else:
+        es = Elasticsearch(basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
     return es
 
 def createElasticsearchIndex():
