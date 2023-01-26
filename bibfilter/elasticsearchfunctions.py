@@ -72,32 +72,39 @@ def getElasticClient():
     """
     Connects to elasticsearch. If password is specified in the .env file, consider env variables
     """
-    if not ELASTIC_PASSWORD:
-        es = Elasticsearch(ELASTIC_URL)
-    elif not ELASTIC_CERTIFICATE:
-        es = Elasticsearch(ELASTIC_URL, basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
-    else:
-        es = Elasticsearch(ELASTIC_URL, ca_certs=ELASTIC_CERTIFICATE, verify_certs=False, basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
+    try:
+        if not ELASTIC_PASSWORD:
+            es = Elasticsearch(ELASTIC_URL)
+        elif not ELASTIC_CERTIFICATE:
+            es = Elasticsearch(ELASTIC_URL, basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
+        else:
+            es = Elasticsearch(ELASTIC_URL, ca_certs=ELASTIC_CERTIFICATE, basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
+            print(es.info())
+    except Exception as e:
+        print("ERROR: getElasticClient() couldn't connect to elasticsearch")
+        print(e)
     return es
 
 def createElasticsearchIndex():
-    es = getElasticClient()
-    if not es.indices.exists(index="bibfilter-index"):
-        es.indices.create(index="bibfilter-index", body=elasticMapping)
-        print("Created Elasticsearch index")
+    return_val = True
+    try:
+        es = getElasticClient()
+        if not es.indices.exists(index="bibfilter-index"):
+            es.indices.create(index="bibfilter-index", body=elasticMapping)
+            print("Created Elasticsearch index")
+    except Exception as e:
+        print(e)
+        print("ERROR: createElasticsearchIndex() Could not create index")
+        return_val = False
+    finally:
+        es.close()
+        return return_val
+    
 
 # Check if the elasticsearch environment variable is set, if a connection is possible and bibfilter-index exists
 def elasticsearchCheck():    
     if os.environ.get("USE_ELASTICSEARCH").upper() == "TRUE":
-        try:
-            es = getElasticClient()
-            createElasticsearchIndex()
-            useElasticSearch = True
-            es.close()
-        except Exception as e:
-            print(e)
-            print("Could not connect to Elasticsearch Server")
-            useElasticSearch = False
+        useElasticSearch = createElasticsearchIndex()
         return useElasticSearch
     else:
         return False
