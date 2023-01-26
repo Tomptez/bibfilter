@@ -13,3 +13,4 @@ __pycache__
 *.old.png
 tools/tables
 *.Rproj
+.Rproj.user
