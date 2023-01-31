@@ -76,9 +76,9 @@ def getElasticClient():
         if not ELASTIC_PASSWORD:
             es = Elasticsearch(ELASTIC_URL)
         elif not ELASTIC_CERTIFICATE:
-            es = Elasticsearch(ELASTIC_URL, basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
+            es = Elasticsearch(ELASTIC_URL, http_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
         else:
-            es = Elasticsearch(ELASTIC_URL, ca_certs=ELASTIC_CERTIFICATE, basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
+            es = Elasticsearch(ELASTIC_URL, ca_certs=ELASTIC_CERTIFICATE, http_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
             print(es.info())
     except Exception as e:
         print("ERROR: getElasticClient() couldn't connect to elasticsearch")
