@@ -209,11 +209,11 @@ class ItemTable(Table):
     table_id = "literature"
     
     icon = OptCol(' ', choices=icons, default_key="other", column_html_attrs={"class":"colIcon"})
-    authorlast = Col('Author', column_html_attrs={"class":"colAuthor"})
-    year = Col('Year', column_html_attrs={"class":"colYear"})
+    authorlast = Col('AUTHOR', column_html_attrs={"class":"colAuthor"})
+    year = Col('YEAR', column_html_attrs={"class":"colYear"})
     
-    title = Col('Title', column_html_attrs={"class":"colTitle"})
-    publication = Col('Publication', column_html_attrs={"class":"colPublication"})
+    title = Col('TITLE', column_html_attrs={"class":"colTitle"})
+    publication = Col('PUBLICATION', column_html_attrs={"class":"colPublication"})
     url = Col('URL', column_html_attrs={"class":"tableUrl colUrl"})
     abstract = Col('hidden', column_html_attrs={"class":"hiddenRowContent"})
     
@@ -266,7 +266,7 @@ def formatESResponse(response):
                 highlights = ""
             
             if abstract != "":
-                abstract = f"<b>Abstract</b><br>{abstract}<br><br>"
+                abstract = f"<b>ABSTRACT<br></b><br>{abstract}<br>"
             if not (highlights == "" and abstract == ""):
                 item["abstract"] = Markup("<div class='hidden_content'>" + abstract + highlights +"</div>")
             else:
@@ -275,7 +275,7 @@ def formatESResponse(response):
         except Exception as e:
             print(e)
             print("Error. No highlight available")
-            item["abstract"] = Markup("<div class='hidden_content'> <b>Abstract</b><br></div>")
+            item["abstract"] = Markup("<div class='hidden_content'> <b>ABSTRACT</b><br></div>")
             
         items.append(item)
     return items
