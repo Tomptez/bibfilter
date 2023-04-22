@@ -36,7 +36,7 @@ body {
     /* border-radius: 10px; */
     /* background-color: lightblue; */
     font-size: 0.8em;
-    border-bottom: 3px solid grey;
+    border-bottom: 3px solid #7C92A6
 }
 
 #result-box p {
@@ -89,8 +89,10 @@ button:focus {
 .fieldsetcontainer {
     padding: .5em;
 }
+
 fieldset {
-    border: 2px solid lavender;
+    border-radius: 10px;
+    border: 1.5px solid #7C92A6;
 }
 form fieldset p {
     margin: 1px;
@@ -98,9 +100,6 @@ form fieldset p {
 fieldset td{
     padding: .3em;
 }
-
-
-
 
 /* Form */
 #advanced-box {
@@ -132,56 +131,63 @@ fieldset td{
 
 .form-row > input {
     font-size: 0.8em;
-    background-color: lavender;
+    background-color: rgb(255, 255, 255);
     height: 3em;            
-    border: 1px solid lightgray;
+    border: 1px solid #7C92A6;
     padding: 0px 8px;
     border-radius: 4px;
     flex: 2;
 }
 .form-row > input:focus {
-    background-color: rgb(255, 250, 246);
-    border: 1px solid gray;
+    background-color: rgb(255, 255, 255);
+    border: 1px solid #7C92A6;
     outline: none;
 }
 
 .bigbutton {
-    background: #3a4a52;
+    background: #7C92A6;
     font-size: 1.4em;
     padding: 3px 20px;
     color: white;
     border: 0;
-    margin: 3px 5px;
-    border-radius: 3px;
+    border-radius: 5px;
+    width: 50%;
+    margin-top: 10px;
+    margin-left: 10px;
 }
 
-.bigbutton:hover, .linkButton:hover {
-    background: #4d6e80;
+.bigbutton:hover {
+    background: #6d8092;
 }
 
 .top-search > button {
-    margin: 0;
+    margin-top: 10px;
 }
 
 .resetbutton {
-    background-color:  #804d4d;
+    background-color:  #F58F89;
+    margin-left: 0px;
 }
 
 .resetbutton:hover {
-    background-color:  #c48484;
+    background-color:  #dd817c;
+}
+.linkButton:hover {
+    background-color:  #888a6d;
 }
 
 .linkButton{
-    background: #0d7d9f;
+    background: #A3A685;
     color: white;
     text-decoration: none;
-    margin-left: 5px;
-    margin-bottom: 2px;
+    margin-left: 10px;
+    margin-top: 5px;
+    margin-bottom: 5px;
     padding: 8 20;
     display: inline-block;
     font-weight: bold;
     padding: 0.4em;
-    border-radius: 2px;
+    border-radius: 5px;
 }
 
 #sortrelevance {
@@ -224,7 +230,8 @@ th {
         font-size: 1em;
     }
     table .colAuthor {
-        max-width: 13%;
+       /*max-width: 13%;*/
+       width: 0pt;
     }
     td {
         padding: 10px 8px;
@@ -237,10 +244,12 @@ th {
     .colUrl {
     /* min-width needed for compatibility with firefox, width for compatibility with chrome */
         width: 30pt;
-        min-width: 30pt;
     }
     .colYear {
-        min-width: 45pt;
+        width: 45pt;
+    } 
+    .colPublication {
+        width: 150pt;
     } 
 }
 
@@ -285,33 +294,33 @@ th {
 
 td {
     vertical-align: top;
-    border-bottom: 1px solid lightgray;
+    border-bottom: 1px solid #CEE1F2;
     margin: 0px;
 }
 
 /* add stripes to table */
 #tablehead:nth-child(odd) {
-    background-color: #f2f2f2;
+    background-color: rgb(255, 255, 255);;
 }
 
 /* Hover over table rows */
 #tablehead:hover td {
-    background: #dbf5fa;
+    background: #6d8092;
     }
 
 /* make table header look nice */
 th {
     text-align: left;
-    color: #fff;
-    background-color: #3a4a52;
-    border-color: oldlace; 
+    color: rgb(255, 255, 255);
+    background-color: #7C92A6;
+    border-color: rgb(255, 255, 255); 
     position: sticky;
     padding: 0;
     top: 0px;
 }
 
 table a {
-    color: white;
+    color:rgb(255, 255, 255);
     text-decoration: none;
 }
 
@@ -320,21 +329,21 @@ th a {
     padding: 4px 10px;
 }
 th:hover {
-    background-color: #4d6e80
+    background-color: #6d8092;
 }
 
 .clickable:hover {
-    background-color: #d6e2eb;
+    background-color: #e4f3ff;
     cursor: pointer;
 }
 
 a.externalUrl {
-    color: #fff;
-    background-color: #3a4a52;
-    border-radius: 2px;
+    color: rgb(255, 255, 255);;
+    background-color: #A3A685;
+    border-radius: 4px;
 }
 a.externalUrl:hover {
-    background-color: #4d6e80;
+    background-color: #888a6d;
 }
 
 .typeicon {
@@ -344,23 +353,24 @@ a.externalUrl:hover {
 
 .hidden_row { 
     display: none; 
-    background-color: lavender;
+    background-color: #EEF2B6;
 }
 
 .hidden_content {
-    padding: 5px 10px;
+    padding: 5px 5px;
     font-size: 1.1em;
+    margin-left: 15px;
+    margin-right: 15px;
     text-align: justify;
-    width: 90%;
 }
 
 .hidden_left {
-    background-color: #7796a8;
+    background-color: #CEE1F2;
 }
 
 /* Admin Header*/
 .header {
-    background-color: lightsteelblue;
+    background-color: #CEE1F2;
     border: 0;
     font-size: 1.2em;
     padding: 15px 0px;
@@ -382,8 +392,8 @@ a.externalUrl:hover {
     margin: 0 auto;
 }
 
-mark    {
-    background-color:#fffd95;
+mark{
+    background-color:#EEF2B6;
 }
 
 .hiddenRowContent {
@@ -395,7 +405,7 @@ mark    {
 }
 
 #sourcecode {
-    background: #b5d0d8;
+    background: #CEE1F2;
     color: black;
     text-decoration: none;
     margin-left: 5px;
