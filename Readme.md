@@ -239,4 +239,4 @@ In case of issues a restart may be necessary
 
 ## Contributors
 
-[Tom Knuf](https://github.com/Tomptez/), [Nate Breznau](https://github.com/nbreznau)
+[Tom Knuf](https://github.com/Tomptez/), [Nate Breznau](https://github.com/nbreznau), [Karen Kuribayashi](https://github.com/karenkuri)
