@@ -43,7 +43,18 @@ It was developed specifically as part of the German Science Foundation funded pr
 First make sure you have installed [git](https://github.com/git-for-windows/git/releases/latest), `Bash` (which comes with git on windows) and [Python](https://www.python.org/downloads/) version 3.9 or newer. You also need `pip` which will usually be installed together with python on Windows and Mac.
 You will also need [PostgreSQL](https://www.postgresql.org/download/) to create the database. For Mac, we recommend you to use [Postgres.app](https://postgresapp.com). Depending on your system you may need [Microsoft Visual C++](https://visualstudio.microsoft.com/visual-cpp-build-tools/) installed and/or updated.
 
+#### Elasticsearch for testing
 Optionally, if you want to make use of advanced searching capabilities and search through the fulltext of the articles, [Elasticsearch](https://github.com/elastic/elasticsearch) needs to be installed - [Windows instructions here](https://www.elastic.co/guide/en/elasticsearch/reference/current/zip-windows.html).
+
+When using docker this can be done as follows (note that this installation is not a sufficient for production and should only be used for testing)
+
+    docker pull docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    docker volume create es-data
+
+Now you can run elasticsearch as follows
+
+    docker run -p 127.0.0.1:9200:9200 -p 127.0.0.1:9300:9300 -e "discovery.type=single-node" -e "xpack.security.enabled=false" --mount source=es-data,target=/usr/share/elasticsearch/data docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+
 
 <a id="installation"></a>
 
