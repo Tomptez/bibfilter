@@ -7,6 +7,7 @@
     <!-- Bootstrap CSS -->
     <link type="text/css" rel="stylesheet"  href="{{ url_for('static', filename='css/main.css') }}" />
     <link rel="icon"  href="{{ url_for('static', filename='img/favicon.ico') }}">
+    <style> input[type=radio]{accent-color: #7C92A6; border-color:#7C92A6;}</style>
 </head>
 <body>
 <script src="{{ url_for('static', filename='js/jquery-3.6.0.slim.min.js') }}"></script>
@@ -54,11 +55,11 @@
                     
                     <li class="fieldsetcontainer">
                         <fieldset class="source">
-                            <legend>Literature Type</legend>
+                            <p style = font-weight:bold> Literature Type </p>
                             <table style="width:100%" class="fieldset_table">
                                 <tr>
                                     <td><p><label> <input type="radio" name="type" value="article" {% if args["type"] == "article" %} checked {% endif %}> Article </label></p></td>
-                                    <td><p><label> <input type="radio" name="type" value="book" {% if args["type"] == "book" %} checked {% endif %}> Book(chapter) </label></p></td>
+                                    <td><p><label> <input type="radio" name="type" value="book" {% if args["type"] == "book" %} checked {% endif %}> Book (chapter) </label></p></td>
                                 </tr>
                                 <tr>
                                     <td><p><label> <input type="radio" name="type" value="other" {% if args["type"] == "other" %} checked {% endif %}> Other </label></p></td>
@@ -79,13 +80,12 @@
                 
             </div>
         </div>
-
         <div id="add-box">
             <p><b>Suggest a new article </b><br>
             <a href="{{ suggestLink }}" class="button linkButton" target="_blank" rel="noopener noreferrer">Suggest</a></p>
             <p>
-                <b>Source Code on </b><br>
-                <a href="https://github.com/Tomptez/bibfilter.git" class="button linkButton" target="_blank" rel="noopener noreferrer"> Gitlab </a>
+                <b>Source code on </b><br>
+                <a href="https://github.com/Tomptez/Bibfilter" class="button linkButton" target="_blank" rel="noopener noreferrer"> GitHub </a>
             </p>
         </div>
     </div>
@@ -94,7 +94,5 @@
         {{ table }}
     </div>
 </div>
-
-
 </body>
 </html>

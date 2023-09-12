@@ -1,7 +1,5 @@
 function showHideRow(row) { 
- 
-    $('.hidden_row').hide();
-
+    //$('.hidden_row').hide();
     $("#" + row).toggle(); 
 }
 
@@ -15,8 +13,10 @@ function insertHiddenRows() {
     //  Make rows clickable to toggle hidden rows for abstract etc.
     // let is needed otherswise the onclick function doesn't work properly
     for (let i = 1; i < rows.length; i++) {
+        $("#" + row).toggle(); 
         if (rows[i].className == "clickable"){
-            rows[i].onclick = function() { showHideRow('hidden_row'+i)};
+            rows[i].onclick = function() { 
+                showHideRow('hidden_row'+i)};
             // rows[i].onclick = function(j) { return function() {showHideRow('hidden_row'+j); }; }(i);
         }
     }
