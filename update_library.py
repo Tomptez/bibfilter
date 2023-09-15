@@ -26,6 +26,7 @@ report = {"new" : 0, "updated" : 0, "existed" : 0, "deleted": 0}
 
 # Retrieve the environment variables regarding zotero
 libraryID = os.environ["LIBRARY_ID"]
+APIkey = os.environ["APIkey"]
 
 try:
     collectionID = os.environ["COLLECTION_ID"]
@@ -233,7 +234,7 @@ def getZoteroItems(Q):
     :returns: Nothing
     """
     # Connect to the zotero database
-    zot = zotero.Zotero(libraryID, "group")
+    zot = zotero.Zotero(libraryID, "group", api_key = APIkey)
     items = None
     
     try:

@@ -68,7 +68,8 @@ def readAttachedPDF(articleID, title, Q):
         connectionError = False
         
         libraryID = os.environ["LIBRARY_ID"]
-        zot = zotero.Zotero(libraryID, "group")
+        APIkey = os.environ["APIkey"]
+        zot = zotero.Zotero(libraryID, "group", APIkey)
         attachments = zot.children(articleID)
 
         # Goes through each attachment if there is any
