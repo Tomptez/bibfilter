@@ -5,6 +5,10 @@ from flask_marshmallow import Marshmallow
 from flask_basicauth import BasicAuth
 from dotenv import load_dotenv
 import os
+import atexit
+import logging
+from logging.handlers import SMTPHandler
+
 load_dotenv()
 
 def get_env_variable(name):
@@ -55,5 +59,24 @@ db = SQLAlchemy(app)
 ma = Marshmallow(app)
 # Init BasicAuth
 basic_auth = BasicAuth(app)
+
+# sending an email notification once it fails
+if not app.debug:
+    app.logger.setLevel(logging.WARNING)
+
+    mail_handler = SMTPHandler(
+        mailhost=("smtp.gmail.com", 587),
+        fromaddr="socialpolicyprefs@gmail.com",
+        toaddrs=["socialpolicyprefs@gmail.com"],  
+        subject="Flask application error"
+    )
+    mail_handler.setLevel(logging.ERROR)
+    app.logger.addHandler(mail_handler)
+
+def cleanup():
+    app.logger.warning("Bibfilter is shutting down.")
+
+# Register the cleanup function
+atexit.register(cleanup)
 
 from bibfilter import routes
