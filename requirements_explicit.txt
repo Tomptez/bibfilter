@@ -1,0 +1,18 @@
+elastic-transport
+elasticsearch-dsl
+Flask-BasicAuth
+Flask-Cors
+Flask-Limiter
+flask-marshmallow
+Flask-SQLAlchemy
+Flask-Table @ git+https://github.com/Tomptez/flask_table.git
+gunicorn
+marshmallow-sqlalchemy
+MarkupSafe
+pdfminer.six
+psycopg2
+PyPDF2
+python-dotenv
+pyzotero
+schedule
+Unidecode

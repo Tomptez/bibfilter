@@ -1,4 +1,5 @@
-from flask import request, render_template, redirect, url_for, Markup, send_file
+from flask import request, render_template, redirect, url_for, send_file
+from markupsafe import Markup
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from sqlalchemy.sql.expression import asc, desc
@@ -27,7 +28,7 @@ limiter_URI = os.getenv("MEMCACHED_URL")
 
 # Rate limiting Setup
 limiter = Limiter(
-    app,
+    app=app,
     key_func=get_remote_address,
     default_limits=["100/minute"],
     storage_uri=limiter_URI,
@@ -184,17 +185,22 @@ def selectEntries(args, bibfile=False):
     # How to order the results
     orderby = direction(getattr(Article, args["sort"]))
     
-    # Desired columns
-    columns = [Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract]            
+
     
     ## Return all columns when exporting as bibfile, otherwise only return columns needed for the table
     if bibfile:
         requested_articles = db.session.query(Article).\
             filter(*filters).order_by(orderby)
+        print(Article.__table__.columns)
     else:
+        # Desired columns
+        columns = [Article.icon, Article.authorlast, Article.year, Article.title, Article.publication, Article.url, Article.abstract]
         requested_articles = db.session.query(*columns).\
             filter(*filters).order_by(orderby)
-                
+
+        # Convert to dictionary
+        requested_articles = [{column.name: getattr(article, column.name) for column in columns} for article in requested_articles]
+
     return requested_articles
 
 class ItemTable(Table):
@@ -361,8 +367,7 @@ def createTable(arguments, bibfile=False):
         items = []
     
         for item in requested_articles:
-            item = dict(item)
-                
+
             if item["url"] != "":
                 item["url"] = Markup(f'<a class="externalUrl" target="_blank" href="{item["url"]}">Source</a>')
             
@@ -401,6 +406,7 @@ def get_bibfile():
 
     dbib = BibDatabase()
     dbib.entries = articles
+    print(next(iter(dbib.entries)))
     bibtex_str = bibtexparser.dumps(dbib)
     string_out = io.BytesIO(bytes(bibtex_str, 'utf-8'))
     return send_file(string_out, mimetype="text/plain", download_name="results.bib", as_attachment=True)

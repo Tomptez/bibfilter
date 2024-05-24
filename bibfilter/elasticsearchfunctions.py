@@ -89,15 +89,21 @@ def createElasticsearchIndex():
     return_val = True
     try:
         es = getElasticClient()
+    except Exception as e:
+        print(e)
+        print("ERROR: createElasticsearchIndex() Could not create index")
+        return False
+
+    try:
         if not es.indices.exists(index="bibfilter-index"):
             es.indices.create(index="bibfilter-index", body=elasticMapping)
             print("Created Elasticsearch index")
+        es.close()
     except Exception as e:
         print(e)
         print("ERROR: createElasticsearchIndex() Could not create index")
         return_val = False
     finally:
-        es.close()
         return return_val
     
 

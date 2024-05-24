@@ -82,22 +82,27 @@ def readAttachedPDF(articleID, title, Q):
                         pdfID = each["data"]["key"]
                         # Save attachment as pdf
                         zot.dump(pdfID, 'zot_article.pdf')
+
                         
                         with open('zot_article.pdf', 'rb') as file:
                             pdfFile = PdfFileReader(file)
                             totalPages = pdfFile.getNumPages()
+
                         
                         # Parse only first 60 pages at maximum
                         totalPages = min(60, totalPages)
                         
                         # Set paramters of extraction
                         laparam = LAParams(detect_vertical=True)
+
                         # get content of pdf
                         # Parsing over only a few pages seperately may take longer but uses less memory
                         step = 3
                         for pg in range(0, totalPages, step):
                             content += extract_text('zot_article.pdf', page_numbers=list(range(pg, pg+step)), laparams=laparam)
                         
+
+
                         # Check length of content
                         if len(content) < 4000:
                             content = faceProblem(title, "Problem: extracted content shorter than expected, aborted extraction")
@@ -151,8 +156,8 @@ def readAttachedPDF(articleID, title, Q):
                         print("Successfully extracted content")
                         break
             except Exception as e:
-                    print(title)
-                    print("Error when trying to read attachments/PDFs")
+
+                    print(f"Error when trying to read attachments/PDFs. \n Article Name: {title}. \nError message:")
                     print(e)
                     continue
     except zotero_errors.HTTPError:
