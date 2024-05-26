@@ -156,7 +156,7 @@ fieldset td {
     padding: 0.2em 1em; 
     color: white;
     border: 0;
-    border-radius: 0.5em; 
+    border-radius: 0.3em; 
     width: 50%;
     margin-top: 0.5em;
     margin-left: 0.5em; 
@@ -180,20 +180,20 @@ fieldset td {
 }
 
 .linkButton:hover {
-    background-color: #888a6d;
+    background-color: #6d8092;
 }
 
 .linkButton {
-    background: #A3A685;
+    background: #7C92A6;
     color: white;
     text-decoration: none;
     margin-left: 0.5em; 
     margin-top: 0.2em; 
     margin-bottom: 0.2em; 
-    padding: 0.4em 1em; 
+    padding: 0.3em 1em; 
     display: inline-block;
     font-weight: bold;
-    border-radius: 0.5em;
+    border-radius: 0.3em;
 }
 
 #sortrelevance {
@@ -231,30 +231,29 @@ th {
 
 @media (min-width: 451px) {
     th a {
-        font-size: 1.1em;
+        font-size: 1.1em;   
     }
     table {
         font-size: 1em;
     }
     table .colAuthor {
-        width: 0; 
+        max-width: 10%;
     }
     td {
         padding: 0.375em 0.25em; 
     }
 
     a.externalUrl {
-        padding: 0.125em; 
+        padding: 0.2em 0.4em; 
     }
 
     .colUrl {
-        width: 1.875em; 
+        /* min-width needed for compatibility with firefox, width for compatibility with chrome */
+        width: 30pt;
+        min-width: 30pt;
     }
     .colYear {
         width: 2.8125em; 
-    }
-    .colPublication {
-        width: 9.375em; 
     }
 }
 
@@ -330,7 +329,7 @@ table a {
 
 th a {
     display: block;
-    padding: 0.2em 0.625em; 
+    padding: 0.3em 0.625em; 
 }
 
 th:hover {
@@ -344,12 +343,11 @@ th:hover {
 
 a.externalUrl {
     color: rgb(255, 255, 255);
-    background-color: #A3A685;
-    border-radius: 0.4em; 
+    background: #7C92A6;
 }
 
 a.externalUrl:hover {
-    background-color: #888a6d;
+    background-color: #6d8092;
 }
 
 .typeicon {
@@ -359,7 +357,7 @@ a.externalUrl:hover {
 
 .hidden_row {
     display: none;
-    background-color: #EEF2B6;
+    background-color: #fafaff;
 }
 
 .hidden_content {
@@ -371,7 +369,7 @@ a.externalUrl:hover {
 }
 
 .hidden_left {
-    background-color: #CEE1F2;
+    background-color: #7C92A6;
 }
 
 /* Admin Header */
@@ -401,7 +399,7 @@ a.externalUrl:hover {
 }
 
 mark {
-    background-color: #EEF2B6;
+    background-color: #fff89a;
 }
 
 .hiddenRowContent {

@@ -114,13 +114,13 @@ def readAttachedPDF(articleID, title, Q):
                         end = int(len(content) / 3.5)
                         
                         # Find the position of references to then only index text before the references. \W means any non-word character
-                        iterString = 'REFERENCES|References|[\W|\n][R|r][E|e][F|f][E|e][R|r][E|e][N|n][C|c][E|e][S|s]|[\W|\n][R|r] [E|e] [F|f] [E|e] [R|r] [E|e] [N|n] [C|c] [E|e] [S|s]|[B|b][I|i][B|b][L|l][I|i][O|o][G|g][R|r][A|a][P|p][H|h][Y|y]'
+                        iterString = r'REFERENCES|References|[\W|\n][R|r][E|e][F|f][E|e][R|r][E|e][N|n][C|c][E|e][S|s]|[\W|\n][R|r] [E|e] [F|f] [E|e] [R|r] [E|e] [N|n] [C|c] [E|e] [S|s]|[B|b][I|i][B|b][L|l][I|i][O|o][G|g][R|r][A|a][P|p][H|h][Y|y]'
                         
                         # Cover cases where there is tons of \n newlines in the scanned code:
                         if content.count("\n") > 0:
                             if len(content) / content.count("\n") < 4:
                                 content = content.replace("\n", "")
-                                iterString = 'REFERENCES|References|[R|r][E|e][F|f][E|e][R|r][E|e][N|n][C|c][E|e][S|s]|[R|r] [E|e] [F|f] [E|e] [R|r] [E|e] [N|n] [C|c] [E|e] [S|s]|[B|b][I|i][B|b][L|l][I|i][O|o][G|g][R|r][A|a][P|p][H|h][Y|y]'
+                                iterString = r'REFERENCES|References|[R|r][E|e][F|f][E|e][R|r][E|e][N|n][C|c][E|e][S|s]|[R|r] [E|e] [F|f] [E|e] [R|r] [E|e] [N|n] [C|c] [E|e] [S|s]|[B|b][I|i][B|b][L|l][I|i][O|o][G|g][R|r][A|a][P|p][H|h][Y|y]'
                         
                         i = re.finditer(iterString, content[end:])
                         # the variable last refers to the last "references" word in the text. It is used to crop off the references at the end of the articles. last.start() is the start of the word "references"
@@ -135,8 +135,8 @@ def readAttachedPDF(articleID, title, Q):
                             pass
                             
                         # Check if CID code / character Ratio. If too high don't use it
-                        ratio = (len(re.findall("\(cid:\d+\)", content)) / len(content) * 100)
-                        if (len(re.findall("\(cid:\d+\)", content)) / len(content) * 100) > 6:
+                        ratio = (len(re.findall(r"\(cid:\d+\)", content)) / len(content) * 100)
+                        if (len(re.findall(r"\(cid:\d+\)", content)) / len(content) * 100) > 6:
                             content = faceProblem(title, "Content contains mostly CID")
                             break
                         
@@ -147,11 +147,11 @@ def readAttachedPDF(articleID, title, Q):
                             break
 
                         # Remove all CID codes from content if there is any
-                        content = re.sub("\(cid:\d+\)", '', content)
+                        content = re.sub(r"\(cid:\d+\)", '', content)
                         # Remove unnecessary whitespace
-                        content = re.sub("\s{3,}", '\n\n', content)
+                        content = re.sub(r"\s{3,}", '\n\n', content)
                         
-                        references = re.sub("\(cid:\d+\)", '', references)
+                        references = re.sub(r"\(cid:\d+\)", '', references)
 
                         print("Successfully extracted content")
                         break
