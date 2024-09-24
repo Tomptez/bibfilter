@@ -79,10 +79,10 @@ def getElasticClient():
             es = Elasticsearch(ELASTIC_URL, http_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
         else:
             es = Elasticsearch(ELASTIC_URL, ca_certs=ELASTIC_CERTIFICATE, http_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
-            print(es.info())
     except Exception as e:
         print("ERROR: getElasticClient() couldn't connect to elasticsearch")
         print(e)
+    print(f"Able to connect to elasticsearch? {es.ping()}")
     return es
 
 def createElasticsearchIndex():
@@ -90,9 +90,11 @@ def createElasticsearchIndex():
     try:
         es = getElasticClient()
     except Exception as e:
-        print(e)
-        print("ERROR: createElasticsearchIndex() Could not create index")
         return False
+
+    # return if no connection possible
+    if es.ping() == False:
+        return es.ping()
 
     try:
         if not es.indices.exists(index="bibfilter-index"):
@@ -100,8 +102,8 @@ def createElasticsearchIndex():
             print("Created Elasticsearch index")
         es.close()
     except Exception as e:
-        print(e)
         print("ERROR: createElasticsearchIndex() Could not create index")
+        print(e)
         return_val = False
     finally:
         return return_val
