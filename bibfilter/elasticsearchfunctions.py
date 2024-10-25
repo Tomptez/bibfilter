@@ -1,5 +1,8 @@
 import os
 from elasticsearch import Elasticsearch
+from dotenv import load_dotenv
+
+load_dotenv()
 
 elasticMapping = {
     "settings": {
@@ -63,7 +66,7 @@ elasticMapping = {
     }
 }
 
-ELASTIC_URL = os.environ.get("ELASTICSEARCH_URL")
+ELASTIC_URL = os.environ.get("ELASTICSEARCH_URL", None)
 ELASTIC_PASSWORD = os.environ.get("ELASTICSEARCH_PASSWORD", None)
 ELASTIC_USERNAME = os.environ.get("ELASTICSEARCH_USERNAME", "elastic")
 ELASTIC_CERTIFICATE = os.environ.get("ELASTICSEARCH_CERTIFICATE", None)
@@ -76,13 +79,13 @@ def getElasticClient():
         if not ELASTIC_PASSWORD:
             es = Elasticsearch(ELASTIC_URL)
         elif not ELASTIC_CERTIFICATE:
-            es = Elasticsearch(ELASTIC_URL, http_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
+            es = Elasticsearch(ELASTIC_URL, basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
         else:
-            es = Elasticsearch(ELASTIC_URL, ca_certs=ELASTIC_CERTIFICATE, http_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
+            es = Elasticsearch(ELASTIC_URL, ca_certs=ELASTIC_CERTIFICATE, basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD))
     except Exception as e:
         print("ERROR: getElasticClient() couldn't connect to elasticsearch")
         print(e)
-    print(f"Able to connect to elasticsearch? {es.ping()}")
+    #print(f"getElasticClient(): Able to connect to elasticsearch? {es.ping()}")
     return es
 
 def createElasticsearchIndex():
@@ -113,6 +116,9 @@ def createElasticsearchIndex():
 def elasticsearchCheck():    
     if os.environ.get("USE_ELASTICSEARCH").upper() == "TRUE":
         useElasticSearch = createElasticsearchIndex()
+        if useElasticSearch == False:
+            elastic_vars={"ELASTIC_URL": None if ELASTIC_URL == None else "set", "ELASTIC_PASSWORD": None if ELASTIC_PASSWORD == None else "set", "ELASTIC_USERNAME":None if ELASTIC_USERNAME == None else "set", "ELASTIC_CERTIFICATE": None if ELASTIC_CERTIFICATE == None else "set"}
+            print(f"Couldn't connect to Elasticsearch. \nEnvironment variables: {elastic_vars}")
         return useElasticSearch
     else:
         return False

@@ -38,11 +38,11 @@ psycopg2==2.9.9
 pycparser==2.22
 Pygments==2.18.0
 pyparsing==3.1.2
-PyPDF2==3.0.1
+pypdf==5.0.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 pytz==2024.1
-pyzotero==1.5.19
+pyzotero==1.5.25
 requests==2.32.2
 rich==13.7.1
 schedule==1.2.1

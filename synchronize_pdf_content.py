@@ -14,7 +14,7 @@ from pyzotero import zotero, zotero_errors
 import os
 from pdfminer.high_level import extract_text
 from pdfminer.layout import LAParams
-from PyPDF2 import PdfFileReader
+from pypdf import PdfReader
 from multiprocessing import Process, Queue
 import time
 
@@ -68,8 +68,9 @@ def readAttachedPDF(articleID, title, Q):
         connectionError = False
         
         libraryID = os.environ["LIBRARY_ID"]
+        libraryType = os.environ.get("LIBRARY_TYPE", "group")
         APIkey = os.environ["APIkey"]
-        zot = zotero.Zotero(libraryID, "group", APIkey)
+        zot = zotero.Zotero(libraryID, libraryType, APIkey)
         attachments = zot.children(articleID)
 
         # Goes through each attachment if there is any
@@ -85,8 +86,8 @@ def readAttachedPDF(articleID, title, Q):
 
                         
                         with open('zot_article.pdf', 'rb') as file:
-                            pdfFile = PdfFileReader(file)
-                            totalPages = pdfFile.getNumPages()
+                            pdfFile = PdfReader(file)
+                            totalPages = len(pdfFile.pages)
 
                         
                         # Parse only first 60 pages at maximum

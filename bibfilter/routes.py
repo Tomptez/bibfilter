@@ -24,7 +24,7 @@ import io
 load_dotenv()
 
 # How to keep track of site visits using lask_limiter
-limiter_URI = os.getenv("MEMCACHED_URL")
+limiter_URI = os.getenv("MEMCACHED_URL", "memory://")
 
 # Rate limiting Setup
 limiter = Limiter(
@@ -150,7 +150,9 @@ class unaccent(ReturnTypeFromArgs):
     """
     Class needed to ignore accents when using SQL. Not that the unaccent extension needs to be installed in postgreSQL
     """
-    pass
+    def __init__(self, radius):
+        # set to make use of make SQL compilation caching
+        self.inherit_cache = True
 
 def selectEntries(args, bibfile=False):
     """

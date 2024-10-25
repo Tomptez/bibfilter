@@ -17,6 +17,7 @@ from bibfilter.elasticsearchfunctions import elasticsearchCheck, getElasticClien
 from synchronize_pdf_content import analyzeArticles
 from multiprocessing import Process, Queue
 from sqlalchemy.sql import func
+import traceback
 
 # List to store key of all items in zotero to later check if some of the items in the database have been deleted in zotero
 zotero_keylist = []
@@ -27,6 +28,7 @@ report = {"new" : 0, "updated" : 0, "existed" : 0, "deleted": 0}
 # Retrieve the environment variables regarding zotero
 libraryID = os.environ["LIBRARY_ID"]
 APIkey = os.environ["APIkey"]
+libraryType = os.environ.get("LIBRARY_TYPE", "group")
 
 try:
     collectionID = os.environ["COLLECTION_ID"]
@@ -55,7 +57,7 @@ def deleteOld():
         count = 0
         for entry in request:
             if entry.ID not in zoteroKeys:
-                print(f"delete {entry.title}")
+                print(f"remove from db: {entry.title}")
                 ## If article was indexed by elasticsearch but elasticsearch server is down, do nothing
                 if entry.elasticIndexed and not useElasticSearch:
                     print(f"Couldn't connect to elasitcsearch. Therefore didn't delete {entry.title}")
@@ -134,11 +136,12 @@ def formatArticleData(item):
 
 def checkItem(item):
     """
-    Adds an zotero Item to DB if it didn't exist before, updates it if it has changed or does nothing if it exists an hasn't changed
+    Adds an zotero Item to DB if it didn't exist before, updates it if it has changed or does nothing if it exists and hasn't changed
 
     :param item: Item of a zotero library given by pyzotero API
     :returns: (1,0,0) when adding new item, (0,1,0) when updating, (0,0,1) when item existed
     """
+
     global zotero_keylist
     global report
 
@@ -184,14 +187,15 @@ def checkItem(item):
         except:
             return False
 
-        csv_bib_pattern = {"journalArticle": "article", "book": "book", "conferencePaper": "inproceedings", "manuscript": "article", "bookSection": "incollection", "webpage": "inproceedings", "techreport": "article", "letter": "misc", "report": "report", "document": "misc", "thesis": "thesis"}
+        ## How to save article types to be compatible with .bib export
+        csv_bib_pattern = {"journalArticle": "article", "book": "book", "conferencePaper": "inproceedings", "manuscript": "article", "bookSection": "incollection", "webpage": "inproceedings", "techreport": "article", "letter": "misc", "report": "report", "document": "misc", "thesis": "thesis", "preprint": "misc"}
 
         # Create a new Database entry with all the attributes
         new_art = Article(title = content["title"],
                             url = content["url"],
                             # publisher=publisher, 
                             ID = content["key"], 
-                            ENTRYTYPE = csv_bib_pattern[content["itemType"]],
+                            ENTRYTYPE = csv_bib_pattern.get(content["itemType"], "misc"),
                             author = content["author"],
                             authorlast = content["authorlast"],
                             year = content["itemYear"],
@@ -234,7 +238,7 @@ def getZoteroItems(Q):
     :returns: Nothing
     """
     # Connect to the zotero database
-    zot = zotero.Zotero(libraryID, "group", api_key = APIkey)
+    zot = zotero.Zotero(libraryID, libraryType, APIkey)
     items = None
     
     try:
@@ -245,7 +249,7 @@ def getZoteroItems(Q):
         else:
             items = zot.everything(zot.collection_items_top(collectionID))
     except Exception as e:
-        print(e)
+        print(traceback.format_exc())
     finally:    
         Q.put(items)
         return
@@ -271,7 +275,7 @@ def synchronizeZoteroDB():
         else:
             print(f"Retrieved {len(items)} items from Zotero database")
     except Exception as e:
-        print(e)
+        print(traceback.format_exc())
         print("Connection to Zotero was interrupted. Stop synchronization")
         return
     finally:
@@ -312,15 +316,22 @@ def updateDatabase():
             db.create_all()
         
         # Connect to the zotero database
-        zot = zotero.Zotero(libraryID, "group")
+        zot = zotero.Zotero(libraryID, libraryType, APIkey)
 
         if collectionID == None:
             items = zot.top(limit=1)
         else:
             items = zot.collection_items_top(collectionID, limit=1)
 
-        newestModified = items[0]["data"]["dateModified"]
+        ## Written like this to skip edge cases with no dateModified
+        newestModified = None
+        ix = 0
+        while newestModified == None:
+            newestModified = items[ix]["data"].get("dateModified", None)
+            ix += 1
         
+        newestModified = items[0]["data"]["dateModified"]
+
         with app.app_context():
             newestInDB = db.session.query(func.max(Article.date_modified)).scalar()
             syncNeeded = (newestModified != newestInDB) 
@@ -332,7 +343,7 @@ def updateDatabase():
             print("Checked Zotero for new articles: Nothing to update")        
         
     except Exception as e:
-        print(e)
+        print(traceback.format_exc())
         print("Problem: Unable to retrieve dateModified of newest zotero item. Possible reeasons: Zotero server is down, COLLECTION_ID or LIBRARY_ID wrong or library is not accessible through the API")
     
     with app.app_context():
