@@ -88,7 +88,7 @@ def getElasticClient():
     #print(f"getElasticClient(): Able to connect to elasticsearch? {es.ping()}")
     return es
 
-def createElasticsearchIndex():
+def elasticsearchIndex():
     return_val = True
     try:
         es = getElasticClient()
@@ -104,8 +104,12 @@ def createElasticsearchIndex():
             es.indices.create(index="bibfilter-index", body=elasticMapping)
             print("Created Elasticsearch index")
         es.close()
+    except elasticsearch.exceptions.RequestError as ex:
+        # can in some use cases happen even though indices.exists() was checked before
+        if ex.error == 'resource_already_exists_exception':
+            pass # Index already exists. Ignore.
     except Exception as e:
-        print("ERROR: createElasticsearchIndex() Could not create index")
+        print("ERROR: elasticsearchIndex() Could not create index")
         print(e)
         return_val = False
     finally:
@@ -115,7 +119,7 @@ def createElasticsearchIndex():
 # Check if the elasticsearch environment variable is set, if a connection is possible and bibfilter-index exists
 def elasticsearchCheck():    
     if os.environ.get("USE_ELASTICSEARCH").upper() == "TRUE":
-        useElasticSearch = createElasticsearchIndex()
+        useElasticSearch = elasticsearchIndex()
         if useElasticSearch == False:
             elastic_vars={"ELASTIC_URL": None if ELASTIC_URL == None else "set", "ELASTIC_PASSWORD": None if ELASTIC_PASSWORD == None else "set", "ELASTIC_USERNAME":None if ELASTIC_USERNAME == None else "set", "ELASTIC_CERTIFICATE": None if ELASTIC_CERTIFICATE == None else "set"}
             print(f"Couldn't connect to Elasticsearch. \nEnvironment variables: {elastic_vars}")

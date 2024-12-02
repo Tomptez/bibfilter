@@ -239,6 +239,9 @@ th {
     table .colAuthor {
         max-width: 10%;
     }
+    .colTitle {
+        min-width: 43%;
+    }
     td {
         padding: 0.375em 0.25em; 
     }
@@ -285,7 +288,7 @@ th {
 /* Additional adjustments for max-width: 901px */
 @media (max-width: 901px) {
     .colTitle {
-        min-width: 30%;
+        min-width: 35%;
     }
 }
 

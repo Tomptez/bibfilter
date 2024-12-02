@@ -15,7 +15,7 @@ from unidecode import unidecode
 from dotenv import load_dotenv
 from flask_table import Table, Col, OptCol
 import time
-from bibfilter.elasticsearchfunctions import elasticsearchCheck, getElasticClient, createElasticsearchIndex
+from bibfilter.elasticsearchfunctions import elasticsearchCheck, getElasticClient, elasticsearchIndex
 from elasticsearch_dsl import Search
 from elasticsearch_dsl import Q
 from multiprocessing import Process
@@ -39,16 +39,16 @@ showSearchQuotes = os.environ.get("SHOW_SEARCH_QUOTES").upper() == "TRUE"
 
 if showSearchQuotes:
     try:
-        quoteSize = int(os.environ.get("SEARCH_QUOTE_SIZE"))
-        if quoteSize > 1200:
-            quoteSize = 1200
+        quoteSize = int(os.environ.get("SEARCH_QUOTE_SIZE", 500))
+        if quoteSize > 1100:
+            quoteSize = 1100
     except:
         quoteSize = 300
 else:
     print("SHOW_SEATCH_QUOTES not set or set to FALSE")
 
 # Link where Literature suggestions can be submitted
-suggestLink = os.environ["SUGGEST_LITERATURE_URL"]
+SUGGEST_LINK = os.environ["SUGGEST_LITERATURE_URL"]
 
 # Connect to elasticSearch if it's suppoed to be used
 useElasticSearch = elasticsearchCheck()
@@ -85,7 +85,7 @@ def clearDB():
     print("Created database")
     if useElasticSearch:
         es.indices.delete(index='bibfilter-index', ignore=[400, 404])
-        createElasticsearchIndex()
+        elasticsearchIndex()
     
     return redirect("/admin")
 
@@ -111,9 +111,9 @@ def resyncDB():
 def admin():
     """ Return admin page """
     arguments = request.args
-    table, args, args_get_str, numResults, suggestLink = createTable(arguments)
+    table, args, args_get_str, numResults = createTable(arguments)
     lastSync = zotero_last_sync_date()
-    return render_template("admin.html", table=table, args=args, getStr=args_get_str, numResults=numResults, suggestLink=suggestLink, lastSync=lastSync)
+    return render_template("admin.html", table=table, args=args, getStr=args_get_str, numResults=numResults, suggestLink=SUGGEST_LINK, lastSync=lastSync)
 
 ######################################### ADMIN END ########################
 
@@ -154,7 +154,76 @@ class unaccent(ReturnTypeFromArgs):
         # set to make use of make SQL compilation caching
         self.inherit_cache = True
 
-def selectEntries(args, bibfile=False):
+def selectEntriesES(arguments, args, bibfile):
+    """
+    Function to select the correct articles from Elasticsearch based on the selection done by the user in the frontent
+
+    :param arguments: Uncleaned keywords to filter the literature by (e.g. title, author, timestart, until, type, sortby, sort_order)
+    :param args: Cleaned keywords to filter the literature by (e.g. title, author, timestart, until, type, sortby, sort_order)
+    :returns: ObjectApiResponse
+    """
+    s = Search(using=es, index='bibfilter-index')
+    if args["search"].strip() != "":
+        searchphrase = args["search"].strip().lower()
+        q1 = Q("multi_match", type="phrase", slop=400, query=searchphrase, fields=["abstract", "articleFullText"], minimum_should_match="80%")
+        q2 = Q("wildcard", author=f'*{searchphrase}*')
+        q3 = Q("wildcard", title=f'*{searchphrase}*')
+        q = Q('bool',
+            should=[q1, q2, q3],
+            minimum_should_match=1 )
+        s = s.query(q)
+
+        s = s.query(q)
+    if args["title"].strip() != "":
+        s = s.query(Q("wildcard", title=f'*{args["title"].strip().lower()}*'))
+    if args["author"].strip() != "":
+        s = s.query(Q("wildcard", author=f'*{args["author"].strip().lower()}*'))
+    if args["timestart"].strip() != "":
+        s = s.query('range', **{'year': {'gte': int(args["timestart"].strip())}})
+    if args["until"].strip() != "":
+        s = s.query('range', **{'year': {'lte': int(args["until"].strip())}})
+
+    arType = args["type"].strip()
+    if arType == "other":
+        s = s.exclude("match", icon="article")
+        s = s.exclude("match", icon="book")
+    elif arType == "article" or arType == "book":
+        q = Q("match", icon=arType)
+        s = s.query(q)
+
+    s = s.highlight('abstract', number_of_fragments=0, pre_tags=["<mark>"], post_tags=["</mark>"])
+    if showSearchQuotes:
+        s = s.highlight("articleFullText", type="fvh", fragment_size=quoteSize, boundary_scanner="word", pre_tags=["<mark>"], post_tags=["</mark>"])
+
+    s = s.highlight_options(boundary_scanner="sentence", encoder="html", order="score", boundary_chars="\n")
+
+    # Obtain number of results
+    totalRes = s.count()
+    # Specify to return ALL results and not only the first 10 (default)
+    s = s[:totalRes]
+
+    # Sort the results. If no attribute is specified, it is sorting by search score
+    if arguments.get("sort") != None:
+        order = arguments.get("sort")
+        if order != "year":
+            order += ".keyword"
+        s = s.sort({order:{"order": args.get("direction")}})
+
+    response = s.execute()
+
+    if bibfile:
+        return response
+
+    else:
+        items = formatESResponse(response)
+        # args need to be passed so the filter isn't reset when sorting
+        table = ItemTable(args=args, items=items, sort_by=args["sort"], sort_reverse=args["reverse"])
+
+        numResults = len(response)
+
+        return table, args, numResults
+
+def selectEntriesDB(args, bibfile=False):
     """
     Function to select the correct articles from SQL based on the selection done by the user in the frontent
     
@@ -266,7 +335,7 @@ def formatESResponse(response):
                 else:
                     abstract = each["abstract"]
                 if "articleFullText" in each.meta.highlight:
-                    highlights = "<b>Text results</b><br>"+" (...)<br><br>".join(each.meta.highlight.articleFullText)
+                    highlights = "<br><b>Text results</b><br>"+" (...)<br><br>".join(each.meta.highlight.articleFullText)
                 else:
                     highlights = ""
             else:
@@ -274,7 +343,7 @@ def formatESResponse(response):
                 highlights = ""
             
             if abstract != "":
-                abstract = f"<b>ABSTRACT<br></b><br>{abstract}<br>"
+                abstract = f"<b>ABSTRACT</b><br>{abstract}<br>"
             if not (highlights == "" and abstract == ""):
                 item["abstract"] = Markup("<div class='hidden_content'>" + abstract + highlights +"</div>")
             else:
@@ -294,77 +363,28 @@ def createTable(arguments, bibfile=False):
     
     :param arguments: Keywords to filter the literature by (e.g. title, author, timestart, until, type, sortby, sort_order)
     :param bibfile: True if you want to get items in a format for a bibfile instead of and HTML table. Defaults to true
-    :returns: table (as HTML), args (dict of filter arguments), args_get_str (filter arguments as URL string), numResults (int), suggestLink (string of URL)
+    :returns: table (as HTML), args (dict of filter arguments), args_get_str (filter arguments as URL string), numResults (int)
     """
     args = cleanArguments(arguments)
     args_get_str = argsURLFormat(arguments)
     
-    # Query items from database
-    begin = time.time()
-    
+    ## Timer for testing
+    #begin = time.time()
+
     # Use elasticsearch if enabled via environment variable
-    if useElasticSearch:
-        s = Search(using=es, index='bibfilter-index')
-        if args["search"].strip() != "":
-            q = Q("multi_match", type="phrase", slop=400, query=args["search"], fields=['title', 'author', "abstract", "articleFullText"], minimum_should_match="80%")
-            s = s.query(q)
-        if args["title"].strip() != "":
-            s = s.query("match", title=args["title"])
-        if args["author"].strip() != "":
-            s = s.query("match", author=args["author"])
-        if args["timestart"].strip() != "":
-            s = s.query('range', **{'year': {'gte': int(args["timestart"].strip())}})
-        if args["until"].strip() != "":
-            s = s.query('range', **{'year': {'lte': int(args["until"].strip())}})
-            
-        arType = args["type"].strip()
-        if arType == "other":
-            s = s.exclude("match", icon="article")
-            s = s.exclude("match", icon="book")
-        elif arType == "article" or arType == "book":
-            q = Q("match", icon=arType)
-            s = s.query(q)
-        
-        s = s.highlight('abstract', number_of_fragments=0, pre_tags=["<mark>"], post_tags=["</mark>"])
-        if showSearchQuotes:
-            s = s.highlight("articleFullText", type="fvh", fragment_size=quoteSize, boundary_scanner="word", pre_tags=["<mark>"], post_tags=["</mark>"])
-        
-        s = s.highlight_options(boundary_scanner="sentence", encoder="html", order="score", boundary_chars="\n")
-            
-        # Obtain number of results
-        totalRes = s.count()
-        # Specify to return ALL results and not only the first 10 (default)
-        s = s[:totalRes]
-        
-        # Sort the results. If no attribute is specified, it is sorting by search score
-        if arguments.get("sort") != None:
-            order = arguments.get("sort")
-            if order != "year":
-                order += ".keyword"
-            s = s.sort({order:{"order": args.get("direction")}})
-        
-        response = s.execute()
-        
+    if useElasticSearch and not (args["search"].strip() == "" and args["title"].strip() == "" and args["author"].strip() == ""):
         if bibfile:
-            return response
-        
+            return selectEntriesES(arguments, args, bibfile)
         else:
-            items = formatESResponse(response)
-            # args need to be passed so the filter isn't reset when sorting
-            table = ItemTable(args=args, items=items, sort_by=args["sort"], sort_reverse=args["reverse"])
-            
-            numResults = len(response)
-            
-            end = time.time()
-            print(f"Finished loading in {end - begin:.4f} seconds\n")
-            return table, args, args_get_str, numResults, suggestLink
+            table, args, numResults,  = selectEntriesES(arguments, args, bibfile)
+            return table, args, args_get_str, numResults
     
     else:
         if bibfile:
-            requested_articles = selectEntries(args, bibfile=True)
+            requested_articles = selectEntriesDB(args, bibfile=True)
             return requested_articles
         else:
-            requested_articles = selectEntries(args)
+            requested_articles = selectEntriesDB(args)
         
         items = []
     
@@ -387,9 +407,9 @@ def createTable(arguments, bibfile=False):
         
         numResults = len(items)
         
-        end = time.time()
-        print(f"Finished loading in {end - begin:.4f} seconds\n")
-        return table, args, args_get_str, numResults, suggestLink
+        #end = time.time()
+        #print(f"Finished loading in {end - begin:.4f} seconds\n")
+        return table, args, args_get_str, numResults
 
 # Declare bibliography schma as defined in models.py
 bibliography_schema = BibliographySchema(many=True)
@@ -423,5 +443,5 @@ def index():
 def main():
     """ Return main page """
     arguments = request.args
-    table, args, args_get_str, numResults, suggestLink = createTable(arguments)
-    return render_template("main.html", table=table, args=args, getStr=args_get_str, numResults=numResults, suggestLink=suggestLink)
+    table, args, args_get_str, numResults = createTable(arguments)
+    return render_template("main.html", table=table, args=args, getStr=args_get_str, numResults=numResults, suggestLink=SUGGEST_LINK)
