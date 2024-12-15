@@ -35,7 +35,7 @@ It was developed specifically as part of the German Science Foundation funded pr
 
 
 <a id="docker"></a>
-### How to run the applicaiton using Docker Compose
+## How to run the application using Docker Compose
 Using docker-compose is the easiest option to run bibfilter as the provided docker-compose.yml shows an example how to run bibfilter with a complete setup including postgresql and elasticsearch. For that you need to have Docker and docker-compose installed (For ubuntu based systems, we recommend using the package 'docker-compose-v2').
 After pulling the repository run
 
