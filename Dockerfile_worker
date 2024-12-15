@@ -1,0 +1,17 @@
+FROM python:3.12-slim
+
+RUN apt-get update && apt-get install -y git libpq-dev gcc
+
+COPY requirements.txt /
+
+RUN pip3 install --upgrade pip
+
+RUN pip3 install -r /requirements.txt
+
+COPY bibfilter/__init__.py bibfilter/elasticsearchfunctions.py bibfilter/routes.py bibfilter/models.py /app/bibfilter/
+
+COPY update_library.py synchronize_pdf_content.py /app
+
+WORKDIR /app
+
+CMD ["python","-u", "update_library.py"]

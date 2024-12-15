@@ -1,0 +1,69 @@
+services:
+  web:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    env_file:
+      - .env
+    networks:
+      - default
+    ports:
+      - 80:80
+    restart: always
+  worker:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile_worker
+    depends_on:
+      db:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    env_file:
+      - .env
+    networks:
+      - default
+    restart: always
+  db:
+    env_file:
+      - .env
+    image: postgres:latest
+    networks:
+      - default
+    # expose only makes container available to the linked services, not on the host machine
+    expose:
+      - 5432
+    restart: always
+    volumes:
+        - ./dbscripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.4.1
+    environment:
+    - "cluster.name=elasticsearch"
+    - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+    - "ES_PORT=127.0.0.1:9200"
+    - "discovery.type=single-node"
+    - ELASTIC_USERNAME=elastic
+    - ELASTIC_PASSWORD=MagicWord
+    - xpack.security.enabled=true
+    - cluster.routing.allocation.disk.threshold_enabled=true
+    - cluster.routing.allocation.disk.watermark.flood_stage=2gb
+    - cluster.routing.allocation.disk.watermark.low=8gb
+    - cluster.routing.allocation.disk.watermark.high=4gb
+    # expose only makes container available to the linked services, not on the host machine
+    expose:
+      - 9200
+    healthcheck:
+      test: "curl http://elasticsearch:9200"
+      interval: "1s"
+      timeout: "3s"
+      retries: 60

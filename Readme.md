@@ -14,36 +14,56 @@ It was developed specifically as part of the German Science Foundation funded pr
 
 ## Table of contents
 
-1. [How to run the application on your local computer](#howto)
+1. [How to run the application using Docker Compose](#docker)
+2. [Bulding the application manually](#manually)
    
-   [1.1 Prerequisites](#pre)
+   [2.1 Prerequisites](#pre)
    
-   [1.2 Installation](#installation)
+   [2.2 Installation](#installation)
    
-   [1.3 Setting up environment variables](#env-var)
+   [2.3 Setting up environment variables](#env-var)
    
-   [1.4 Normal Usage](#normal)
+   [2.4 Normal Usage](#normal)
 
-2. [Deploying the application](#deploy)
+3. [Deploying the application via Dokku](#deploy)
    
-   [2.1 Setting up the application for dokku](#setup)
+   [3.1 Setting up the application for dokku](#setup)
    
-   [2.2 Updating the application remotely](#update)
+   [3.2 Updating the application remotely](#update)
    
-   [2.3 Restarting the Application](#restart)
+   [3.3 Restarting the Application](#restart)
 
-<a id="howto"></a>
 
-## How to run the application on your local computer
+<a id="docker"></a>
+### How to run the applicaiton using Docker Compose
+Using docker-compose is the easiest option to run bibfilter as the provided docker-compose.yml shows an example how to run bibfilter with a complete setup including postgresql and elasticsearch. For that you need to have Docker and docker-compose installed (For ubuntu based systems, we recommend using the package 'docker-compose-v2').
+After pulling the repository run
+
+    cp example.env .env
+
+And edit the .env file so that it reflects your zotero library and other variables according to your needs (For a more detailed explanation see [Setting up environment variables](#env-var)).
+
+After that, simply run
+
+	docker compose build
+
+To build the application.
+You can then run the application by running
+
+	docker compose up
+
+The provided docker-compose.yml provides a tested example configuration, but should be configured according to your needs before using it in a production environment.
+
+<a id="manually"></a>
+## Bulding the application manually
 
 <a id="pre"></a>
-
-### Prerequisites
+#### Prerequisites
 
 First make sure you have installed [git](https://github.com/git-for-windows/git/releases/latest), `Bash` (which comes with git on windows) and [Python](https://www.python.org/downloads/) version 3.9 or newer. You also need `pip` which will usually be installed together with python on Windows and Mac.
 You will also need [PostgreSQL](https://www.postgresql.org/download/) to create the database. For Mac, we recommend you to use [Postgres.app](https://postgresapp.com). Depending on your system you may need [Microsoft Visual C++](https://visualstudio.microsoft.com/visual-cpp-build-tools/) installed and/or updated.
 
-#### Elasticsearch for testing
+##### Elasticsearch for testing
 Optionally, if you want to make use of advanced searching capabilities and search through the fulltext of the articles, [Elasticsearch](https://github.com/elastic/elasticsearch) needs to be installed - [Windows instructions here](https://www.elastic.co/guide/en/elasticsearch/reference/current/zip-windows.html).
 
 When using docker this can be done as follows (note that this installation is not a sufficient for production and should only be used for testing)
@@ -58,7 +78,7 @@ Now you can run elasticsearch as follows
 
 <a id="installation"></a>
 
-### Installation
+#### Installation
 
 Next, clone the repository to your local machine from your (git) bash terminal
 
@@ -119,7 +139,7 @@ Then you can select the database and install the unaccent extension
 
 <a id="env-var"></a>
 
-### Setting up environment variables
+#### Setting up environment variables
 
 ---
 **NOTE**
@@ -175,7 +195,7 @@ or just close the terminal.
 
 <a id="normal"></a>
 
-### Normal Usage
+#### Normal Usage
 
 After the initial setup when you want to start the application, you should first open the repository folder in your bash terminal.
 
@@ -195,7 +215,7 @@ After activating the virtual environment, you can start the flask app with
 
 ***
 <a id="deploy"></a>
-## Deploying the application
+## Deploying the application via Dokku
 
 There are several ways to put the bibfilter application online. 
 Here we will explain how to get bibfilter running on a servere using dokku.
@@ -285,8 +305,6 @@ In case of issues a restart may be necessary
 
 <!-- comment to end list -->
     dokku ps:start bibfilter
-
-
 
 ## Contributors
 
